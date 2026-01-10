@@ -19,6 +19,7 @@
   * Ensure all tests pass and the application runs correctly.
 * A **Pull Request (PR)** is required for every merge into `main`.
 * **No direct commits to `main`** are allowed, `main` is thus deactivated pretected from direct merge.
+* **Use 'Issues' to monitor any bug and implement a 'TODO' list for the team.
 
 #### Code Review Policy
 
