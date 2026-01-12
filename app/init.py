@@ -12,6 +12,19 @@ import os
 from flask import Flask
 
 from app.config.logging_config import get_logging_config
+from app.dummy.db import DummyDB
+
+
+
+
+
+class AppContext(Flask):
+    """Typing
+    Define the class of app context objects
+    Cleanest way I now to enable typing on Flask app context
+    """
+
+    dummy: DummyDB
 
 
 def create_app() -> Flask:
@@ -31,6 +44,18 @@ def create_app() -> Flask:
 
     logger = logging.getLogger(__name__)
     logger.info("Starting Flask application")
+
+    # Load configuration
+    with app.app_context():
+        app.dummy = DummyDB()
+
+    # Init pages routes
+    from .routes import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+
+    # Init backend ajax 
+    from .ajax import ajax as ajax_blueprint
+    app.register_blueprint(ajax_blueprint, url_prefix='/ajax')
 
     return app
 

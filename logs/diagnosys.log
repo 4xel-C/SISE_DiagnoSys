@@ -10,3 +10,41 @@
 [2026-01-12 23:59:34,688] INFO [app.init:33] - Starting Flask application
 [2026-01-12 23:59:49,986] INFO [app.init:33] - Starting Flask application
 [2026-01-12 23:59:50,190] INFO [app.init:33] - Starting Flask application
+[2026-01-13 02:25:06,503] INFO [app.init:33] - Starting Flask application
+[2026-01-13 02:26:13,647] INFO [app.init:46] - Starting Flask application
+[2026-01-13 02:27:30,666] INFO [app.init:46] - Starting Flask application
+[2026-01-13 02:27:57,162] INFO [app.init:46] - Starting Flask application
+[2026-01-13 02:28:28,588] INFO [app.init:46] - Starting Flask application
+[2026-01-13 02:28:32,476] ERROR [app.init:875] - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/app/routes.py", line 19, in context
+    patients = app.dummy.patients()
+               ^^^^^^^^^
+AttributeError: 'Flask' object has no attribute 'dummy'
+[2026-01-13 02:28:33,299] ERROR [app.init:875] - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/app/routes.py", line 19, in context
+    patients = app.dummy.patients()
+               ^^^^^^^^^
+AttributeError: 'Flask' object has no attribute 'dummy'
+[2026-01-13 02:29:03,885] INFO [app.init:46] - Starting Flask application
+[2026-01-13 02:29:15,122] INFO [app.init:46] - Starting Flask application
+[2026-01-13 10:14:40,589] INFO [app.init:46] - Starting Flask application

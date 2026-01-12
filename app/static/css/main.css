@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');
+
+
+:root {
+    --text-color: #2A2A2A;
+    --text-second-color: #828282;
+    --bg-color: #F7F8FE;
+    --bg-second-color: white;
+    --bg-frame-color: #F7F7F7;
+    --bg-selected-color: #EBE5FC;
+    --border-color: #F2F2F2;
+    --border-radius: 12px;
+    --accent-color: #8359E8;
+    --accent-second-color: #5f99ff;
+    --bad-color: #ff4d4d;
+    --good-color: #4EA252;
+    --neutral-color: #ffa64d;
+}
+
+* {
+    list-style: none;
+    text-decoration: none;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    font-family: 'SF Pro Display', sans-serif;
+    font-size: 14px;
+    user-select: none;
+    box-sizing: border-box;
+    outline: none;
+}
+
+/* Main page */
+
+html {
+    height: 100%;
+    background-color: var(--bg-color);
+}
+
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+}
+
+/* Main format */
+
+img {
+    filter: invert(8%);
+}
