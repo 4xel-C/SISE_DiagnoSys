@@ -58,6 +58,42 @@
   * Must not contain calculations or business rules
   * Must not implement complex logic or data transformations
   * Should only orchestrate calls to services and format input/output
+  
+#### Logger usasge
+3. Utilisation dans chaque fichier
+
+En haut de CHAQUE fichier :
+import logging
+logger = logging.getLogger(__name__)
+
+Dans le code :
+```python
+# app/routes/query.py
+import logging
+logger = logging.getLogger(__name__)  # 'app.routes.query'
+
+@bp.route('/query')
+def query():
+    logger.info("Requête reçue")
+
+    try:
+        result = process()
+        logger.debug(f"Résultat: {result}")
+        return result
+    except ValueError as e:
+        logger.warning(f"Validation échouée: {e}")
+    except Exception as e:
+        logger.exception(f"Erreur: {e}")  # Avec stack trace
+```
+
+4. Niveaux de log
+
+logger.debug("Détails techniques")      # Développement
+logger.info("Opération normale")        # Confirmation
+logger.warning("Situation anormale")    # Attention
+logger.error("Erreur fonctionnelle")    # Échec
+logger.exception("Erreur avec trace")   # Dans except
+logger.critical("Erreur fatale")        # Application KO
 
 #### Final Principle
 

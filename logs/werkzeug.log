@@ -1,0 +1,50 @@
+[2026-01-12 23:37:09,445] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:37:09,447] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:39:55,666] INFO [werkzeug:97] - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2026-01-12 23:39:55,666] INFO [werkzeug:97] - [33mPress CTRL+C to quit[0m
+[2026-01-12 23:39:55,667] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:39:55,852] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:39:55,854] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:41:11,078] INFO [werkzeug:97] -  * Detected change in 'c:\\Users\\axel-\\Documents\\Coding\\SISE_DiagnoSys\\app\\config\\logging_config.py', reloading
+[2026-01-12 23:41:11,104] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:41:11,292] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:41:11,294] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:44:24,666] INFO [werkzeug:97] - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2026-01-12 23:44:24,667] INFO [werkzeug:97] - [33mPress CTRL+C to quit[0m
+[2026-01-12 23:44:24,667] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:44:24,840] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:44:24,842] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:57:08,103] INFO [werkzeug:97] -  * Detected change in 'c:\\Users\\axel-\\Documents\\Coding\\SISE_DiagnoSys\\app\\config\\logging_config.py', reloading
+[2026-01-12 23:57:08,122] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:57:08,308] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:57:08,310] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:57:32,285] INFO [werkzeug:97] - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2026-01-12 23:57:32,285] INFO [werkzeug:97] - [33mPress CTRL+C to quit[0m
+[2026-01-12 23:57:32,286] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:57:32,466] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:57:32,468] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:58:39,681] INFO [werkzeug:97] -  * Detected change in 'c:\\Users\\axel-\\Documents\\Coding\\SISE_DiagnoSys\\app\\config\\logging_config.py', reloading
+[2026-01-12 23:58:39,701] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:58:39,884] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:58:39,886] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:58:54,939] INFO [werkzeug:97] -  * Detected change in 'c:\\Users\\axel-\\Documents\\Coding\\SISE_DiagnoSys\\app\\config\\logging_config.py', reloading
+[2026-01-12 23:58:54,958] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:58:55,144] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:58:55,146] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:59:18,222] INFO [werkzeug:97] -  * Detected change in 'c:\\Users\\axel-\\Documents\\Coding\\SISE_DiagnoSys\\app\\config\\logging_config.py', reloading
+[2026-01-12 23:59:18,241] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:59:18,423] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:59:18,426] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:59:34,481] INFO [werkzeug:97] -  * Detected change in 'c:\\Users\\axel-\\Documents\\Coding\\SISE_DiagnoSys\\app\\config\\logging_config.py', reloading
+[2026-01-12 23:59:34,501] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:59:34,697] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:59:34,699] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-12 23:59:50,005] INFO [werkzeug:97] - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+[2026-01-12 23:59:50,006] INFO [werkzeug:97] - Press CTRL+C to quit
+[2026-01-12 23:59:50,006] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-12 23:59:50,200] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-12 23:59:50,202] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
