@@ -44,22 +44,38 @@
     </nav>
    <main>
         <div class="diagnostics">
-            <div class="frame">
-                <button id="start">Start recording</button>
-                <button id="stop">Stop recording</button>
-            </div>
+            <div class="frame"></div>
             <div class="frame"></div>
             <div class="frame"></div>
         </div>
         <div class="audio-record">
-            <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px">
-            <h3>Appuyez sur `enter` pour commencer l'enregistrement</h3>
+            <div class="content">
+                <div class="stoped">
+                    <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
+                    <div class="label">
+                        <h3>Appuyez sur</h3>
+                        <div class="tag">
+                            <p>Alt</p>
+                        </div>
+                        <p>+</p>
+                        <div class="tag">
+                            <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
+                            <p>espace</p>
+                        </div>
+                        <h3>pour commencer l'enregistrement</h3>
+                    </div>
+                </div>
+                <div class="started">
+                    <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="20px" class="record">
+                </div>
+            </div>
             <div class="circle-overlay animation-1"></div>
             <div class="circle-overlay animation-2"></div>
         </div>
    </main>
 </body>
 
+<script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}"></script>
 <script src="{{ url_for('static', filename='js/audio-record.js') }}"></script>
 

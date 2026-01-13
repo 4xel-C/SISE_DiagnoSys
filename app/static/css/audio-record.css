@@ -1,14 +1,16 @@
+@property --a {
+	syntax: '<angle>';
+	initial-value: 0deg;
+	inherits: false
+}
+
+
 main .audio-record {
     height: 30%;
-    /* background-color: var(--accent-color); */
     border-radius: var(--border-radius);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: .6rem;
     position: relative;
     overflow: hidden;
+    transition: height .3s ease;
 
     * {
         color: white;
@@ -18,12 +20,42 @@ main .audio-record {
         filter: invert(1);
     }
 
+    .content {
+        text-align: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transition: left .3s ease;
+
+        .stoped {
+            img.mic {
+                margin-bottom: .6rem;
+            }
+        }
+
+        .started {
+            display: none;
+
+            img.record {
+                animation: blink 2s linear infinite;
+            }
+        }
+
+        .label > * {
+            display: inline-block;
+        }
+    }
+
     .circle-overlay {
         position: absolute;
-        width: 30%;
+        width: 40%;
         aspect-ratio: 1;
         border-radius: 100%;
         z-index: -1;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         
     }
     .circle-overlay.animation-1 {
@@ -39,6 +71,36 @@ main .audio-record {
     }
 }
 
+main .audio-record::before {
+	position: absolute;
+	inset: -1em;
+	border: solid 1.25em;
+	    border-image: conic-gradient(from var(--a), var(--accent-color), var(--bg-selected-color), var(--accent-color), var(--bg-selected-color), var(--accent-color)) .5;
+	filter: blur(1rem);
+	animation: a 8s linear infinite;
+	content: ''
+}
+
+main .audio-record.streaming {
+    height: 15%;
+
+    .content {
+        left: 2rem;
+        transform: translateY(-50%);
+
+        .stoped {
+            display: none;
+        }
+        .started {
+            display: block;
+        }
+    }
+}
+
+@keyframes a { 
+    to { --a: 1turn } 
+}
+
 @keyframes zoomIn {
     from {
         width: 30%;
@@ -47,5 +109,14 @@ main .audio-record {
     to {
         width: 120%;
         opacity: 1;
+    }
+}
+
+@keyframes blink {
+    0%, 49.999% {
+        opacity: 1;
+    }
+    50%, 100% {
+        opacity: 0;
     }
 }
