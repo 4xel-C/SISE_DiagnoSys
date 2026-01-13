@@ -34,6 +34,7 @@ def create_app() -> Flask:
     Returns:
         Flask: Configured Flask application instance
     """
+
     # Create logs directory if needed
     os.makedirs("logs", exist_ok=True)
 
@@ -41,11 +42,11 @@ def create_app() -> Flask:
     logging.config.dictConfig(get_logging_config())
 
     app = Flask(__name__)
-
+    
     logger = logging.getLogger(__name__)
     logger.info("Starting Flask application")
 
-    # Load configuration
+    # Instantiate global classes in app context
     with app.app_context():
         app.dummy = DummyDB()
 
@@ -53,8 +54,9 @@ def create_app() -> Flask:
     from .routes import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
-    # Init backend ajax 
-    from .ajax import ajax as ajax_blueprint
+    # Init ajax endpoints + websocket
+    from .ajax import ajax as ajax_blueprint, sock
+    sock.init_app(app)
     app.register_blueprint(ajax_blueprint, url_prefix='/ajax')
 
     return app

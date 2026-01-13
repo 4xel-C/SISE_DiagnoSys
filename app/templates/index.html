@@ -39,9 +39,13 @@
             {% endfor %}
         </ul>
     </nav>
-   <main></main>
+   <main>
+    <button id="start">Start recording</button>
+    <button id="stop">Stop recording</button>
+   </main>
 </body>
 
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/audio-record.js') }}"></script>
 
 </html>
