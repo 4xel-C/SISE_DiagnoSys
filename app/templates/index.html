@@ -7,8 +7,11 @@
    <title>DiagnoSys</title>
    <!-- Custom Style -->
    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
    <link rel="stylesheet" href="{{ url_for('static', filename='css/_components.css') }}">
    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu-bar.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnostics.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
    <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
 </head>
 
@@ -40,8 +43,20 @@
         </ul>
     </nav>
    <main>
-    <button id="start">Start recording</button>
-    <button id="stop">Stop recording</button>
+        <div class="diagnostics">
+            <div class="frame">
+                <button id="start">Start recording</button>
+                <button id="stop">Stop recording</button>
+            </div>
+            <div class="frame"></div>
+            <div class="frame"></div>
+        </div>
+        <div class="audio-record">
+            <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px">
+            <h3>Appuyez sur `enter` pour commencer l'enregistrement</h3>
+            <div class="circle-overlay animation-1"></div>
+            <div class="circle-overlay animation-2"></div>
+        </div>
    </main>
 </body>
 

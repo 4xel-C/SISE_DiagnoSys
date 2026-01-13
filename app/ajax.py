@@ -6,7 +6,6 @@ front end. No complex logic.
 """
 
 from typing import cast
-import io
 
 from flask import Blueprint, current_app
 from flask_sock import Sock

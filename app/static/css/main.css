@@ -11,7 +11,6 @@
     --border-color: #F2F2F2;
     --border-radius: 12px;
     --accent-color: #8359E8;
-    --accent-second-color: #5f99ff;
     --bad-color: #ff4d4d;
     --good-color: #4EA252;
     --neutral-color: #ffa64d;
@@ -30,22 +29,12 @@
     outline: none;
 }
 
-/* Main page */
 
-html {
-    height: 100%;
-    background-color: var(--bg-color);
+/* Global formatting */
+
+h3 {
+    font-weight: 400;
 }
-
-body {
-    height: 100%;
-}
-
-body {
-    display: flex;
-}
-
-/* Main format */
 
 img {
     filter: invert(8%);

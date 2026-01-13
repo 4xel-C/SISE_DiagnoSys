@@ -20,7 +20,7 @@ startButton.addEventListener('click', async () => {
         }
     };
 
-    mediaRecorder.start(2000); // send data every 250ms
+    mediaRecorder.start(250); // send data every 250ms
     startButton.disabled = true;
     stopButton.disabled = false;
 });

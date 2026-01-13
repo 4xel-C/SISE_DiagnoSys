@@ -1,0 +1,17 @@
+main .diagnostics {
+    height: 70%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+
+    .frame {
+        background-color: var(--bg-second-color);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+    }
+
+    .frame:first-child {
+        grid-row: 1 / span 2;
+    }
+}

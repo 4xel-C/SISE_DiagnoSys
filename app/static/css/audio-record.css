@@ -1,0 +1,51 @@
+main .audio-record {
+    height: 30%;
+    /* background-color: var(--accent-color); */
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    position: relative;
+    overflow: hidden;
+
+    * {
+        color: white;
+    }
+
+    img {
+        filter: invert(1);
+    }
+
+    .circle-overlay {
+        position: absolute;
+        width: 30%;
+        aspect-ratio: 1;
+        border-radius: 100%;
+        z-index: -1;
+        
+    }
+    .circle-overlay.animation-1 {
+        opacity: 0;
+        animation: zoomIn .6s ease-out forwards;
+        background-color: var(--bg-selected-color)
+    }
+    .circle-overlay.animation-2 {
+        opacity: 0;
+        animation: zoomIn .6s ease-out forwards;
+        animation-delay: .2s;
+        background-color: var(--accent-color);
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        width: 30%;
+        opacity: 0;
+    }
+    to {
+        width: 120%;
+        opacity: 1;
+    }
+}
