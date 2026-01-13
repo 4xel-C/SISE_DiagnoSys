@@ -48,3 +48,18 @@
 [2026-01-12 23:59:50,006] INFO [werkzeug:97] -  * Restarting with stat
 [2026-01-12 23:59:50,200] WARNING [werkzeug:97] -  * Debugger is active!
 [2026-01-12 23:59:50,202] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-13 12:34:51,973] INFO [werkzeug:97] - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+[2026-01-13 12:34:51,973] INFO [werkzeug:97] - Press CTRL+C to quit
+[2026-01-13 12:34:51,980] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-13 12:34:52,097] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-13 12:34:52,102] INFO [werkzeug:97] -  * Debugger PIN: 594-519-609
+[2026-01-13 12:34:58,071] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET / HTTP/1.1" 200 -
+[2026-01-13 12:34:58,082] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /static/images/settings.svg HTTP/1.1" 200 -
+[2026-01-13 12:34:58,084] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /static/css/main.css HTTP/1.1" 200 -
+[2026-01-13 12:34:58,085] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /static/js/menu-bar.js HTTP/1.1" 200 -
+[2026-01-13 12:34:58,085] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /static/css/_components.css HTTP/1.1" 200 -
+[2026-01-13 12:34:58,085] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /static/css/menu-bar.css HTTP/1.1" 200 -
+[2026-01-13 12:34:58,088] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /static/images/info.svg HTTP/1.1" 200 -
+[2026-01-13 12:34:58,088] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /static/js/audio-record.js HTTP/1.1" 200 -
+[2026-01-13 12:34:58,175] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 12:34:58] "GET /favicon.ico HTTP/1.1" 404 -
