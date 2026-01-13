@@ -6,10 +6,9 @@ front end. No complex logic.
 """
 
 from typing import cast
-import io
 
 from flask import Blueprint, current_app
-from flask_sock import Sock
+from flask_sock import Sock, ConnectionClosed
 
 from .init import AppContext
 
@@ -28,10 +27,14 @@ sock = Sock()
 
 @sock.route('/audio_stt')
 def audio_stt(ws):
+    print('starting websocket')
     with open("received_audio.webm", "wb") as f:   # For testing only
-        while True:
-            data = ws.receive()
-            if data is None:
-                break
-            f.write(data)
-    print("Audio stream ended")
+        try:
+            while True:
+                print('received')
+                data = ws.receive()
+                if data is None:
+                    break
+                f.write(data)
+        except ConnectionClosed:
+            print("Audio stream ended")

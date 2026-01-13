@@ -13,3 +13,6 @@ wheels/
 .venv
 *-cwd
 .env
+
+# Custom 
+*.webm

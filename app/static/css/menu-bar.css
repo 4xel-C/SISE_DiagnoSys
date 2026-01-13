@@ -1,8 +1,4 @@
 nav#menu-bar {
-    width: 320px;
-    background-color: var(--bg-second-color);
-    border-right: solid 1px var(--border-color);
-    background-color: var(--bg-second-color);
 
     form.search {
         padding: .6rem;
@@ -33,6 +29,10 @@ nav#menu-bar {
         
         svg {
             font-weight: 600;
+
+            circle {
+                fill: var(--bg-frame-color);
+            }
         }
     }
 

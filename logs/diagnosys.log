@@ -51,10 +51,79 @@ AttributeError: 'Flask' object has no attribute 'dummy'
 [2026-01-13 11:13:54,847] INFO [app.init:47] - Starting Flask application
 [2026-01-13 11:16:52,155] INFO [app.init:47] - Starting Flask application
 [2026-01-13 11:25:27,545] INFO [app.init:47] - Starting Flask application
-[2026-01-13 12:34:42,320] INFO [app.init:47] - Starting Flask application
-[2026-01-13 12:34:51,894] INFO [app.init:47] - Starting Flask application
-[2026-01-13 12:34:52,070] INFO [app.init:47] - Starting Flask application
-[2026-01-13 13:43:21,840] INFO [app.init:47] - Starting Flask application
-[2026-01-13 13:43:21,985] INFO [app.init:47] - Starting Flask application
-[2026-01-13 13:44:26,033] INFO [app.init:47] - Starting Flask application
-[2026-01-13 13:44:26,158] INFO [app.init:47] - Starting Flask application
+[2026-01-13 11:41:37,413] INFO [app:47] - Starting Flask application
+[2026-01-13 11:42:06,905] INFO [app:47] - Starting Flask application
+[2026-01-13 12:36:45,428] INFO [app:47] - Starting Flask application
+[2026-01-13 12:45:59,651] INFO [app:47] - Starting Flask application
+[2026-01-13 12:47:43,785] INFO [app:47] - Starting Flask application
+[2026-01-13 12:50:04,065] INFO [app:47] - Starting Flask application
+[2026-01-13 12:50:14,112] INFO [app:47] - Starting Flask application
+[2026-01-13 12:53:56,685] INFO [app:47] - Starting Flask application
+[2026-01-13 12:54:13,759] INFO [app:47] - Starting Flask application
+[2026-01-13 12:57:10,978] INFO [app:47] - Starting Flask application
+[2026-01-13 13:09:17,167] INFO [app:47] - Starting Flask application
+[2026-01-13 13:15:46,958] INFO [app.init:47] - Starting Flask application
+[2026-01-13 13:57:40,560] INFO [app.init:47] - Starting Flask application
+[2026-01-13 14:59:57,726] INFO [app.init:47] - Starting Flask application
+[2026-01-13 15:00:32,971] INFO [app.init:47] - Starting Flask application
+[2026-01-13 15:03:44,603] INFO [app.init:47] - Starting Flask application
+[2026-01-13 15:04:17,894] INFO [app.init:47] - Starting Flask application
+[2026-01-13 15:05:00,131] INFO [app.init:47] - Starting Flask application
+[2026-01-13 15:06:19,671] INFO [app.init:47] - Starting Flask application
+[2026-01-13 15:08:19,503] INFO [app.init:47] - Starting Flask application
+[2026-01-13 16:28:14,491] INFO [app.init:47] - Starting Flask application
+[2026-01-13 16:32:33,430] INFO [app.init:47] - Starting Flask application
+[2026-01-13 16:37:00,010] INFO [app.init:47] - Starting Flask application
+[2026-01-13 16:38:39,230] INFO [app.init:47] - Starting Flask application
+[2026-01-13 16:38:45,749] ERROR [app.init:875] - Exception on /audio_stt [GET]
+Traceback (most recent call last):
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask_sock/__init__.py", line 62, in websocket_route
+    f(ws, *args, **kwargs)
+    ~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/app/ajax.py", line 38, in audio_stt
+    f.write(data)
+    ~~~~~~~^^^^^^
+TypeError: a bytes-like object is required, not 'str'
+[2026-01-13 16:41:06,021] INFO [app.init:47] - Starting Flask application
+[2026-01-13 16:42:20,061] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:08:48,481] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:10:07,062] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:11:43,705] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:16:39,879] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:19:14,187] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:19:19,124] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:21:22,347] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:22:10,646] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:29:00,324] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:29:13,299] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:44:25,551] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:44:56,779] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:45:31,207] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:46:45,605] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:47:44,408] INFO [app.init:47] - Starting Flask application
+[2026-01-13 17:53:05,688] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:01:26,479] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:04:12,907] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:05:15,900] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:09:14,887] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:16:43,441] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:17:04,537] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:17:30,428] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:34:19,856] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:34:38,990] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:35:12,708] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:36:33,450] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:37:41,839] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:38:12,834] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:38:29,727] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:39:41,726] INFO [app.init:47] - Starting Flask application
+[2026-01-13 18:41:09,877] INFO [app.init:47] - Starting Flask application
