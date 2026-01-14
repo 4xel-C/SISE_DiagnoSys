@@ -83,3 +83,25 @@
 [2026-01-13 13:44:31,976] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 13:44:31] "GET /static/css/_components.css HTTP/1.1" 304 -
 [2026-01-13 13:44:31,977] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 13:44:31] "GET /static/css/menu-bar.css HTTP/1.1" 304 -
 [2026-01-13 13:44:31,978] INFO [werkzeug:97] - 127.0.0.1 - - [13/Jan/2026 13:44:31] "GET /static/js/audio-record.js HTTP/1.1" 304 -
+[2026-01-14 22:09:39,797] INFO [werkzeug:97] - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+[2026-01-14 22:09:39,798] INFO [werkzeug:97] - Press CTRL+C to quit
+[2026-01-14 22:09:39,799] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-14 22:09:40,199] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-14 22:09:40,201] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-14 22:09:43,455] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET / HTTP/1.1" 200 -
+[2026-01-14 22:09:43,559] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/css/_components.css HTTP/1.1" 200 -
+[2026-01-14 22:09:43,562] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/css/main.css HTTP/1.1" 200 -
+[2026-01-14 22:09:43,562] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/css/layout.css HTTP/1.1" 200 -
+[2026-01-14 22:09:43,563] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/css/menu-bar.css HTTP/1.1" 200 -
+[2026-01-14 22:09:43,566] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/css/diagnostics.css HTTP/1.1" 200 -
+[2026-01-14 22:09:43,568] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/css/audio-record.css HTTP/1.1" 200 -
+[2026-01-14 22:09:43,570] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/js/_helpers.js HTTP/1.1" 200 -
+[2026-01-14 22:09:43,572] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/images/settings.svg HTTP/1.1" 200 -
+[2026-01-14 22:09:43,573] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/images/info.svg HTTP/1.1" 200 -
+[2026-01-14 22:09:43,574] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/images/mic.svg HTTP/1.1" 200 -
+[2026-01-14 22:09:43,574] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/images/key_space.svg HTTP/1.1" 200 -
+[2026-01-14 22:09:43,576] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/images/record.svg HTTP/1.1" 200 -
+[2026-01-14 22:09:43,584] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/js/menu-bar.js HTTP/1.1" 200 -
+[2026-01-14 22:09:43,588] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/js/audio-record.js HTTP/1.1" 200 -
+[2026-01-14 22:09:43,662] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /favicon.ico HTTP/1.1" 404 -

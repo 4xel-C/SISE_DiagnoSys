@@ -127,3 +127,11 @@ TypeError: a bytes-like object is required, not 'str'
 [2026-01-13 18:38:29,727] INFO [app.init:47] - Starting Flask application
 [2026-01-13 18:39:41,726] INFO [app.init:47] - Starting Flask application
 [2026-01-13 18:41:09,877] INFO [app.init:47] - Starting Flask application
+[2026-01-14 22:09:39,566] INFO [app.config.database:127] - Initializing database and creating tables if not exist.
+[2026-01-14 22:09:39,576] DEBUG [app.config.database:77] - SQLAlchemy engine created.
+[2026-01-14 22:09:39,577] INFO [app.config.database:129] - Database initialized successfully.
+[2026-01-14 22:09:39,577] INFO [app.init:48] - Starting Flask application
+[2026-01-14 22:09:40,164] INFO [app.config.database:127] - Initializing database and creating tables if not exist.
+[2026-01-14 22:09:40,171] DEBUG [app.config.database:77] - SQLAlchemy engine created.
+[2026-01-14 22:09:40,172] INFO [app.config.database:129] - Database initialized successfully.
+[2026-01-14 22:09:40,172] INFO [app.init:48] - Starting Flask application
