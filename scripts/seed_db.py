@@ -5,7 +5,6 @@ Initializes the database with dummy data for testing purposes.
 Run with: python -m scripts.seed_db
 """
 
-import os
 import sys
 from pathlib import Path
 

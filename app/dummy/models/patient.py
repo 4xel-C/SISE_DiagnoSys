@@ -3,13 +3,10 @@ from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 
-
-
-
 @dataclass
 class Patient:
     """Dummy patient dataclass"""
-    
+
     id: int
     first_name: str
     last_name: str
