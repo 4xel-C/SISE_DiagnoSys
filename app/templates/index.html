@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>DiagnoSys</title>
+   <!-- Custom Style -->
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/_components.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/menu-bar.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnostics.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
+   <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
+</head>
+
+<body>
+    <nav id="menu-bar">
+        <form action="" class="search" autocomplete="off">
+            <input type="text" name="query" placeholder="Rechercher un patient" autocomplete="off">
+        </form>
+        <ul class="internal">
+            <li>
+                <img src="{{ url_for('static', filename='images/settings.svg') }}" alt="" height="16px">
+                <p class="label">Réglages</p>
+            </li>
+            <li>
+                <img src="{{ url_for('static', filename='images/info.svg') }}" alt="" height="16px">
+                <p class="label">À propos</p>
+            </li>
+        </ul>
+        <ul class="patients">
+            {% for p in patients %}
+                <li data-patient-id="{{ p.id }}" class="{% if loop.first %}selected{% endif %}">
+                    <svg width="30" height="30" viewBox="0 0 30 30">
+                        <circle r="14" fill="var(--bg-selected-color)" cy="15" cx="15"></circle>
+                        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="40" fill="#333" dy=".05em">{{ p.initials }}</text>
+                    </svg>
+                    <p class="label">{{ p.first_name }} {{ p.last_name }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+   <main>
+        <div class="diagnostics">
+            <div class="frame"></div>
+            <div class="frame"></div>
+            <div class="frame"></div>
+        </div>
+        <div class="audio-record">
+            <div class="content">
+                <div class="stoped">
+                    <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
+                    <div class="label">
+                        <h3>Appuyez sur</h3>
+                        <div class="tag">
+                            <p>Alt</p>
+                        </div>
+                        <p>+</p>
+                        <div class="tag">
+                            <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
+                            <p>espace</p>
+                        </div>
+                        <h3>pour commencer l'enregistrement</h3>
+                    </div>
+                </div>
+                <div class="started">
+                    <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="20px" class="record">
+                </div>
+            </div>
+            <div class="circle-overlay animation-1"></div>
+            <div class="circle-overlay animation-2"></div>
+        </div>
+   </main>
+</body>
+
+<script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/menu-bar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/audio-record.js') }}"></script>
+
+</html>

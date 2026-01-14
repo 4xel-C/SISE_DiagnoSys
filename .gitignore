@@ -1,3 +1,6 @@
+# macOS
+.DS_Store
+
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -13,3 +16,5 @@ wheels/
 
 # Claude Code notes (local only)
 CLAUDE.md
+# Custom 
+*.webm
