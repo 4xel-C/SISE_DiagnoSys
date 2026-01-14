@@ -11,6 +11,7 @@ import os
 
 from flask import Flask
 
+from app.config.database import db
 from app.config.logging_config import get_logging_config
 
 
@@ -28,6 +29,9 @@ def create_app() -> Flask:
     logging.config.dictConfig(get_logging_config())
 
     app = Flask(__name__)
+
+    # Initialize database
+    db.init_db()
 
     logger = logging.getLogger(__name__)
     logger.info("Starting Flask application")

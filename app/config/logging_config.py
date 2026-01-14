@@ -24,7 +24,13 @@ class NoColorFormatter(logging.Formatter):
         return self.ANSI_ESCAPE.sub("", message)
 
 
-def get_logging_config():
+def get_logging_config() -> dict:
+    """Return the full configuration dictionnary for the logger. Set up the whole logger hierarchy.
+    Used in the application initialization to configure logging.
+
+    Returns:
+        dict: _description_
+    """
     app_name = os.getenv("APP_NAME", "diagnosys")
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 
@@ -64,6 +70,22 @@ def get_logging_config():
                 "level": "INFO",
                 "formatter": "no_color",  # Use no_color formatter for files
             },
+            "config_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": "logs/config.log",
+                "maxBytes": 10485760,  # 10MB
+                "backupCount": 1,
+                "level": log_level,
+                "formatter": "detailed",
+            },
+            "service_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": "logs/service.log",
+                "maxBytes": 10485760,  # 10MB
+                "backupCount": 2,
+                "level": log_level,
+                "formatter": "detailed",
+            },
         },
         # Define loggers for different parts of the application. getLogger(__name__) will find the correct module logger (hierarchical search).
         "loggers": {
@@ -75,6 +97,16 @@ def get_logging_config():
             "app": {
                 "level": log_level,
                 "handlers": ["console", "app_file"],
+                "propagate": False,
+            },
+            "config": {
+                "level": log_level,
+                "handlers": ["console", "config_file"],
+                "propagate": False,
+            },
+            "service": {
+                "level": log_level,
+                "handlers": ["console", "service_file"],
                 "propagate": False,
             },
         },
