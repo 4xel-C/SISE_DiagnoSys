@@ -1,3 +1,3 @@
-from config.database import db
+from app.config.database import db
 
 __all__ = ["db"]

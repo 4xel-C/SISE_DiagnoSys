@@ -59,7 +59,7 @@ class Database:
                 If not provided, uses DATABASE_PATH env var or defaults
                 to "diagnosys.db".
         """
-        self.db_path = db_path or os.getenv("DATABASE_PATH", "diagnosys.db")
+        self.db_path = db_path or os.getenv("DATABASE_PATH", "data/diagnosys.db")
         logger.debug(f"Initialisation: Database path set to: {self.db_path}")
         self._engine: Engine | None = None
         self._session_factory: sessionmaker | None = None
