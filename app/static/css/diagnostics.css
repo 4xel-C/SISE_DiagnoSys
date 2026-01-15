@@ -8,6 +8,7 @@ main .diagnostics {
     .frame {
         background-color: var(--bg-second-color);
         border-radius: var(--border-radius);
+        border: solid 1px var(--border-color);
         padding: 1rem;
     }
 

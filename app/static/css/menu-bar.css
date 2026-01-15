@@ -6,7 +6,7 @@ nav#menu-bar {
 
     ul {
         border-top: solid 1px var(--border-color);
-        padding: .6rem;     
+        padding: .6rem 0;
     }
 
     ul.internal .label {
@@ -18,20 +18,48 @@ nav#menu-bar {
         align-items: center;
         gap: .6rem;
         padding: .6rem;
-        border-radius: var(--border-radius);
         margin-bottom: 2px;
+        border-left: solid 4px var(--bg-second-color);
+
+        .profile {
+            position: relative;
+
+            .recording {
+                position: absolute;
+                bottom: 0px;
+                right: -4px;
+                z-index: 2;
+                border-radius: 100%;
+                padding: 2px;
+                background-color: var(--bg-color);
+
+                img {
+                    height: 12px;
+                    display: block;
+                }
+            }
+        }
     }
     ul > li:hover {
         background-color: var(--bg-frame-color);
     }
     ul > li.selected {
-        background-color: var(--bg-selected-color);
-        
-        svg {
+        background-color: var(--bg-frame-color);
+        border-color: var(--accent-color);
+
+        img {
+            filter: invert(44%) sepia(76%) saturate(4538%) hue-rotate(239deg) brightness(96%) contrast(90%);
+        }
+
+        .profile svg {
             font-weight: 600;
 
             circle {
-                fill: var(--bg-frame-color);
+                fill: var(--accent-color);
+            }
+
+            text {
+                fill: var(--bg-color);
             }
         }
     }
