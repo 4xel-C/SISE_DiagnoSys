@@ -8,6 +8,7 @@ triage system.
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Column,
     DateTime,
@@ -69,6 +70,7 @@ class Patient(Base):
     temperature = Column(Float, nullable=True)  # Body temperature (°C)
 
     created_at = Column(DateTime, default=datetime.now)
+    archived = Column(Boolean, default=False)  # If the record is archived or not
 
     def __repr__(self):
         """Return a string representation of the Patient instance."""

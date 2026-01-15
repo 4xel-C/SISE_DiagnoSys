@@ -10,4 +10,5 @@ dependencies = [
     "sqlalchemy>=2.0.45",
     "flask-sock>=0.7.0",
     "pydantic>=2.12.5",
+    "alembic>=1.18.1",
 ]
