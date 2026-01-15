@@ -82,7 +82,7 @@ async function start(patientId) {
     timer = createTimerInterval(timerElement);
     waveform = createWaveformDrawer(stream, waveformCanvas);
     // Save recorded patient id
-    audioRecord.dataset.patientId = patientId;
+    main.dataset.recordPatientId = patientId;
     // Update UI
     main.classList.add('streaming');
     // Dispatch event
@@ -100,7 +100,7 @@ async function stop(patientId) {
     waveform.close();
     clearInterval(timer);
     // Clear recorded patient id
-    audioRecord.dataset.patientId = null;
+    main.dataset.recordPatientId = null;
     // Update UI
     main.classList.remove('streaming');
     // Dispatch event

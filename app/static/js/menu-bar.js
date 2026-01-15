@@ -1,15 +1,24 @@
 import { loadDiagnostics } from './modules/loader.js';
 
-const section = document.querySelector('#menu-bar');
-const internalList = section.querySelector('ul.internal');
-const patientList = section.querySelector('ul.patients');
+const menu = document.querySelector('#menu-bar');
+const main = document.querySelector('main');
+const internalList = menu.querySelector('ul.internal');
+const patientList = menu.querySelector('ul.patients');
+const topbar = main.querySelector('.top-bar');
 
 
 
 
 
-async function loadDiagnostic(patientId) {
-    // Load and render patient diagnostic
+
+function selectElement(element) {
+    // Unselect previous
+    const selectedElement = menu.querySelector('li.selected');
+    if (selectedElement) {
+        selectedElement.classList.remove('selected');
+    }
+    // Select new
+    element.classList.add('selected');
 }
 
 
@@ -19,24 +28,14 @@ async function loadDiagnostic(patientId) {
 // On internal clicked
 internalList.querySelectorAll('li').forEach(internal => {
     internal.addEventListener('click', () => {
-        // Unselect previous and mark new li as selected
-        const selectedTab = section.querySelector('li.selected');
-        if (selectedTab) {
-            selectedTab.classList.remove('selected');
-        }
-        internal.classList.add('selected');
+        selectElement(internal);
     })
 });
 
 // On patient clicked
 patientList.querySelectorAll('li').forEach(patient => {
     patient.addEventListener('click', () => {
-        // Unselect previous and mark new li as selected
-        const selectedTab = section.querySelector('li.selected');
-        if (selectedTab) {
-            selectedTab.classList.remove('selected');
-        }
-        patient.classList.add('selected');
+        selectElement(patient);
         loadDiagnostics(patient.dataset.patientId);
     })
 });
@@ -60,4 +59,12 @@ document.addEventListener('audioRecordStoped', (e) => {
     const recordedPatient = patientList.querySelector(`li[data-patient-id="${patientId}"]`);
     const imgContainer = recordedPatient.querySelector('.profile .recording');
     imgContainer.remove();
+});
+
+// On top bar button clicked
+topbar.querySelector('button.see').addEventListener('click', () => {
+    const patientId = main.dataset.recordPatientId;
+    const patient = patientList.querySelector(`li[data-patient-id="${patientId}"]`);
+    selectElement(patient);
+    loadDiagnostics(patientId);
 });
