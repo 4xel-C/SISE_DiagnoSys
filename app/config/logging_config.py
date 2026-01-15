@@ -96,15 +96,15 @@ def get_logging_config() -> dict:
             },
             "app": {
                 "level": log_level,
-                "handlers": ["console", "app_file"],
+                "handlers": ["app_file"],
                 "propagate": False,
             },
-            "config": {
+            "app.config": {
                 "level": log_level,
                 "handlers": ["console", "config_file"],
                 "propagate": True,
             },
-            "service": {
+            "app.service": {
                 "level": log_level,
                 "handlers": ["console", "service_file"],
                 "propagate": True,
