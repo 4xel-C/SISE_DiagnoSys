@@ -127,3 +127,50 @@ TypeError: a bytes-like object is required, not 'str'
 [2026-01-13 18:38:29,727] INFO [app.init:47] - Starting Flask application
 [2026-01-13 18:39:41,726] INFO [app.init:47] - Starting Flask application
 [2026-01-13 18:41:09,877] INFO [app.init:47] - Starting Flask application
+[2026-01-13 19:12:08,106] INFO [app.init:47] - Starting Flask application
+[2026-01-14 10:14:03,138] INFO [app.init:47] - Starting Flask application
+[2026-01-14 10:46:07,320] INFO [app.init:47] - Starting Flask application
+[2026-01-14 10:49:35,417] INFO [app.init:47] - Starting Flask application
+[2026-01-14 13:56:05,858] INFO [app.init:47] - Starting Flask application
+[2026-01-14 16:39:25,586] INFO [app.init:47] - Starting Flask application
+[2026-01-14 16:44:19,934] INFO [app.init:47] - Starting Flask application
+[2026-01-14 16:49:55,037] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:05:49,633] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:06:22,854] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:06:58,723] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:35:23,995] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:38:51,015] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:43:57,785] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:44:23,377] INFO [app.init:47] - Starting Flask application
+[2026-01-14 18:46:14,646] INFO [app.init:47] - Starting Flask application
+[2026-01-15 06:58:54,990] INFO [app.init:47] - Starting Flask application
+[2026-01-15 07:00:38,708] INFO [app.init:47] - Starting Flask application
+[2026-01-15 07:11:37,034] INFO [app.init:47] - Starting Flask application
+[2026-01-15 07:38:52,372] INFO [app.init:47] - Starting Flask application
+[2026-01-15 07:51:00,997] INFO [app.init:47] - Starting Flask application
+[2026-01-15 07:51:26,323] INFO [app.init:47] - Starting Flask application
+[2026-01-15 08:00:40,630] INFO [app.init:47] - Starting Flask application
+[2026-01-15 08:21:11,700] INFO [app.init:47] - Starting Flask application
+[2026-01-15 08:21:44,176] INFO [app.init:47] - Starting Flask application
+[2026-01-15 08:22:00,400] INFO [app.init:47] - Starting Flask application
+[2026-01-15 09:17:45,512] INFO [app.init:47] - Starting Flask application
+[2026-01-15 09:21:32,406] INFO [app.init:47] - Starting Flask application
+[2026-01-15 09:21:35,018] ERROR [app.init:875] - Exception on /ajax/render_diagnostics/2 [GET]
+Traceback (most recent call last):
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 920, in full_dispatch_request
+    return self.finalize_request(rv)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 939, in finalize_request
+    response = self.make_response(rv)
+  File "/Users/marinnagy/Documents/GitHub/SISE_DiagnoSys/.venv/lib/python3.13/site-packages/flask/app.py", line 1212, in make_response
+    raise TypeError(
+    ...<3 lines>...
+    )
+TypeError: The view function for 'ajax.render_diagnostics' did not return a valid response. The function either returned None or ended without a return statement.
+[2026-01-15 09:22:16,316] INFO [app.init:47] - Starting Flask application
+[2026-01-15 09:24:22,365] INFO [app.init:47] - Starting Flask application
+[2026-01-15 09:25:54,823] INFO [app.init:47] - Starting Flask application
+[2026-01-15 10:34:22,815] INFO [app.init:47] - Starting Flask application
+[2026-01-15 10:51:09,329] INFO [app.init:47] - Starting Flask application

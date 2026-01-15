@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, render_template, jsonify
 from flask_sock import Sock, ConnectionClosed
 
 from .init import AppContext
@@ -24,9 +24,11 @@ sock = Sock()
 
 
 
+# ----------------
+# WEB SOCKETS
 
 @sock.route('/audio_stt')
-def audio_stt(ws):
+def audio_stt(ws) -> None:
     print('starting websocket')
     with open("received_audio.webm", "wb") as f:   # For testing only
         try:
@@ -38,3 +40,14 @@ def audio_stt(ws):
                 f.write(data)
         except ConnectionClosed:
             print("Audio stream ended")
+
+
+
+# ---------------
+# TEMPLATES
+
+@ajax.route('render_diagnostics/<patient_id>', methods=['GET'])
+def render_diagnostics(patient_id: str) -> str:
+    # TODO: Get diagnostic content from BDD and pass 
+    # the structured data to HTML template
+    return render_template('diagnostics.html', patient_id=patient_id)

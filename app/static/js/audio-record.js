@@ -1,66 +1,127 @@
+import { startAudioStream, stopAudioStream, socket } from './modules/streamer.js';
+
 const main = document.querySelector('main');
-const audioContainer = main.querySelector('.audio-record');
+const audioRecord = main.querySelector('.audio-record');
+const waveformCanvas = audioRecord.querySelector('canvas#waveform');
 
-
-let mediaRecorder;
-let stream;
-let socket;
-let sendChain = Promise.resolve();
+let waveform, timer;
 
 // Shortcuts
 const shortcuts = new Map([
-    ['Alt+Space', toggleMic]
+    ['Shift+Space', toggleMic]
 ]);
 
 
 
 
-async function startAudioStream() {
-    socket = new WebSocket("ws://localhost:8000/audio_stt");
-    await new Promise(resolve => socket.onopen = resolve);
 
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
 
-    mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size === 0) return;
+function createWaveformDrawer(stream, canvas) {
+    const audioCtx = new AudioContext();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    const bufferLength = analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
 
-        // queue the send so we know when the last chunk is done
-        sendChain = sendChain.then(async () => {
-            const buffer = await event.data.arrayBuffer();
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(buffer);
-            }
-        });
-    };
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
 
-    mediaRecorder.onstop = async () => {
-        await sendChain;                       // wait for final chunk to finish sending
-        stream.getTracks().forEach(track => track.stop());
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.close(1000, "done");
+    const canvasCtx = canvas.getContext('2d');
+
+    function draw() {
+        analyser.getByteTimeDomainData(dataArray);
+
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = '#8359E8';
+        canvasCtx.beginPath();
+
+        const sliceWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * canvas.height) / 2;
+
+            i === 0 ? canvasCtx.moveTo(x, y) : canvasCtx.lineTo(x, y);
+            x += sliceWidth;
         }
-    };
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
 
-    mediaRecorder.start(250); // send data every 250ms
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    return audioCtx
 }
 
-async function stopAudioStream() {
-    mediaRecorder.stop();
+function createTimerInterval(timerElement) {
+    let totalSeconds = 0;
+
+    function updateDisplay() {
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        timerElement.textContent = `${minutes}:${seconds}`;
+    }
+
+    const intervalId = setInterval(() => {
+        totalSeconds++;
+        updateDisplay();
+    }, 1000);
+
+    return intervalId;
+}
+
+async function start(patientId) {
+    // Start stream
+    const stream = await startAudioStream();
+    // Setup waveform + interval
+    const timerElement = document.querySelector('main .top-bar .timer');
+    timer = createTimerInterval(timerElement);
+    waveform = createWaveformDrawer(stream, waveformCanvas);
+    // Save recorded patient id
+    audioRecord.dataset.patientId = patientId;
+    // Update UI
+    main.classList.add('streaming');
+    // Dispatch event
+    document.dispatchEvent(
+        new CustomEvent('audioRecordStarted', {
+            detail: { patientId }
+        })
+    );
+}
+
+async function stop(patientId) {
+    // Stop audio stream
+    stopAudioStream();
+    // Close audio analyser and clear interval
+    waveform.close();
+    clearInterval(timer);
+    // Clear recorded patient id
+    audioRecord.dataset.patientId = null;
+    // Update UI
+    main.classList.remove('streaming');
+    // Dispatch event
+    document.dispatchEvent(
+        new CustomEvent('audioRecordStoped', {
+            detail: { patientId }
+        })
+    );
 }
 
 function toggleMic() {
+    const patientId = main.querySelector('.diagnostics').dataset.patientId;
     if (socket && socket.readyState === WebSocket.OPEN) {
-        console.log('Stop streaming');
-        stopAudioStream();
-        audioContainer.classList.remove('streaming');
-
+        stop(patientId);
     } else {
-        console.log("Start streaming");
-        startAudioStream();
-        audioContainer.classList.add('streaming');
+        start(patientId);
     }
 }
+
+
+
 
 
 
