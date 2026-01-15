@@ -105,3 +105,41 @@
 [2026-01-14 22:09:43,584] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/js/menu-bar.js HTTP/1.1" 200 -
 [2026-01-14 22:09:43,588] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /static/js/audio-record.js HTTP/1.1" 200 -
 [2026-01-14 22:09:43,662] INFO [werkzeug:97] - 127.0.0.1 - - [14/Jan/2026 22:09:43] "GET /favicon.ico HTTP/1.1" 404 -
+[2026-01-15 08:52:12,764] INFO [werkzeug:97] - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+[2026-01-15 08:52:12,764] INFO [werkzeug:97] - Press CTRL+C to quit
+[2026-01-15 08:52:12,772] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-15 08:52:13,196] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-15 08:52:13,198] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-15 08:52:18,493] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET / HTTP/1.1" 200 -
+[2026-01-15 08:52:18,599] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/css/layout.css HTTP/1.1" 304 -
+[2026-01-15 08:52:18,604] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/css/_components.css HTTP/1.1" 304 -
+[2026-01-15 08:52:18,604] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/css/main.css HTTP/1.1" 304 -
+[2026-01-15 08:52:18,604] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/css/diagnostics.css HTTP/1.1" 304 -
+[2026-01-15 08:52:18,604] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/css/menu-bar.css HTTP/1.1" 304 -
+[2026-01-15 08:52:18,606] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/css/audio-record.css HTTP/1.1" 304 -
+[2026-01-15 08:52:18,610] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/js/_helpers.js HTTP/1.1" 304 -
+[2026-01-15 08:52:18,612] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/images/info.svg HTTP/1.1" 304 -
+[2026-01-15 08:52:18,613] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/images/settings.svg HTTP/1.1" 304 -
+[2026-01-15 08:52:18,613] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/images/mic.svg HTTP/1.1" 304 -
+[2026-01-15 08:52:18,614] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/images/key_space.svg HTTP/1.1" 304 -
+[2026-01-15 08:52:18,614] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/images/record.svg HTTP/1.1" 304 -
+[2026-01-15 08:52:18,621] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/js/menu-bar.js HTTP/1.1" 304 -
+[2026-01-15 08:52:18,626] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /static/js/audio-record.js HTTP/1.1" 304 -
+[2026-01-15 08:52:18,630] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:18] "GET /favicon.ico HTTP/1.1" 404 -
+[2026-01-15 08:52:38,033] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:52:38] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:53:09,045] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:53:09] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:53:40,041] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:53:40] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:54:11,032] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:54:11] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:54:42,032] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:54:42] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:55:13,032] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:55:13] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:55:44,040] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:55:44] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:56:15,038] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:56:15] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:56:46,031] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:56:46] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:57:17,031] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:57:17] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:57:48,030] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:57:48] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -
+[2026-01-15 08:58:16,413] INFO [werkzeug:97] -  * Detected change in 'C:\\Users\\axel-\\Documents\\Coding\\SISE_DiagnoSys\\app\\config\\logging_config.py', reloading
+[2026-01-15 08:58:16,458] INFO [werkzeug:97] -  * Restarting with stat
+[2026-01-15 08:58:16,898] WARNING [werkzeug:97] -  * Debugger is active!
+[2026-01-15 08:58:16,901] INFO [werkzeug:97] -  * Debugger PIN: 850-687-802
+[2026-01-15 08:58:19,032] INFO [werkzeug:97] - 127.0.0.1 - - [15/Jan/2026 08:58:19] "POST /ajax-api/2.0/mlflow/runs/search HTTP/1.1" 404 -

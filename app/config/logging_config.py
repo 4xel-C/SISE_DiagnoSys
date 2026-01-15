@@ -102,12 +102,12 @@ def get_logging_config() -> dict:
             "config": {
                 "level": log_level,
                 "handlers": ["console", "config_file"],
-                "propagate": False,
+                "propagate": True,
             },
             "service": {
                 "level": log_level,
                 "handlers": ["console", "service_file"],
-                "propagate": False,
+                "propagate": True,
             },
         },
         # Default root logger configuration if no other logger matches
