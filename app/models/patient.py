@@ -71,6 +71,9 @@ class Patient(Base):
 
     created_at = Column(DateTime, default=datetime.now)
     archived = Column(Boolean, default=False)  # If the record is archived or not
+    contexte = Column(
+        Text, nullable=True
+    )  # Context for LLM containing diagnosis information
 
     def __repr__(self):
         """Return a string representation of the Patient instance."""

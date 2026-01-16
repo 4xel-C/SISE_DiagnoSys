@@ -1,12 +1,12 @@
 """
-Embedding Service Module.
+Vectorizer Module.
 
 This module provides text embedding generation and chunking functionality
 using sentence-transformers models.
 
 Example:
-    >>> from app.services.embedding_service import EmbeddingService
-    >>> service = EmbeddingService()
+    >>> from app.services.embedding_service import Vectorizer
+    >>> service = Vectorizer()
     >>> chunks = service.chunk_text("Long document text...")
     >>> embeddings = service.generate_embeddings(chunks)
 """
@@ -23,9 +23,9 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-class EmbeddingService:
+class Vectorizer:
     """
-    Service for text embedding generation and chunking.
+    Class for text embedding generation and chunking.
 
     This class handles loading the embedding model and provides methods
     for text chunking and embedding generation.
@@ -36,9 +36,9 @@ class EmbeddingService:
         chunk_overlap (int): Overlap between consecutive chunks.
 
     Example:
-        >>> service = EmbeddingService()
-        >>> chunks = service.chunk_text("Long medical document...")
-        >>> embeddings = service.generate_embeddings(chunks)
+        >>> vectorizer = Vectorizer()
+        >>> chunks = vectorizer.chunk_text("Long medical document...")
+        >>> embeddings = vectorizer.generate_embeddings(chunks)
     """
 
     _model: Optional[SentenceTransformer] = None
@@ -51,7 +51,7 @@ class EmbeddingService:
         chunk_overlap: int = 50,
     ):
         """
-        Initialize the EmbeddingService.
+        Initialize the Vectorizer.
 
         Args:
             model_name (str, optional): Sentence-transformer model name.
@@ -59,14 +59,19 @@ class EmbeddingService:
             chunk_size (int): Character count per chunk. Defaults to 500.
             chunk_overlap (int): Overlap between chunks. Defaults to 50.
         """
-        self.model_name = model_name or os.getenv(
-            "EMBEDDING_MODEL", "all-MiniLM-L6-v2"
-        )
+        self.model_name = model_name or os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+
+        try:
+            Vectorizer._model = SentenceTransformer(self.model_name)
+        except Exception as e:
+            logger.error(f"Error loading embedding model '{self.model_name}': {e}")
+            raise
+
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
         logger.debug(
-            f"EmbeddingService initialized: model={self.model_name}, "
+            f"Vectorizer initialized: model={self.model_name}, "
             f"chunk_size={chunk_size}, overlap={chunk_overlap}"
         )
 
@@ -75,59 +80,28 @@ class EmbeddingService:
         """
         Get or load the embedding model (lazy initialization, singleton).
 
-        The model is shared across all EmbeddingService instances to
+        The model is shared across all Vectorizer instances to
         avoid loading it multiple times.
 
         Returns:
             SentenceTransformer: The loaded model instance.
         """
         if (
-            EmbeddingService._model is None
-            or EmbeddingService._current_model_name != self.model_name
+            Vectorizer._model is None
+            or Vectorizer._current_model_name != self.model_name
         ):
             logger.info(f"Loading embedding model: {self.model_name}")
-            EmbeddingService._model = SentenceTransformer(self.model_name)
-            EmbeddingService._current_model_name = self.model_name
+
+            try:
+                Vectorizer._model = SentenceTransformer(self.model_name)
+            except Exception as e:
+                logger.error(f"Error loading embedding model '{self.model_name}': {e}")
+                raise
+
+            Vectorizer._current_model_name = self.model_name
             logger.info("Embedding model loaded successfully")
 
-        return EmbeddingService._model
-
-    def chunk_text(self, text: str) -> list[str]:
-        """
-        Split text into overlapping chunks of fixed size.
-
-        Args:
-            text (str): The text to split into chunks.
-
-        Returns:
-            list[str]: List of text chunks.
-
-        Example:
-            >>> service = EmbeddingService(chunk_size=100, chunk_overlap=20)
-            >>> chunks = service.chunk_text("Long document text...")
-            >>> len(chunks)
-            5
-        """
-        if not text or not text.strip():
-            return []
-
-        if len(text) <= self.chunk_size:
-            return [text.strip()]
-
-        chunks = []
-        start = 0
-
-        while start < len(text):
-            end = start + self.chunk_size
-            chunk = text[start:end]
-
-            if chunk.strip():
-                chunks.append(chunk.strip())
-
-            start += self.chunk_size - self.chunk_overlap
-
-        logger.debug(f"Text split into {len(chunks)} chunks")
-        return chunks
+        return Vectorizer._model
 
     def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
         """
@@ -171,38 +145,15 @@ class EmbeddingService:
         embeddings = self.generate_embeddings([text])
         return embeddings[0] if embeddings else []
 
-    def chunk_and_embed(self, text: str) -> tuple[list[str], list[list[float]]]:
-        """
-        Chunk text and generate embeddings in one call.
-
-        Args:
-            text (str): The text to chunk and embed.
-
-        Returns:
-            tuple: A tuple of (chunks, embeddings).
-
-        Example:
-            >>> chunks, embeddings = service.chunk_and_embed("Long document...")
-            >>> len(chunks) == len(embeddings)
-            True
-        """
-        chunks = self.chunk_text(text)
-        embeddings = self.generate_embeddings(chunks)
-        return chunks, embeddings
-
-    def get_embedding_dimension(self) -> int:
+    def get_embedding_dimension(self) -> Optional[int]:
         """
         Get the dimension of the embedding vectors.
 
         Returns:
-            int: The dimension of embedding vectors produced by the model.
+            Optional[int]: The dimension of embedding vectors produced by the model.
 
         Example:
             >>> dim = service.get_embedding_dimension()
             >>> print(f"Embedding dimension: {dim}")
         """
         return self.model.get_sentence_embedding_dimension()
-
-
-# Default embedding service instance
-embedding_service = EmbeddingService()

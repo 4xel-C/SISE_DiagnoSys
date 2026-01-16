@@ -20,6 +20,7 @@ from app.services.embedding_service import EmbeddingService
 logger = logging.getLogger(__name__)
 
 
+# TODO: To be refactored
 class BaseVectorService:
     """
     Base class for vector database operations.
@@ -374,7 +375,7 @@ class PatientVectorService(BaseVectorService):
         Add a patient record to the vector database.
 
         Args:
-            patient_id (str): Unique identifier for the patient.
+            patient_id (str): Unique identifier for the patient; meant to be the same as the sqlite db ID.
             content (str): The patient's medical record text.
             metadata (dict, optional): Additional metadata (nom, prenom, gravite).
 

@@ -16,6 +16,7 @@ from enum import Enum
 from typing import Optional
 
 import chromadb
+from chromadb.api import ClientAPI
 from chromadb.config import Settings
 from dotenv import load_dotenv
 
@@ -36,7 +37,6 @@ class VectorDatabase:
     ChromaDB client and collection manager.
 
     This class handles ChromaDB client initialization and collection access.
-    It follows the same pattern as the Database class for SQLAlchemy.
 
     Attributes:
         db_path (str): Path to the ChromaDB persistent storage.
@@ -56,13 +56,13 @@ class VectorDatabase:
                 Defaults to CHROMA_DB_PATH env var or "data/chroma".
         """
         self.db_path = db_path or os.getenv("CHROMA_DB_PATH", "data/chroma")
-        self._client: Optional[chromadb.PersistentClient] = None
+        self._client: Optional[ClientAPI] = None
         self._collections: dict[str, chromadb.Collection] = {}
 
         logger.debug(f"VectorDatabase initialized: path={self.db_path}")
 
     @property
-    def client(self) -> chromadb.PersistentClient:
+    def client(self) -> ClientAPI:
         """
         Get or create the ChromaDB client (lazy initialization).
 
