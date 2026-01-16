@@ -59,7 +59,9 @@ class VectorDatabase:
         self._client: Optional[ClientAPI] = None
         self._collections: dict[str, chromadb.Collection] = {}
 
-        logger.debug(f"VectorDatabase initialized: path={self.db_path}")
+        logger.debug(
+            f"VectorDatabase for {self._collections} initialized: path={self.db_path}"
+        )
 
     @property
     def client(self) -> ClientAPI:

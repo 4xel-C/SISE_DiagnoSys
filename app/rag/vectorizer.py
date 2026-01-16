@@ -13,7 +13,7 @@ Example:
 
 import logging
 import os
-from typing import Optional
+from typing import Optional, Sequence
 
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
@@ -47,7 +47,7 @@ class Vectorizer:
     def __init__(
         self,
         model_name: Optional[str] = None,
-        chunk_size: int = 500,
+        chunk_size: int = 1000,
         chunk_overlap: int = 50,
     ):
         """
@@ -56,7 +56,7 @@ class Vectorizer:
         Args:
             model_name (str, optional): Sentence-transformer model name.
                 Defaults to EMBEDDING_MODEL env var or "all-MiniLM-L6-v2".
-            chunk_size (int): Character count per chunk. Defaults to 500.
+            chunk_size (int): Number of characters per chunk. Defaults to 1000.
             chunk_overlap (int): Overlap between chunks. Defaults to 50.
         """
         self.model_name = model_name or os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
@@ -103,7 +103,7 @@ class Vectorizer:
 
         return Vectorizer._model
 
-    def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
+    def generate_embeddings(self, texts: list[str]) -> list[Sequence[float]]:
         """
         Generate embeddings for a list of texts.
 
@@ -111,7 +111,7 @@ class Vectorizer:
             texts (list[str]): List of text strings to embed.
 
         Returns:
-            list[list[float]]: List of embedding vectors.
+            list[Sequence[float]]: List of embedding vectors.
 
         Example:
             >>> embeddings = service.generate_embeddings(["Hello", "World"])
@@ -127,7 +127,7 @@ class Vectorizer:
         logger.debug(f"Generated {len(embeddings)} embeddings")
         return embeddings.tolist()
 
-    def embed_single(self, text: str) -> list[float]:
+    def embed_single(self, text: str) -> Sequence[float]:
         """
         Generate embedding for a single text.
 
@@ -135,7 +135,7 @@ class Vectorizer:
             text (str): The text to embed.
 
         Returns:
-            list[float]: The embedding vector.
+            Sequence[float]: The embedding vector.
 
         Example:
             >>> embedding = service.embed_single("diabetes treatment")
@@ -157,3 +157,35 @@ class Vectorizer:
             >>> print(f"Embedding dimension: {dim}")
         """
         return self.model.get_sentence_embedding_dimension()
+
+    def chunk_text(self, text: str) -> list[str]:
+        """
+        Chunk text into smaller pieces with overlapping segments to maintain context.
+
+        Args:
+            text (str): The text to chunk.
+
+        Returns:
+            list[str]: List of text chunks.
+
+        Example:
+            >>> chunks = service.chunk_text("Long medical document...")
+            >>> len(chunks)
+            5
+        """
+        if not text:
+            return []
+
+        chunks = []
+        start = 0
+        text_length = len(text)
+
+        while start < text_length:
+            end = min(start + self.chunk_size, text_length)
+            chunk = text[start:end]
+            chunks.append(chunk)
+
+            start += self.chunk_size - self.chunk_overlap
+
+        logger.debug(f"Text chunked into {len(chunks)} pieces")
+        return chunks

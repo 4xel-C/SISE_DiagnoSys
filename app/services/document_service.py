@@ -12,7 +12,7 @@ Example:
 import logging
 from typing import Optional
 
-from app.config.database import db
+from app.config import Database, db
 from app.models import Document
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,16 @@ class DocumentService:
         >>> doc = service.get_by_id(1)
     """
 
+    def __init__(self, db_manager: Database = db):
+        """
+        Initialize the DocumentService.
+
+        Args:
+            db_session: Database session/connection. Defaults to app's db.
+        """
+        self.db_manager = db_manager
+        logger.debug("DocumentService initialized.")
+
     def get_all(self) -> list[Document]:
         """
         Retrieve all documents from the database.
@@ -43,7 +53,7 @@ class DocumentService:
             ...     print(doc.titre)
         """
         logger.debug("Fetching all documents.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             documents = session.query(Document).all()
             logger.debug(f"Found {len(documents)} documents.")
             return documents
@@ -64,7 +74,7 @@ class DocumentService:
             ...     print(doc.titre)
         """
         logger.debug(f"Fetching document with id={document_id}.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             document = session.query(Document).filter_by(id=document_id).first()
             if document:
                 logger.debug(f"Found document: {document.titre}")
@@ -86,7 +96,7 @@ class DocumentService:
             >>> docs = service.search_by_titre("diabetes")
         """
         logger.debug(f"Searching documents with titre containing '{search_term}'.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             documents = (
                 session.query(Document)
                 .filter(Document.titre.ilike(f"%{search_term}%"))
@@ -113,7 +123,7 @@ class DocumentService:
             ... )
         """
         logger.debug(f"Creating new document: {titre}.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             document = Document(titre=titre, url=url)
             session.add(document)
             session.commit()
@@ -134,7 +144,7 @@ class DocumentService:
             >>> deleted = service.delete(1)
         """
         logger.debug(f"Deleting document with id={document_id}.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             document = session.query(Document).filter_by(id=document_id).first()
             if document:
                 session.delete(document)

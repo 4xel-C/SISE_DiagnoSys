@@ -13,7 +13,7 @@ Example:
 import logging
 from typing import Optional
 
-from app.config.database import db
+from app.config import Database, db
 from app.models import Patient
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,15 @@ class PatientService:
         >>> critical = service.get_by_gravite("rouge")
     """
 
+    def __init__(self, db_manager: Database = db):
+        """
+        Initialize the PatientService.
+
+        Args:
+            db_manager (Database): Database manager instance. Defaults to global db.
+        """
+        self.db_manager = db_manager
+
     def get_all(self) -> list[Patient]:
         """
         Retrieve all patients from the database.
@@ -44,7 +53,7 @@ class PatientService:
             ...     print(p.nom)
         """
         logger.debug("Fetching all patients.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             patients = session.query(Patient).all()
             logger.debug(f"Found {len(patients)} patients.")
             return patients
@@ -65,7 +74,7 @@ class PatientService:
             ...     print(patient.nom)
         """
         logger.debug(f"Fetching patient with id={patient_id}.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             patient = session.query(Patient).filter_by(id=patient_id).first()
             if patient:
                 logger.debug(f"Found patient: {patient.nom}")
@@ -87,7 +96,7 @@ class PatientService:
             >>> critical = service.get_by_gravite("rouge")
         """
         logger.debug(f"Fetching patients with gravite={gravite}.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             patients = session.query(Patient).filter_by(gravite=gravite).all()
             logger.debug(f"Found {len(patients)} patients with gravite={gravite}.")
             return patients
@@ -115,7 +124,7 @@ class PatientService:
             ... )
         """
         logger.debug(f"Creating new patient with data: {kwargs}.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             patient = Patient(**kwargs)
             session.add(patient)
             session.commit()
@@ -136,7 +145,7 @@ class PatientService:
             >>> deleted = service.delete(1)
         """
         logger.debug(f"Deleting patient with id={patient_id}.")
-        with db.session() as session:
+        with self.db_manager.session() as session:
             patient = session.query(Patient).filter_by(id=patient_id).first()
             if patient:
                 session.delete(patient)
