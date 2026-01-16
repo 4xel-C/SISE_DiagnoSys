@@ -13,4 +13,6 @@ dependencies = [
     "bs4>=0.0.2",
     "requests>=2.32.5",
     "alembic>=1.18.1",
+    "chromadb>=1.4.1",
+    "sentence-transformers>=5.2.0",
 ]
