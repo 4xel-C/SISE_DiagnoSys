@@ -1,7 +1,7 @@
 import requests
 from .base_scraper import BaseScraper
 from bs4 import BeautifulSoup
-from app.models.scraped_document import ScrapedDocument
+from app.schemas.scraped_document import ScrapedDocument
 
 class NLM_SP_PageScraper(BaseScraper):
     """

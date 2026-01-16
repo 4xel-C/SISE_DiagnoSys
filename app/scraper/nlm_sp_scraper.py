@@ -1,7 +1,7 @@
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
-from app.models.scraped_document import ScrapedDocument
+from app.schemas.scraped_document import ScrapedDocument
 from .base_scraper import BaseScraper
 
 class NLM_StatPearlsScraper(BaseScraper):

@@ -1,5 +1,5 @@
 from .base_scraper import BaseScraper
-from app.models.scraped_document import ScrapedDocument
+from app.schemas.scraped_document import ScrapedDocument
 
 class DummyScraper(BaseScraper):
     """

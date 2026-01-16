@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.models.scraped_document import ScrapedDocument
+from app.schemas.scraped_document import ScrapedDocument
 import os
 import json
 import re
