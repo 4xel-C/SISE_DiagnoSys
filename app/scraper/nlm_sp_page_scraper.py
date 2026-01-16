@@ -1,5 +1,5 @@
 import requests
-from app.services.scraper.base_scraper import BaseScraper
+from .base_scraper import BaseScraper
 from bs4 import BeautifulSoup
 from app.models.scraped_document import ScrapedDocument
 

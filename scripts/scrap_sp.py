@@ -1,5 +1,5 @@
-from app.services.scraper.nlm_sp_scraper import NLM_StatPearlsScraper
-from app.services.scraper.nlm_sp_page_scraper import NLM_SP_PageScraper
+from app.scraper.nlm_sp_scraper import NLM_StatPearlsScraper
+from app.scraper.nlm_sp_page_scraper import NLM_SP_PageScraper
 from datetime import datetime
 import os
 import json

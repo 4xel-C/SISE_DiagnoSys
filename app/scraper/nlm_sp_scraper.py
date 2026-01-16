@@ -2,7 +2,7 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 from app.models.scraped_document import ScrapedDocument
-from app.services.scraper.base_scraper import BaseScraper
+from .base_scraper import BaseScraper
 
 class NLM_StatPearlsScraper(BaseScraper):
     """
