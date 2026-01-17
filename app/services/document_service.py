@@ -14,6 +14,7 @@ from typing import Optional
 
 from app.config import Database, db
 from app.models import Document
+from app.schemas import DocumentSchema
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +41,12 @@ class DocumentService:
         self.db_manager = db_manager
         logger.debug("DocumentService initialized.")
 
-    def get_all(self) -> list[Document]:
+    def get_all(self) -> list[DocumentSchema]:
         """
         Retrieve all documents from the database.
 
         Returns:
-            list[Document]: List of all Document records.
+            list[DocumentSchema]: List of all Document records.
 
         Example:
             >>> documents = service.get_all()
@@ -53,12 +54,19 @@ class DocumentService:
             ...     print(doc.titre)
         """
         logger.debug("Fetching all documents.")
+
+        results = list()
+
         with self.db_manager.session() as session:
             documents = session.query(Document).all()
             logger.debug(f"Found {len(documents)} documents.")
-            return documents
 
-    def get_by_id(self, document_id: int) -> Optional[Document]:
+            for document in documents:
+                results.append(DocumentSchema.model_validate(document))
+
+        return results
+
+    def get_by_id(self, document_id: int) -> Optional[DocumentSchema]:
         """
         Retrieve a document by ID.
 
@@ -66,7 +74,7 @@ class DocumentService:
             document_id (int): The document's unique identifier.
 
         Returns:
-            Optional[Document]: The Document if found, None otherwise.
+            Optional[DocumentSchema]: The Document if found, None otherwise.
 
         Example:
             >>> doc = service.get_by_id(1)
@@ -80,9 +88,10 @@ class DocumentService:
                 logger.debug(f"Found document: {document.titre}")
             else:
                 logger.debug(f"Document with id={document_id} not found.")
-            return document
 
-    def search_by_titre(self, search_term: str) -> list[Document]:
+            return DocumentSchema.model_validate(document) if document else None
+
+    def search_by_titre(self, search_term: str) -> list[DocumentSchema]:
         """
         Search documents by title (case-insensitive partial match).
 
@@ -90,12 +99,15 @@ class DocumentService:
             search_term (str): The search term to match in document titles.
 
         Returns:
-            list[Document]: List of documents matching the search term.
+            list[DocumentSchema]: List of documents matching the search term.
 
         Example:
             >>> docs = service.search_by_titre("diabetes")
         """
         logger.debug(f"Searching documents with titre containing '{search_term}'.")
+
+        result = list()
+
         with self.db_manager.session() as session:
             documents = (
                 session.query(Document)
@@ -103,9 +115,13 @@ class DocumentService:
                 .all()
             )
             logger.debug(f"Found {len(documents)} documents matching '{search_term}'.")
-            return documents
 
-    def create(self, titre: str, url: str) -> Document:
+            for document in documents:
+                result.append(DocumentSchema.model_validate(document))
+
+        return result
+
+    def create(self, titre: str, url: str) -> DocumentSchema:
         """
         Create a new document record.
 
@@ -114,7 +130,7 @@ class DocumentService:
             url (str): The source URL of the document.
 
         Returns:
-            Document: The newly created Document record.
+            DocumentSchema: The newly created Document record.
 
         Example:
             >>> doc = service.create(
@@ -128,7 +144,7 @@ class DocumentService:
             session.add(document)
             session.commit()
             logger.info(f"Created document: {document}")
-            return document
+            return DocumentSchema.model_validate(document)
 
     def delete(self, document_id: int) -> bool:
         """
