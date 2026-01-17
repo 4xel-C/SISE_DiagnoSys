@@ -3,10 +3,12 @@ from .base_scraper import BaseScraper
 from bs4 import BeautifulSoup
 from app.schemas.scraped_document import ScrapedDocument
 
+
 class NLM_SP_PageScraper(BaseScraper):
     """
     Scraper for NLM StatPearls article pages.
     """
+
     def fetch(self, url: str) -> str:
         response = requests.get(url)
         response.raise_for_status()
@@ -40,7 +42,9 @@ class NLM_SP_PageScraper(BaseScraper):
 
         # Sections
         sections = []
-        for div in soup.find_all("div", id=lambda x: x and x.startswith("article-") and ".s" in x):
+        for div in soup.find_all(
+            "div", id=lambda x: x and x.startswith("article-") and ".s" in x
+        ):
             # Section title
             h2 = div.find("h2")
             section_title = h2.get_text(strip=True) if h2 else ""
@@ -48,11 +52,13 @@ class NLM_SP_PageScraper(BaseScraper):
             paragraphs = [p.get_text(strip=True) for p in div.find_all("p")]
             # Objectives (li)
             objectives = [li.get_text(strip=True) for li in div.find_all("li")]
-            sections.append({
-                "section_title": section_title,
-                "paragraphs": paragraphs,
-                "objectives": objectives
-            })
+            sections.append(
+                {
+                    "section_title": section_title,
+                    "paragraphs": paragraphs,
+                    "objectives": objectives,
+                }
+            )
 
         # References
         references = []
@@ -70,7 +76,9 @@ class NLM_SP_PageScraper(BaseScraper):
                     # Links
                     links = []
                     for a in bk_ref.find_all("a", href=True):
-                        links.append({"url": a["href"], "label": a.get_text(strip=True)})
+                        links.append(
+                            {"url": a["href"], "label": a.get_text(strip=True)}
+                        )
                     ref["links"] = links
                 references.append(ref)
 
@@ -82,10 +90,10 @@ class NLM_SP_PageScraper(BaseScraper):
                 "authors": authors,
                 "affiliations": affiliations,
                 "sections": sections,
-                "references": references
-            }
+                "references": references,
+            },
         )
-    
+
     def validate(self, data: ScrapedDocument) -> bool:
         return super().validate(data)
 

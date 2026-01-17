@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, current_app, jsonify, render_template
+from flask import Blueprint, current_app, render_template
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext

@@ -26,3 +26,4 @@ logs
 # Scraped data
 data/scraped_documents/
 scraped_documents.zip
+scripts/test.py

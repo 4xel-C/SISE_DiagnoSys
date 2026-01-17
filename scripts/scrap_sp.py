@@ -6,13 +6,18 @@ import json
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
 def main():
     sp_scrapper = NLM_StatPearlsScraper()
     sp_scrapper.scrape("https://www.ncbi.nlm.nih.gov/books/NBK430685/")
-    
-    json_path = os.path.join("data", "scraped_documents", f"Contents_{sp_scrapper.parse.__annotations__.get('date', datetime.now().strftime('%Y-%m-%d'))}.json")
 
-    with open(json_path, 'r', encoding='utf-8') as f:
+    json_path = os.path.join(
+        "data",
+        "scraped_documents",
+        f"Contents_{sp_scrapper.parse.__annotations__.get('date', datetime.now().strftime('%Y-%m-%d'))}.json",
+    )
+
+    with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     document_links = []
@@ -23,7 +28,7 @@ def main():
                 if url.startswith("/"):
                     url = "https://www.ncbi.nlm.nih.gov" + url
                 document_links.append(url)
-    
+
     print(f"Found {len(document_links)} document links to scrape.")
 
     page_scraper = NLM_SP_PageScraper()
@@ -44,6 +49,7 @@ def main():
             completed += 1
             print(f"Remaining tasks: {total - completed}")
 
+
 if __name__ == "__main__":
     print("Starting scraping process...")
     main()
@@ -51,6 +57,7 @@ if __name__ == "__main__":
 
     # Zip all scraped documents
     import zipfile
+
     def zip_scraped_documents(zip_name="scraped_documents.zip"):
         folder = os.path.join("data", "scraped_documents")
         with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED) as zipf:

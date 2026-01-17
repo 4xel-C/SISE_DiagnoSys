@@ -4,12 +4,14 @@ import os
 import json
 import re
 
+
 class BaseScraper(ABC):
     """
     Abstract base class for document scrapers.
     """
+
     @abstractmethod
-    def fetch(self, url: str) -> str: # type: ignore
+    def fetch(self, url: str) -> str:  # type: ignore
         """
         Fetch raw data from the given URL.
 
@@ -18,10 +20,10 @@ class BaseScraper(ABC):
         Returns:
             str: The fetched raw data.
         """
-        pass   
+        pass
 
     @abstractmethod
-    def parse(self, raw_data: str) -> ScrapedDocument: # type: ignore
+    def parse(self, raw_data: str) -> ScrapedDocument:  # type: ignore
         """
         Parse raw data into JSON format.
 
@@ -31,10 +33,10 @@ class BaseScraper(ABC):
         Returns:
             json: The parsed document content in JSON format.
         """
-        pass 
+        pass
 
     @abstractmethod
-    def validate(self, data: ScrapedDocument) -> bool: # type: ignore
+    def validate(self, data: ScrapedDocument) -> bool:  # type: ignore
         """
         Validate the scraped document content.
 
@@ -50,7 +52,7 @@ class BaseScraper(ABC):
         return True
 
     @abstractmethod
-    def save(self, data: ScrapedDocument, filepath: str) -> None: # type: ignore
+    def save(self, data: ScrapedDocument, filepath: str) -> None:  # type: ignore
         """
         Save the scraped document content to a file.
 
@@ -61,9 +63,9 @@ class BaseScraper(ABC):
         save_dir = os.path.join("data", "scraped_documents")
         os.makedirs(save_dir, exist_ok=True)
         # Clean filename
-        safe_filename = re.sub(r'[\\/:*?"<>|,]', '_', filepath)
+        safe_filename = re.sub(r'[\\/:*?"<>|,]', "_", filepath)
         filepath = os.path.join(save_dir, safe_filename)
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data.__dict__, f, indent=4, ensure_ascii=False)
 
     def scrape(self, url: str) -> None:

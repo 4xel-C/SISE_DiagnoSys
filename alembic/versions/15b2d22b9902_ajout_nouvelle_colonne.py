@@ -1,18 +1,16 @@
 """ajout nouvelle colonne
 
 Revision ID: 15b2d22b9902
-Revises: 
+Revises:
 Create Date: 2026-01-15 21:11:37.405666
 
 """
-from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
+from typing import Sequence, Union
 
 
 # revision identifiers, used by Alembic.
-revision: str = '15b2d22b9902'
+revision: str = "15b2d22b9902"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
