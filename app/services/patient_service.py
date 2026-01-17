@@ -70,7 +70,7 @@ class PatientService:
 
         return result
 
-    def get_by_id(self, patient_id: int) -> Optional[PatientSchema]:
+    def get_by_id(self, patient_id: int) -> PatientSchema:
         """
         Retrieve a patient by ID.
 
@@ -93,7 +93,12 @@ class PatientService:
             else:
                 logger.debug(f"Patient with id={patient_id} not found.")
 
-            return PatientSchema.model_validate(patient) if patient else None
+        patient_schema = PatientSchema.model_validate(patient) if patient else None
+
+        if not patient_schema:
+            raise ValueError(f"Patient with id={patient_id} not found.")
+
+        return patient_schema
 
     def get_by_gravite(self, gravite: str) -> list[PatientSchema]:
         """
