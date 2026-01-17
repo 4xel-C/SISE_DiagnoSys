@@ -66,7 +66,7 @@ def get_logging_config() -> dict:
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": "logs/werkzeug.log",
                 "maxBytes": 10485760,  # 10MB
-                "backupCount": 3,
+                "backupCount": 1,
                 "level": "INFO",
                 "formatter": "no_color",  # Use no_color formatter for files
             },
@@ -82,7 +82,23 @@ def get_logging_config() -> dict:
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": "logs/service.log",
                 "maxBytes": 10485760,  # 10MB
-                "backupCount": 2,
+                "backupCount": 1,
+                "level": log_level,
+                "formatter": "detailed",
+            },
+            "rag_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": "logs/rag.log",
+                "maxBytes": 10485760,  # 10MB
+                "backupCount": 1,
+                "level": log_level,
+                "formatter": "detailed",
+            },
+            "scrapper_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": "logs/scraper.log",
+                "maxBytes": 10485760,  # 10MB
+                "backupCount": 1,
                 "level": log_level,
                 "formatter": "detailed",
             },
@@ -107,6 +123,16 @@ def get_logging_config() -> dict:
             "app.service": {
                 "level": log_level,
                 "handlers": ["console", "service_file"],
+                "propagate": True,
+            },
+            "app.rag": {
+                "level": log_level,
+                "handlers": ["console", "rag_file"],
+                "propagate": True,
+            },
+            "app.scraper": {
+                "level": log_level,
+                "handlers": ["console", "scrapper_file"],
                 "propagate": True,
             },
         },
