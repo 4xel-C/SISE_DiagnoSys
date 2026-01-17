@@ -15,6 +15,7 @@ from typing import Optional
 
 from app.config import Database, db
 from app.models import Patient
+from app.schemas import PatientSchema
 
 logger = logging.getLogger(__name__)
 
@@ -40,25 +41,36 @@ class PatientService:
         """
         self.db_manager = db_manager
 
-    def get_all(self) -> list[Patient]:
+    ################################################################
+    # CREATE METHODS
+    ################################################################
+
+    def get_all(self) -> list[PatientSchema]:
         """
         Retrieve all patients from the database.
 
         Returns:
-            list[Patient]: List of all Patient records.
-
+            list[PatientSchema]: List of all Patient records.
         Example:
             >>> patients = service.get_all()
             >>> for p in patients:
             ...     print(p.nom)
         """
         logger.debug("Fetching all patients.")
+
+        result = list()
+
         with self.db_manager.session() as session:
             patients = session.query(Patient).all()
             logger.debug(f"Found {len(patients)} patients.")
-            return patients
 
-    def get_by_id(self, patient_id: int) -> Optional[Patient]:
+            # transform to schema (pydantic python object)
+            for patient in patients:
+                result.append(PatientSchema.model_validate(patient))
+
+        return result
+
+    def get_by_id(self, patient_id: int) -> Optional[PatientSchema]:
         """
         Retrieve a patient by ID.
 
@@ -66,7 +78,7 @@ class PatientService:
             patient_id (int): The patient's unique identifier.
 
         Returns:
-            Optional[Patient]: The Patient if found, None otherwise.
+            Optional[PatientSchema]: The Patient if found, None otherwise.
 
         Example:
             >>> patient = service.get_by_id(1)
@@ -80,9 +92,10 @@ class PatientService:
                 logger.debug(f"Found patient: {patient.nom}")
             else:
                 logger.debug(f"Patient with id={patient_id} not found.")
-            return patient
 
-    def get_by_gravite(self, gravite: str) -> list[Patient]:
+            return PatientSchema.model_validate(patient) if patient else None
+
+    def get_by_gravite(self, gravite: str) -> list[PatientSchema]:
         """
         Retrieve all patients with a specific severity level.
 
@@ -90,18 +103,28 @@ class PatientService:
             gravite (str): Severity level ('gris', 'vert', 'jaune', 'rouge').
 
         Returns:
-            list[Patient]: List of patients with the specified severity.
+            list[PatientSchema]: List of patients with the specified severity.
 
         Example:
             >>> critical = service.get_by_gravite("rouge")
         """
         logger.debug(f"Fetching patients with gravite={gravite}.")
+        result = list()
         with self.db_manager.session() as session:
             patients = session.query(Patient).filter_by(gravite=gravite).all()
             logger.debug(f"Found {len(patients)} patients with gravite={gravite}.")
-            return patients
 
-    def create(self, **kwargs) -> Patient:
+            for patient in patients:
+                logger.debug(f"Patient: {patient.nom}, Gravite: {patient.gravite}")
+                result.append(PatientSchema.model_validate(patient))
+
+        return result
+
+    ################################################################
+    # CREATE METHODS
+    ################################################################
+
+    def create(self, **kwargs) -> PatientSchema:
         """
         Create a new patient record.
         With respect to the Patient model fields.
@@ -110,7 +133,7 @@ class PatientService:
             **kwargs: Patient attributes (nom, gravite, type_maladie, etc.)
 
         Returns:
-            Patient: The newly created Patient record.
+            PatientSchema: The newly created Patient record.
 
         Raises:
             ValueError: If required fields are missing.
@@ -129,7 +152,11 @@ class PatientService:
             session.add(patient)
             session.commit()
             logger.info(f"Created patient: {patient}")
-            return patient
+            return PatientSchema.model_validate(patient)
+
+    ################################################################
+    # DELETE METHODS
+    ################################################################
 
     def delete(self, patient_id: int) -> bool:
         """
