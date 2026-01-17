@@ -11,7 +11,6 @@ Example:
 """
 
 import logging
-from typing import Optional
 
 from app.config import Database, db
 from app.models import Patient

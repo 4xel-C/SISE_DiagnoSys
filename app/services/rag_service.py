@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from app.rag import LLMHandler, VectorStore, document_store, llm_handler, patient_store
 from app.schemas import PatientSchema
