@@ -15,4 +15,15 @@ main .diagnostics {
     .frame:first-child {
         grid-row: 1 / span 2;
     }
+
+    form#context-editor {
+        height: 80%;
+        width: 100%;
+
+        textarea {
+            height: 100%;
+            width: 100%;
+            padding: 1rem;
+        }
+    }
 }
