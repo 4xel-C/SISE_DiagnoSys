@@ -1,6 +1,15 @@
 import logging
+from typing import Any, Dict, List, Optional, Tuple
 
-from app.rag import LLMHandler, VectorStore, document_store, llm_handler, patient_store
+from app.rag import (
+    LLMHandler,
+    PromptTemplate,
+    SystemPromptTemplate,
+    VectorStore,
+    document_store,
+    llm_handler,
+    patient_store,
+)
 from app.schemas import PatientSchema
 from app.services import DocumentService, PatientService
 
@@ -25,85 +34,177 @@ class RagService:
         self.document_service = document_service
         self.llm_handler = llm_handler
 
-    # TODO: Finish compute user input pipeline
-    def compute_user_input(self, user_input: str, id_patient: int):
-        """Send the user input into the RAG pipeline
-
+    def update_context_after_audio(
+        self,
+        context: str,
+        audio_input: str,
+    ) -> Optional[str]:
+        """From the user input (context modification or speech to text addition to context), return a condensed context to update the patient context.
+        The new context if then update in the database before beeing return as a string for further use in the application.
         Args:
-            user_input (str):
-            id_patient (int): _description_
-
+            user_input (str): The input text from the user.
+            from_audio (bool): Whether the input comes from audio transcription.
+            id_patient (str): The ID of the patient whose context is to be updated.
         Returns:
-            _type_: None
+            Optional[str]: The updated context string, or None if the input was not pertinent or secure
         """
-        # translation in english to be consistent with embeddings
-        input_english = self.translate_text(user_input)
-        logger.debug(
-            "Translated context: " + input_english[: min(len(input_english), 50)]
-        )
 
         # check pertinency and guardrail -> if user input not pertinent, stop the pipeline, as the context would not be refreshed.
-        if not self.is_pertinent_and_secure(input_english):
-            logger.warning("User input failed pertinency and safety check.")
+        if not self.is_pertinent_and_secure(audio_input):
+            logger.warning(
+                "Audio input not pertinent or secure, stopping context update: "
+                + audio_input[: min(50, len(audio_input))]
+                + "..."
+            )
             return None
 
-        # retriveve patient
-        patient: PatientSchema = self.patient_service.get_by_id(id_patient)
-
-        # retrieve patient context.
-        patient_context: str = patient.contexte if patient.contexte else ""
-
-        context_english = ""
-        if patient_context:
-            # context translation
-            context_english = self.translate_text(patient_context)
-            logger.debug(
-                "Translated context: "
-                + context_english[: min(len(context_english), 50)]
-            )
-
-        logger.debug(f"Patient recuperated: {patient.nom}, {patient.prenom}")
-
-        # combine context and user_input
-        full_context = context_english + " " + input_english
-        full_context = full_context.strip()
-
-        # search for closest patients:
-        closest_patient = self.patient_vector_store.search(
-            query=full_context, n_results=5
+        # generate a condensed context from patient context and user input
+        new_context = self.llm_handler.generate_with_template(
+            template=PromptTemplate.SUMMARY,
+            system_prompt=SystemPromptTemplate.CONTEXT_UPDATER,
+            context=context,
+            audio=audio_input,
         )
-        logger.debug(f"Closest patients found: {len(closest_patient)}")
 
-        # search for closest documents:
-        closest_documents = self.document_vector_store.search(
-            query=full_context, n_results=5
-        )
-        logger.debug(f"Closest documents found: {len(closest_documents)}")
+        if new_context.content:
+            logger.info("Context successfully updated with audio input")
+            new_context = new_context.content.strip()
+        else:
+            logger.error("llm_handler failed to generate updated context")
+            return None
 
-        # prepare the prompt for llm
-        prompt_kwargs = {
-            "context": context_english,
-            "documents_chunks": " ".join([doc["text"] for doc in closest_documents]),
-            "patient_chunks": " ".join([pat["text"] for pat in closest_patient]),
-            "query": input_english,
-        }
+        # update the patient context in the database
 
-        # generate the response
-        llm_response = self.llm_handler.generate_with_template(**prompt_kwargs)
+    def compute_rag_diagnosys(self, patient_id: int) -> Optional[Dict[str, Any]]:
+        """Generate diagnosys based on patient context and his metadata:
+        - Retrieve patient context from DB for embeddings
+        - Update patient context embedding in vector store
+        - Retrieve top5 relevant document chunks from vector store and return document ids
+        - Retrieve top5 relevant patient context and return closets patients ids.
+        - Generate diagnosys
+
+        Returns:
+            Dict[str, str]: diagnosys response from LLM with the following structure:
+                {
+                    "diagnosys": str,
+                    "document_ids": List[int],
+                    "related_patients_ids": List[int],
+                }
+        """
+        # retrieve patient context from DB for embeddings
+        patient: PatientSchema = self.patient_service.get_by_id(patient_id=patient_id)
 
         logger.debug(
-            "LLM Response: "
-            + llm_response.content[: min(len(llm_response.content), 50)]
+            f"compute_rag_diagnosys: Retrieved patient context for patient id={patient_id}."
         )
 
-        ...
+        if not patient:
+            raise ValueError(f"Patient with id={patient_id} not found.")
+
+        context = patient.content_for_embedding
+
+        # add/update patient context embedding in vector store
+        self.patient_vector_store.add(
+            item_id=patient.vector_id,
+            content=context,
+            metadata=patient.to_metadata(),
+        )
+
+        # ================================================================ Document retrieval
+        # find top 5 relevant document chunks from vector store
+        document_ids, document_chunks = self.find_topk_similar_documents_ids(
+            context, k=5
+        )
+
+        # ================================================================ Patient retrieval
+        patient_ids = self.find_topk_similar_patients_ids(context, k=5)
+
+        diagnosys_text = self.generate_diagnosys(
+            context=context,
+            documents_chunks=[res["document"] for res in document_chunks],
+        )
+
+        return {
+            "diagnosys": diagnosys_text,
+            "document_ids": document_ids,
+            "related_patients_ids": patient_ids,
+        }
+
+    def generate_diagnosys(self, context: str, documents_chunks: List[str]) -> str:
+        """
+        Generate diagnosys based on patient context and relevant document chunks.
+
+        Args:
+            context (str): The patient's medical context.
+            documents_chunks (List[str]): List of relevant document chunks.
+        Returns:
+            str: The generated diagnosys response from the LLM.
+        """
+
+        # generate diagnosys from LLM
+        diagnosys_response = self.llm_handler.generate_with_template(
+            template=PromptTemplate.DIAGNOSTIC,
+            system_prompt=SystemPromptTemplate.DIAGNOSYS_ASSISTANT,
+            context=context,
+            documents_chunks=documents_chunks,
+        )
+
+        if diagnosys_response.content:
+            diagnosys_text = diagnosys_response.content.strip()
+            logger.info("Diagnosys successfully generated from LLM.")
+        else:
+            logger.error("llm_handler failed to generate diagnosys.")
+            diagnosys_text = ""
+
+        return diagnosys_text
+
+    def find_topk_similar_patients_ids(self, context: str, k: int = 5) -> List[int]:
+        """
+        Find top-k similar patients based on patient context.
+
+        Args:
+            context (str): The patient's medical context.
+            k (int): Number of similar patients to retrieve.
+        Returns:
+            List[int]: List of similar patient IDs.
+        """
+        patient_results = self.patient_vector_store.search(
+            context,
+            n_results=k,
+        )
+        patient_ids = list(
+            {int(result["metadata"]["patient_id"]) for result in patient_results}
+        )
+        return patient_ids
+
+    def find_topk_similar_documents_ids(
+        self, context: str, k: int = 5
+    ) -> Tuple[List[int], List[dict]]:
+        """
+        Find top-k similar documents based on input context.
+
+        Args:
+            context (str): The input text context.
+            k (int): Number of similar documents to retrieve.
+        Returns:
+            Tuple[List[int], List[dict]]: A tuple containing a list of similar document IDs and the corresponding document chunks.
+        """
+        document_chunks = self.document_vector_store.search(
+            context,
+            n_results=k,
+        )
+        document_ids = list(
+            {int(result["metadata"]["document_id"]) for result in document_chunks}
+        )
+
+        return document_ids, document_chunks
 
     # TODO: Implement security and pertinency check function
     def is_pertinent_and_secure(self, user_input: str) -> bool:
         """TO BE IMPLEMENTED: Check pertinency and security of user input."""
         return True
 
-    # TODO: Connect translator from Olivier
+    # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?
     def translate_text(self, text: str) -> str:
         """
         translate user text (french) into english to be consistent with embedder used.

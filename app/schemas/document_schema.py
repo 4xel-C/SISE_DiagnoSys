@@ -92,43 +92,13 @@ class DocumentSchema(BaseModel):
 
         return metadata
 
-    def chunk_id(self, chunk_index: int) -> str:
+    @computed_field
+    @property
+    def vector_id(self) -> str:
         """
-        Generate unique identifier for a document chunk.
-
-        Args:
-            chunk_index (int): Index of the chunk.
+        Generate unique identifier for ChromaDB.
 
         Returns:
-            str: Unique ID in format 'document_{id}_chunk_{index}'.
+            str: Unique ID in format 'document_{id}'.
         """
-        return f"document_{self.id}_chunk_{chunk_index}"
-
-    def generate_chunk_metadata(self, chunks: list[str]) -> list[tuple[str, str, dict]]:
-        """
-        Prepare chunked document data for ChromaDB insertion.
-
-        Args:
-            chunks (list[str]): List of text chunks from the document.
-
-        Returns:
-            list[tuple[str, str, dict]]: List of (chunk_id, chunk_text, metadata)
-                tuples ready for ChromaDB insertion.
-
-        Example:
-            >>> chunks = embedding_service.chunk_text(schema.contenu)
-            >>> for chunk_id, chunk_text, metadata in schema.to_chunks(chunks):
-            ...     collection.add(
-            ...         ids=[chunk_id],
-            ...         documents=[chunk_text],
-            ...         metadatas=[metadata]
-            ...     )
-        """
-        return [
-            (
-                self.chunk_id(i),
-                f"{self.titre}\n\n{chunk}",  # Include title for context
-                self.to_metadata(chunk_index=i),
-            )
-            for i, chunk in enumerate(chunks)
-        ]
+        return f"document_{self.id}"

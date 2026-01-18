@@ -14,13 +14,20 @@ Example:
 import logging
 import os
 import time
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
 from typing import Optional
 
 from dotenv import load_dotenv
 from mistralai import Mistral
+
+from app.rag.llm_options import (
+    MODELS,
+    PROMPT_TEMPLATES,
+    SYSTEM_PROMPT,
+    LLMResponse,
+    LLMUsage,
+    PromptTemplate,
+    SystemPromptTemplate,
+)
 
 load_dotenv()
 
@@ -31,111 +38,6 @@ class MissingAPIKeyError(Exception):
     """Custom exception for missing API key."""
 
     pass
-
-
-class MistralModel(Enum):
-    """Available Mistral models."""
-
-    MISTRAL_SMALL = "mistral-small-latest"
-    MISTRAL_MEDIUM = "mistral-medium-latest"
-    MISTRAL_LARGE = "mistral-large-latest"
-    CODESTRAL = "codestral-latest"
-    MINISTRAL_8B = "ministral-8b-latest"
-    MINISTRAL_3B = "ministral-3b-latest"
-
-
-@dataclass
-class ModelConfig:
-    """Configuration for a Mistral model."""
-
-    model: MistralModel
-    temperature: float = 0.7
-    max_tokens: int = 1024
-    cost_per_1m_input: float = 0.0  # Cost in USD per 1M input tokens
-    cost_per_1m_output: float = 0.0  # Cost in USD per 1M output tokens
-
-
-@dataclass
-class LLMUsage:
-    """Token usage and cost tracking for a single LLM call."""
-
-    input_tokens: int = 0
-    output_tokens: int = 0
-    total_tokens: int = 0
-    cost_usd: float = 0.0
-    latency_ms: float = 0.0
-    timestamp: datetime = field(default_factory=datetime.now)
-
-    def __post_init__(self):
-        if self.total_tokens == 0:
-            self.total_tokens = self.input_tokens + self.output_tokens
-
-
-@dataclass
-class LLMResponse:
-    """Response from an LLM call."""
-
-    content: str
-    usage: LLMUsage
-    model: str
-    raw_response: Optional[dict] = None
-
-
-# TODO: check and update costs
-# Pre-configured Mistral models with pricing (USD per 1M tokens)
-MODELS: dict[str, ModelConfig] = {
-    "ministral-3b": ModelConfig(
-        model=MistralModel.MINISTRAL_3B,
-        cost_per_1m_input=0.04,
-        cost_per_1m_output=0.04,
-    ),
-    "ministral-8b": ModelConfig(
-        model=MistralModel.MINISTRAL_8B,
-        cost_per_1m_input=0.1,
-        cost_per_1m_output=0.1,
-    ),
-    "mistral-small": ModelConfig(
-        model=MistralModel.MISTRAL_SMALL,
-        cost_per_1m_input=0.2,
-        cost_per_1m_output=0.6,
-    ),
-    "mistral-medium": ModelConfig(
-        model=MistralModel.MISTRAL_MEDIUM,
-        cost_per_1m_input=2.5,
-        cost_per_1m_output=7.5,
-    ),
-    "mistral-large": ModelConfig(
-        model=MistralModel.MISTRAL_LARGE,
-        cost_per_1m_input=2.0,
-        cost_per_1m_output=6.0,
-    ),
-    "codestral": ModelConfig(
-        model=MistralModel.CODESTRAL,
-        cost_per_1m_input=0.3,
-        cost_per_1m_output=0.9,
-    ),
-}
-
-TEMPLATE = """
-    Tu es un assistant médical nommé DiagnoSys, spécialisé dans l'aide au diagnostic clinique basé sur les informations fournies par le 
-    patient et le médecine par transcription audio et le contexte médical pertinent.
-
-    Contexte medical du patient:
-    {context}
-
-    Documents médicaux pertinents:
-    {documents_chunks}
-
-    Patients similaires:
-    {patient_chunks}
-
-    Conversation avec le patient:
-    {query}
-
-    Mets à jour le contexte médical du patient en fonction des nouvelles informations fournies dans la conversation. 
-    Propose succinctement aux maximimums 3 diagnostics différents et expose ton rationnel.
-    Réponse en français:
-    """
 
 
 class LLMHandler:
@@ -268,21 +170,32 @@ class LLMHandler:
 
     def generate_with_template(
         self,
-        system_prompt: Optional[str] = None,
+        template: PromptTemplate = PromptTemplate.DIAGNOSTIC,
+        system_prompt: SystemPromptTemplate = SystemPromptTemplate.DIAGNOSYS_ASSISTANT,
         **kwargs,
     ) -> LLMResponse:
         """
         Generate a response using a prompt template.
 
         Args:
-            system_prompt: Optional system prompt for context.
-            **kwargs: Variables for the template: context, documents_chunks, query.
+            template: The prompt template to use (default: DIAGNOSTIC).
+            system_prompt: System prompt template for context.
+            **kwargs: Variables for the template: context, documents_chunks, patient_chunks, query.
 
         Returns:
             LLMResponse with content and usage stats.
         """
-        prompt = TEMPLATE.format(**kwargs)
-        return self.generate(prompt, system_prompt)
+        if template not in PROMPT_TEMPLATES:
+            available = ", ".join(t.name for t in PromptTemplate)
+            raise ValueError(f"Unknown template '{template}'. Available: {available}")
+        elif system_prompt not in SYSTEM_PROMPT:
+            available = ", ".join(t.name for t in SystemPromptTemplate)
+            raise ValueError(
+                f"Unknown system prompt '{system_prompt}'. Available: {available}"
+            )
+
+        prompt = PROMPT_TEMPLATES[template].format(**kwargs)
+        return self.generate(prompt, SYSTEM_PROMPT[system_prompt])
 
     def _track_usage(self, usage: LLMUsage) -> None:
         """Track cumulative usage statistics."""
