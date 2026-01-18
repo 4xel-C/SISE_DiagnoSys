@@ -9,7 +9,29 @@ const topbar = main.querySelector('.top-bar');
 
 
 
+async function searchPatients(query='') {
+    // Build URL
+    const url = new URL('ajax/search_patients', window.location.origin);
+    if (query) {
+        url.searchParams.set('query', query);
+    }
+    // Request
+    const response = await fetch(url);
 
+    // Remove previous patient results
+    patientList.innerHTML = ''; 
+    // Handle errors
+    if (!response.ok) {
+        console.error('Failed to search patient, python bad response');
+        return
+    }
+
+    // Load and render results
+    const patients = await response.json();
+    patients.forEach(html => {
+        patientList.insertAdjacentHTML('beforeend', html)
+    });
+}
 
 function selectElement(element) {
     // Unselect previous
@@ -68,3 +90,8 @@ topbar.querySelector('button.see').addEventListener('click', () => {
     selectElement(patient);
     loadDiagnostics(patientId);
 });
+
+
+
+// Init patients (get all)
+searchPatients()

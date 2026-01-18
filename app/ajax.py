@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, current_app, render_template
+from flask import Blueprint, render_template, jsonify, request, current_app
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -20,9 +20,10 @@ ajax = Blueprint("ajax", __name__)
 sock = Sock()
 
 
+
+
 # ----------------
 # WEB SOCKETS
-
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
@@ -39,9 +40,30 @@ def audio_stt(ws) -> None:
             print("Audio stream ended")
 
 
-# ---------------
-# TEMPLATES
 
+
+# ---------------
+# RENDER TEMPLATES
+
+@ajax.route("search_patients", methods=['GET'])
+def search_patients():
+    query = request.args.get('query')
+
+    if query:
+        patients = app.patient_service.get_by_query(query)
+    else:
+        patients = app.patient_service.get_all()
+
+    htmls = [
+        render_template(
+            'patient_result.html',
+            id=p.id,
+            name=p.prenom,
+            last_name=p.nom,
+            initials=p.initials
+        ) for p in patients
+    ]
+    return jsonify(htmls)
 
 @ajax.route("render_diagnostics/<patient_id>", methods=["GET"])
 def render_diagnostics(patient_id: str) -> str:

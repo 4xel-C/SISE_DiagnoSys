@@ -69,6 +69,17 @@ class PatientSchema(BaseModel):
 
     @computed_field
     @property
+    def initials(self) -> str:
+        """
+        Generate initials from nom and prenom.
+
+        Returns:
+            str: Initials.
+        """
+        return f"{self.prenom[0].upper()}{self.nom[0].lower()}"
+
+    @computed_field
+    @property
     def vector_id(self) -> str:
         """
         Generate unique identifier for ChromaDB.
