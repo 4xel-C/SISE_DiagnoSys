@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, render_template, jsonify, request, current_app
+from flask import Blueprint, render_template, jsonify, current_app, request
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -47,6 +47,11 @@ def audio_stt(ws) -> None:
 
 @ajax.route("search_patients", methods=['GET'])
 def search_patients():
+    """
+    Search patient by name with a query.
+    Returns all patients if no query provided
+    """
+
     query = request.args.get('query')
 
     if query:
@@ -70,3 +75,25 @@ def render_diagnostics(patient_id: str) -> str:
     # TODO: Get diagnostic content from BDD and pass
     # the structured data to HTML template
     return render_template("diagnostics.html", patient_id=patient_id)
+
+
+
+# ---------------
+# RAG
+
+@ajax.route('process_rag', methods=['POST'])
+def process_rag():
+    form = request.form
+    patient_id = form.get('patientId')
+    context = form.get('context')
+    
+    # TODO: process RAG and retrive `diagnostics`, `documents` and `cases`
+    diagnostics: dict = None
+    documents: dict = None
+    cases: dict = None
+
+    return jsonify({
+        'diagnostics': diagnostics,
+        'documents': documents,
+        'cases': cases
+    })

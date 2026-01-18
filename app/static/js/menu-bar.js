@@ -29,7 +29,13 @@ async function searchPatients(query='') {
     // Load and render results
     const patients = await response.json();
     patients.forEach(html => {
-        patientList.insertAdjacentHTML('beforeend', html)
+        patientList.insertAdjacentHTML('beforeend', html);
+        const patient = patientList.lastElementChild;
+        // Bind click -> open diagnostics
+        patient.addEventListener('click', () => {
+            selectElement(patient);
+            loadDiagnostics(patient.dataset.patientId);
+        })
     });
 }
 
@@ -51,14 +57,6 @@ function selectElement(element) {
 internalList.querySelectorAll('li').forEach(internal => {
     internal.addEventListener('click', () => {
         selectElement(internal);
-    })
-});
-
-// On patient clicked
-patientList.querySelectorAll('li').forEach(patient => {
-    patient.addEventListener('click', () => {
-        selectElement(patient);
-        loadDiagnostics(patient.dataset.patientId);
     })
 });
 
