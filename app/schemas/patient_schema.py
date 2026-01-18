@@ -51,7 +51,7 @@ class PatientSchema(BaseModel):
 
     id: int
     nom: str
-    prenom: Optional[str] = None
+    prenom: str
     gravite: Optional[str] = None
     type_maladie: Optional[str] = None
     symptomes_exprimes: Optional[str] = None
