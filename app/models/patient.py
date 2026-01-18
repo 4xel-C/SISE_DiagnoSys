@@ -74,6 +74,7 @@ class Patient(Base):
     contexte = Column(
         Text, nullable=True
     )  # Context for LLM containing diagnosis information
+    diagnostic = Column(Text, nullable=True)  # Diagnosis information
 
     def __repr__(self):
         """Return a string representation of the Patient instance."""

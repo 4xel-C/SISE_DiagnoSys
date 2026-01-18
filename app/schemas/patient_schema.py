@@ -64,6 +64,7 @@ class PatientSchema(BaseModel):
     ta_diastolique: Optional[int] = None
     temperature: Optional[float] = None
     contexte: Optional[str] = None
+    diagnostic: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -111,6 +112,9 @@ class PatientSchema(BaseModel):
 
         if self.contexte:
             parts.append(f"Contexte: {self.contexte}")
+
+        if self.diagnostic:
+            parts.append(f"Diagnostic: {self.diagnostic}")
 
         return ". ".join(parts) if parts else ""
 
