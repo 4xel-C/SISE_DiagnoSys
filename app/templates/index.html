@@ -30,19 +30,7 @@
                 <p class="label">À propos</p>
             </li>
         </ul>
-        <ul class="patients">
-            {% for p in patients %}
-                <li data-patient-id="{{ p.id }}">
-                    <div class="profile">
-                        <svg width="30" height="30" viewBox="0 0 30 30">
-                            <circle r="14" fill="var(--bg-selected-color)" cy="15" cx="15"></circle>
-                            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="40" fill="#333" dy=".05em">{{ p.initials }}</text>
-                        </svg>
-                    </div>
-                    <p class="label">{{ p.first_name }} {{ p.last_name }}</p>
-                </li>
-            {% endfor %}
-        </ul>
+        <ul class="patients"></ul>
     </nav>
    <main>
         <div class="top-bar">
@@ -85,5 +73,6 @@
 <script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/audio-record.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/diagnostics.js') }}" type="module"></script>
 
 </html>

@@ -13,7 +13,9 @@ from flask import Flask
 
 from app.config.database import db
 from app.config.logging_config import get_logging_config
-from app.dummy.db import DummyDB
+from app.services.patient_service import PatientService
+
+
 
 
 class AppContext(Flask):
@@ -22,7 +24,9 @@ class AppContext(Flask):
     Cleanest way I now to enable typing on Flask app context
     """
 
-    dummy: DummyDB
+    patient_service: PatientService
+
+
 
 
 def create_app() -> Flask:
@@ -47,9 +51,9 @@ def create_app() -> Flask:
     logger = logging.getLogger(__name__)
     logger.info("Starting Flask application")
 
-    # Instantiate global classes in app context
+    # Instantiate services in app context
     with app.app_context():
-        app.dummy = DummyDB()
+        app.patient_service = PatientService()
 
     # Init pages routes
     from .routes import main as main_blueprint

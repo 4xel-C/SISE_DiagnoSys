@@ -51,7 +51,7 @@ class PatientSchema(BaseModel):
 
     id: int
     nom: str
-    prenom: Optional[str] = None
+    prenom: str
     gravite: Optional[str] = None
     type_maladie: Optional[str] = None
     symptomes_exprimes: Optional[str] = None
@@ -67,6 +67,17 @@ class PatientSchema(BaseModel):
     diagnostic: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def initials(self) -> str:
+        """
+        Generate initials from nom and prenom.
+
+        Returns:
+            str: Initials.
+        """
+        return f"{self.prenom[0].upper()}{self.nom[0].lower()}"
 
     @computed_field
     @property

@@ -31,7 +31,7 @@ class Patient(Base):
     Attributes:
         id (int): Primary key, auto-incremented unique identifier.
         nom (str): Patient's last name (max 100 characters). Required.
-        prenom (str): Patient's first name (max 100 characters). Optional.
+        prenom (str): Patient's first name (max 100 characters). Required.
         gravite (str): Triage severity level. Must be one of:
             - 'gris' (gray): Deceased or palliative care
             - 'vert' (green): Minor injuries, can wait
@@ -52,7 +52,7 @@ class Patient(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     nom = Column(String(100), nullable=False)
-    prenom = Column(String(100), nullable=True)
+    prenom = Column(String(100), nullable=False)
     gravite = Column(
         String(10),
         CheckConstraint("gravite IN ('gris', 'vert', 'jaune', 'rouge')"),
@@ -78,4 +78,4 @@ class Patient(Base):
 
     def __repr__(self):
         """Return a string representation of the Patient instance."""
-        return f"<Patient(id={self.id}, nom='{self.nom}', gravite='{self.gravite}')>"
+        return f"<Patient(id={self.id}, nom='{self.nom}', prenom='{self.prenom}', gravite='{self.gravite}')>"

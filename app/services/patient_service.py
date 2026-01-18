@@ -16,6 +16,8 @@ from app.config import Database, db
 from app.models import Patient
 from app.schemas import PatientSchema
 
+from sqlalchemy import or_, and_
+
 logger = logging.getLogger(__name__)
 
 
@@ -120,6 +122,38 @@ class PatientService:
 
             for patient in patients:
                 logger.debug(f"Patient: {patient.nom}, Gravite: {patient.gravite}")
+                result.append(PatientSchema.model_validate(patient))
+
+        return result
+    
+    def get_by_query(self, query: str) -> list[PatientSchema]:
+        """
+        Retrieve all patients with names matching a search query.
+
+        Args:
+            query (str): Name of patient so search.
+
+        Returns:
+            list[PatientSchema]: List of patients matching the query.
+
+        Example:
+            >>> result = service.get_by_query("michel dupont")
+        """
+        logger.debug(f"Fetching patients matching query '{query}'.")
+        result = list()
+        with self.db_manager.session() as session:
+            tokens = query.split()
+            conds = [
+                or_(Patient.nom.ilike(f"%{t}%"),
+                    Patient.prenom.ilike(f"%{t}%"))
+                for t in tokens
+            ]
+
+            patients = session.query(Patient).filter(and_(*conds)).all()
+            logger.debug(f"Found {len(patients)} patients matching query '{query}'.")
+
+            for patient in patients:
+                logger.debug(f"Patient: {patient.nom} {patient.prenom}")
                 result.append(PatientSchema.model_validate(patient))
 
         return result
