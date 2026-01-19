@@ -23,13 +23,16 @@ def update_db(parsed_docs):
         contenu = "\n".join(
             p for section in doc.get("sections", []) for p in section.get("paragraphs", [])
         )
+        # Ignore les documents sans lien ou sans contenu (ex: Contents)
+        if not url or not contenu:
+            logger.info(f"Document '{titre}' ignoré (pas de lien ou pas de contenu).")
+            continue
         # Recherche le document existant
         existing = doc_service.search_by_titre(titre)
         if existing:
             # Met à jour si le contenu ou le lien a changé
             db_doc = existing[0]
             if db_doc.contenu != contenu or db_doc.url != url:
-                # Update: (à adapter selon ton ORM, ici pseudo-code)
                 with doc_service.db_manager.session() as session:
                     document = session.query(Document).filter_by(id=db_doc.id).first()
                     document.contenu = contenu
