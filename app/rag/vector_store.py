@@ -68,6 +68,7 @@ class VectorStore:
         item_id: str,
         content: str,
         metadata: Optional[dict] = None,
+        no_chunking: bool = False,
     ) -> int:
         """
         Add an item to the vector store.
@@ -78,7 +79,7 @@ class VectorStore:
             item_id (str): Unique identifier for the item.
             content (str): The text content to embed.
             metadata (dict, optional): Additional metadata to store with each chunk.
-
+            no_chunking (bool, optional): Whether to skip chunking and embed the entire content as one chunk. Defaults to False.
         Returns:
             int: Number of chunks added.
 
@@ -95,7 +96,7 @@ class VectorStore:
         self.delete(item_id)
 
         # Chunk the content
-        chunks = self.vectorizer.chunk_text(content)
+        chunks = self.vectorizer.chunk_text(content) if not no_chunking else [content]
         if not chunks:
             logger.warning(f"No chunks generated for item {item_id}")
             return 0

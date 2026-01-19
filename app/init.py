@@ -16,8 +16,6 @@ from app.config.logging_config import get_logging_config
 from app.services.patient_service import PatientService
 
 
-
-
 class AppContext(Flask):
     """Typing
     Define the class of app context objects
@@ -25,8 +23,6 @@ class AppContext(Flask):
     """
 
     patient_service: PatientService
-
-
 
 
 def create_app() -> Flask:
@@ -53,7 +49,7 @@ def create_app() -> Flask:
 
     # Instantiate services in app context
     with app.app_context():
-        app.patient_service = PatientService()
+        app.patient_service = PatientService()  # type: ignore
 
     # Init pages routes
     from .routes import main as main_blueprint

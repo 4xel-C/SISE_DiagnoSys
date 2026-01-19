@@ -12,15 +12,19 @@ Example:
 
 import logging
 
+from sqlalchemy import and_, or_
+
 from app.config import Database, db
 from app.models import Patient
+from app.rag import (
+    patient_store,
+)
 from app.schemas import PatientSchema
-
-from sqlalchemy import or_, and_
 
 logger = logging.getLogger(__name__)
 
 
+# TODO: For each sqlite update, update also the embeddings in the vector store
 class PatientService:
     """
     Service class for Patient database operations.
@@ -125,7 +129,7 @@ class PatientService:
                 result.append(PatientSchema.model_validate(patient))
 
         return result
-    
+
     def get_by_query(self, query: str) -> list[PatientSchema]:
         """
         Retrieve all patients with names matching a search query.
@@ -144,8 +148,7 @@ class PatientService:
         with self.db_manager.session() as session:
             tokens = query.split()
             conds = [
-                or_(Patient.nom.ilike(f"%{t}%"),
-                    Patient.prenom.ilike(f"%{t}%"))
+                or_(Patient.nom.ilike(f"%{t}%"), Patient.prenom.ilike(f"%{t}%"))
                 for t in tokens
             ]
 
@@ -162,6 +165,7 @@ class PatientService:
     # CREATE METHODS
     ################################################################
 
+    # TODO: Create embeddings after patient creation
     def create(self, **kwargs) -> PatientSchema:
         """
         Create a new patient record.
@@ -219,3 +223,47 @@ class PatientService:
                 return True
             logger.debug(f"Patient with id={patient_id} not found for deletion.")
             return False
+
+    ################################################################
+    # UPDATE METHODS
+    ################################################################
+    def update_context(self, patient_id: int, new_context: str) -> PatientSchema:
+        """
+        Update the context field of a patient and update embdeddings from the vector store.
+
+        Args:
+            patient_id (int): The patient's unique identifier.
+            new_context (str): The new context to set.
+
+        Returns:
+            PatientSchema: The updated Patient record.
+
+        Raises:
+            ValueError: If the patient is not found.
+
+        Example:
+            >>> updated_patient = service.update_context(1, "New context data")
+        """
+        logger.debug(f"Updating context for patient id={patient_id}.")
+        with self.db_manager.session() as session:
+            patient = session.query(Patient).filter_by(id=patient_id).first()
+            if not patient:
+                logger.error(
+                    f"Patient with id={patient_id} not found for context update."
+                )
+                raise ValueError(f"Patient with id={patient_id} not found.")
+
+            patient.context = new_context
+            session.commit()
+            logger.info(f"Updated context for patient id={patient_id}.")
+            patient = PatientSchema.model_validate(patient)
+
+        # Update the chromadb
+        patient_store.add(
+            item_id=patient.vector_id,
+            content=patient.content_for_embedding,
+            metadata=patient.to_metadata(),
+            no_chunking=True,
+        )
+
+        return patient

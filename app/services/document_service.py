@@ -19,6 +19,7 @@ from app.schemas import DocumentSchema
 logger = logging.getLogger(__name__)
 
 
+# TODO: For each sqlite update, update also the embeddings in the vector store
 class DocumentService:
     """
     Service class for Document database operations.
