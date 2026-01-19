@@ -60,14 +60,9 @@ def search_patients():
         patients = app.patient_service.get_all()
 
     htmls = [
-        render_template(
-            'patient_result.html',
-            id=p.id,
-            name=p.prenom,
-            last_name=p.nom,
-            initials=p.initials
-        ) for p in patients
+        p.render() for p in patients
     ]
+    
     return jsonify(htmls)
 
 @ajax.route("render_diagnostics/<patient_id>", methods=["GET"])
@@ -85,15 +80,34 @@ def render_diagnostics(patient_id: str) -> str:
 def process_rag():
     form = request.form
     patient_id = form.get('patientId')
-    context = form.get('context')
+
+    rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
     
-    # TODO: process RAG and retrive `diagnostics`, `documents` and `cases`
-    diagnostics: dict = None
-    documents: dict = None
-    cases: dict = None
+    document_htmls: list[str] = []
+    for document_id in rag_result['document_ids']:
+        document = app.document_service.get_by_id(document_id)
+        document_htmls.append(document.render())
+
+    case_htmls: list[str] = []
+    for patient_id in rag_result['related_patients_ids']:
+        patient = app.patient_service.get_by_id(patient_id)
+        case_htmls.append(patient.render())
 
     return jsonify({
-        'diagnostics': diagnostics,
-        'documents': documents,
-        'cases': cases
+        'diagnostics': rag_result['diagnosys'],
+        'documents': document_htmls,
+        'cases': case_htmls
     })
+
+
+
+# ---------------
+# DATABASE
+
+
+@ajax.route('update_context/<patient_id>', methods=['POST'])
+def update_context(patient_id: str):
+    form = request.form
+    context = form.get('context')
+    app.patient_service.update_context(patient_id, context)
+    return '', 200
