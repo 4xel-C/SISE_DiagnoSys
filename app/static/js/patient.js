@@ -60,9 +60,7 @@ document.addEventListener('patientRendered', (e) => {
         holder: 'context',
         placeholder: 'Ajoutez ou modifiez des informations',
         tools: {
-            header: Header,
-            markdownParser: MDParser,
-            markdownImporter: MDImporter
+            header: Header
         }
     });
 

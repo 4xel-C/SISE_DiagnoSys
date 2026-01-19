@@ -17,7 +17,7 @@
     --neutral-color: #ffa64d;
 }
 
-* {
+:where(:not(.editorjs *, .ct--bottom *)) {
     list-style: none;
     text-decoration: none;
     color: var(--text-color);

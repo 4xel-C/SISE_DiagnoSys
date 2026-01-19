@@ -52,6 +52,7 @@ main .audio-record {
     transition: height .3s ease;
     margin: 1rem;
     margin-top: 0;
+    transition: background-color .125s ease;
 
     * {
         color: white;
@@ -119,6 +120,7 @@ main .audio-record {
         animation: zoomIn .6s ease-out forwards;
         animation-delay: .2s;
         background-color: var(--accent-color);
+        transition: background-color .125s ease;
     }
 }
 main .audio-record::before {
@@ -129,6 +131,13 @@ main .audio-record::before {
 	filter: blur(1rem);
 	animation: a 8s linear infinite;
 	content: ''
+}
+main .audio-record:hover {
+    background-color: var(--accent-second-color) !important;
+
+    .circle-overlay.animation-2 {
+        background-color: var(--accent-second-color);
+    }
 }
 main .audio-record.active {
     display: block;

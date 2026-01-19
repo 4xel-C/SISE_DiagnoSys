@@ -135,3 +135,7 @@ window.addEventListener('keydown', (event) => {
         handler(event);
     }
 });
+
+audioRecord.addEventListener('click', () => {
+    toggleMic();
+})
