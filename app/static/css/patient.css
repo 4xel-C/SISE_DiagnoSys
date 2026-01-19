@@ -1,0 +1,43 @@
+main .patient {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1rem;
+
+    .frame {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        background-color: var(--bg-second-color);
+        border-radius: var(--border-radius);
+        border: solid 1px var(--border-color);
+        padding: 1rem;
+    }
+
+    .frame.context {
+        grid-row: 1 / span 2;
+    }
+    .frame.diagnostic {
+        grid-row: 3;
+    }
+    .frame.cases {
+        grid-row: 1;
+    }
+    .frame.documents {
+        grid-row: 2 / span 2;
+    }
+
+    form#context-editor {
+        position: relative;
+
+        .actions {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+
+            button:not(:last-child) {
+                margin-right: .2rem;
+            }
+        }
+    }
+}

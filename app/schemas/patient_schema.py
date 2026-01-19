@@ -138,9 +138,12 @@ class PatientSchema(BaseModel):
             "contexte": self.contexte or "",
         }
 
-    def render(self, style='detailed'):
+    def render(self, style='profile'):
         """
         Render a HTML template from the patient
+
+        Arguments:
+            style (str): The template style to render. Value should be in ["profile", "case"]
 
         Returns:
             str: HTML string
@@ -148,7 +151,7 @@ class PatientSchema(BaseModel):
         match style:
             case 'profile':
                 return render_template(
-                    'patient_profile.html',
+                    'elements/patient_profile.html',
                     id=self.id,
                     name=self.prenom,
                     last_name=self.nom,
@@ -156,5 +159,7 @@ class PatientSchema(BaseModel):
                 )
             case 'case':
                 return render_template(
-                    'patient_case.html'
+                    'elements/patient_case.html'
                 )
+            case _:
+                raise ValueError(f'Unexpected style argument "{style}". Should be "profile" or "case"')

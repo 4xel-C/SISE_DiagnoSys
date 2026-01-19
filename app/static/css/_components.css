@@ -10,6 +10,32 @@ input:focus {
     border-color: var(--accent-color);
 }
 
+.main-button {
+    color: white;
+    padding: .3rem 1.1rem;
+    background-color: var(--accent-color);
+    border: solid 1px var(--accent-second-color);
+    border-radius: 6px;
+    transition: background-color .125s ease;
+}
+.main-button:hover {
+    background-color: var(--accent-second-color);
+}
+
+.second-button {
+    color: black;
+    padding: .3rem 1.1rem;
+    background-color: var(--bg-frame-color);
+    border: solid 1px var(--border-color);
+    border-radius: 6px;
+    transition: background-color .125s ease;
+}
+.second-button:hover {
+    background-color: var(--border-color);
+}
+
+
+
 .tag {
     background-color: rgb(255 255 255 / 15%);
     padding: .1rem .2rem;

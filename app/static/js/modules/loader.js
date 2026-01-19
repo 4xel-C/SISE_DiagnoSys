@@ -1,13 +1,13 @@
 import { socket } from './streamer.js';
 
 
-export async function loadDiagnostics(patientId) {
+export async function renderPatient(patientId) {
     const main = document.querySelector('main');
     const content = main.querySelector('.content');
     const audioRecord = main.querySelector('.audio-record');
 
     // Request diagnostic HTML
-    const response = await fetch(`ajax/render_diagnostics/${patientId}`);
+    const response = await fetch(`ajax/render_patient/${patientId}`);
     const html = await response.text();
 
     // Display diagnostics
@@ -24,8 +24,24 @@ export async function loadDiagnostics(patientId) {
 
     // Dispatch event
     document.dispatchEvent(
-        new CustomEvent('diagnosticsLoaded', {
+        new CustomEvent('patientRendered', {
             detail: { patientId }
         })
     );
+}
+
+export async function loadContext(patientId) {
+    // request patient context
+    // return md formatted string
+    const response = await fetch(`ajax/get_context/${patientId}`);
+    const content = await response.json();
+    return content['context'];
+}
+
+export async function loadResults(patientId) {
+    // request patient diagnostics, documents and similar cases
+    // return dict
+    const response = await fetch(`ajax/get_results/${patientId}`);
+    const content = await response.json();
+    return content
 }

@@ -59,17 +59,13 @@ def search_patients():
     else:
         patients = app.patient_service.get_all()
 
-    htmls = [
-        p.render() for p in patients
-    ]
+    htmls = [p.render() for p in patients]
     
     return jsonify(htmls)
 
-@ajax.route("render_diagnostics/<patient_id>", methods=["GET"])
-def render_diagnostics(patient_id: str) -> str:
-    # TODO: Get diagnostic content from BDD and pass
-    # the structured data to HTML template
-    return render_template("diagnostics.html", patient_id=patient_id)
+@ajax.route("render_patient/<patient_id>", methods=["GET"])
+def render_patient(patient_id: str) -> str:
+    return render_template("patient.html", patient_id=patient_id)
 
 
 
@@ -103,6 +99,33 @@ def process_rag():
 
 # ---------------
 # DATABASE
+
+@ajax.route('get_context/<patient_id>', methods=['GET'])
+def get_context(patient_id: str):
+    patient = app.patient_service.get_by_id(patient_id)
+
+    return jsonify({
+        'context': patient.contexte
+    })
+
+@ajax.route('get_results/<patient_id>', methods=['GET'])
+def get_results(patient_id: str):
+    patient = app.patient_service.get_by_id(patient_id)
+
+    case_htmls: list[str] = []
+    # for patient_id in patient.cases:
+    #     patient = app.patient_service.get_by_id(patient_id)
+    #     case_htmls.append(patient.render())
+
+    print({
+        'diagnostics': patient.diagnostic,
+        'cases': case_htmls
+    })
+
+    return jsonify({
+        'diagnostics': patient.diagnostic,
+        'cases': case_htmls
+    })
 
 
 @ajax.route('update_context/<patient_id>', methods=['POST'])

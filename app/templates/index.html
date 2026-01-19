@@ -10,8 +10,9 @@
    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
    <link rel="stylesheet" href="{{ url_for('static', filename='css/_components.css') }}">
    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu-bar.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnostics.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
    <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
    <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
 </head>
 
@@ -70,9 +71,18 @@
    </main>
 </body>
 
+<!-- Editor.js plugin -->
+<script src="https://cdn.jsdelivr.net/npm/editorjs-md-parser@0.0.3/dist/bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/link@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+<!-- Custom scripts -->
 <script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/audio-record.js') }}" type="module"></script>
-<script src="{{ url_for('static', filename='js/diagnostics.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/patient.js') }}" type="module"></script>
 
 </html>
