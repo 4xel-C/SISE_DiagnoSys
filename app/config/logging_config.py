@@ -54,6 +54,7 @@ def get_logging_config() -> dict:
                 "class": "logging.StreamHandler",
                 "level": log_level,
                 "formatter": "detailed",
+                "stream": "ext://sys.stdout"
             },
             "app_file": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -62,6 +63,7 @@ def get_logging_config() -> dict:
                 "backupCount": 2,
                 "level": log_level,
                 "formatter": "detailed",
+                "encoding": "utf-8",  # Correction pour Unicode
             },
             "werkzeug_file": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -70,6 +72,7 @@ def get_logging_config() -> dict:
                 "backupCount": 1,
                 "level": "INFO",
                 "formatter": "no_color",  # Use no_color formatter for files
+                "encoding": "utf-8",  # Correction pour Unicode
             },
             "config_file": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -78,6 +81,7 @@ def get_logging_config() -> dict:
                 "backupCount": 1,
                 "level": log_level,
                 "formatter": "detailed",
+                "encoding": "utf-8",  # Correction pour Unicode
             },
             "service_file": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -86,6 +90,7 @@ def get_logging_config() -> dict:
                 "backupCount": 1,
                 "level": log_level,
                 "formatter": "detailed",
+                "encoding": "utf-8",  # Correction pour Unicode
             },
             "rag_file": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -94,6 +99,7 @@ def get_logging_config() -> dict:
                 "backupCount": 1,
                 "level": log_level,
                 "formatter": "detailed",
+                "encoding": "utf-8",  # Correction pour Unicode
             },
             "scrapper_file": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -102,6 +108,7 @@ def get_logging_config() -> dict:
                 "backupCount": 1,
                 "level": log_level,
                 "formatter": "detailed",
+                "encoding": "utf-8",  # Correction pour Unicode
             },
         },
         # Define loggers for different parts of the application. getLogger(__name__) will find the correct module logger (hierarchical search).
