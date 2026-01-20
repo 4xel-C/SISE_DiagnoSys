@@ -89,7 +89,7 @@ document.addEventListener('patientRendered', (e) => {
             return
         }
         // Request context processing
-        const content = await processRAG(patientId, context);
+        const content = await processRAG(patientId);
         // Update results
         renderDiagnostics(content['diagnostics']);
         renderDocuments(content['documents']);
