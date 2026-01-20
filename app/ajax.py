@@ -20,10 +20,9 @@ ajax = Blueprint("ajax", __name__)
 sock = Sock()
 
 
-
-
 # ----------------
 # WEB SOCKETS
+
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
@@ -40,19 +39,18 @@ def audio_stt(ws) -> None:
             print("Audio stream ended")
 
 
-
-
 # ---------------
 # RENDER TEMPLATES
 
-@ajax.route("search_patients", methods=['GET'])
+
+@ajax.route("search_patients", methods=["GET"])
 def search_patients():
     """
     Search patient by name with a query.
     Returns all patients if no query provided
     """
 
-    query = request.args.get('query')
+    query = request.args.get("query")
 
     if query:
         patients = app.patient_service.get_by_query(query)
@@ -60,19 +58,20 @@ def search_patients():
         patients = app.patient_service.get_all()
 
     htmls = [p.render() for p in patients]
-    
+
     return jsonify(htmls)
+
 
 @ajax.route("render_patient/<patient_id>", methods=["GET"])
 def render_patient(patient_id: str) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
 
-
 # ---------------
 # RAG
 
-@ajax.route('process_rag', methods=['POST'])
+
+@ajax.route("process_rag", methods=["POST"])
 def process_rag():
     form = request.form
     patient_id = form.get('patientId', '')
@@ -107,15 +106,15 @@ def process_rag():
 # ---------------
 # DATABASE
 
-@ajax.route('get_context/<patient_id>', methods=['GET'])
+
+@ajax.route("get_context/<patient_id>", methods=["GET"])
 def get_context(patient_id: str):
     patient = app.patient_service.get_by_id(patient_id)
 
-    return jsonify({
-        'context': patient.contexte
-    })
+    return jsonify({"context": patient.contexte})
 
-@ajax.route('get_results/<patient_id>', methods=['GET'])
+
+@ajax.route("get_results/<patient_id>", methods=["GET"])
 def get_results(patient_id: str):
     patient = app.patient_service.get_by_id(patient_id)
 
@@ -130,10 +129,10 @@ def get_results(patient_id: str):
     })
 
 
-@ajax.route('update_context/<patient_id>', methods=['POST'])
+@ajax.route("update_context/<patient_id>", methods=["POST"])
 def update_context(patient_id: str):
     data = request.get_json()
     context = data.get('context')
     print('CONTEXT:', context, flush=True)
     app.patient_service.update_context(patient_id, context)
-    return '', 200
+    return "", 200
