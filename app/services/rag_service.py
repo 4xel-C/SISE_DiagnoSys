@@ -95,7 +95,7 @@ class RagService:
 
         return updated_patient.contexte
 
-    def compute_rag_diagnosys(self, patient_id: int) -> Optional[Dict[str, Any]]:
+    def compute_rag_diagnosys(self, patient_id: int) -> Dict[str, Any]:
         """Generate diagnosys based on patient context and his metadata:
         - retrieve embedding from chromadb vector store
         - Retrieve top5 relevant document chunks from vector store and return document ids
