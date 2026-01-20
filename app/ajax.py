@@ -133,8 +133,6 @@ def get_results(patient_id: int):
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):
     data = request.get_json()
-    print('patient_id:', patient_id)
     context = data.get("context")
-    print("context:", context, flush=True)
     app.patient_service.update_context(patient_id, context)
     return "", 200
