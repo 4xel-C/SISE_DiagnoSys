@@ -233,7 +233,7 @@ class VectorStore:
         """
         results = self.collection.get(
             where={self.id_field: item_id},
-            include=["documents", "metadatas"],
+            include=["documents", "metadatas", "embeddings"],
         )
 
         chunks = []
