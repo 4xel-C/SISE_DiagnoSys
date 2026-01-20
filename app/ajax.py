@@ -7,7 +7,11 @@ front end. No complex logic.
 
 from typing import cast
 
+<<<<<<< HEAD
 from flask import Blueprint, render_template, jsonify, abort, current_app, request
+=======
+from flask import Blueprint, current_app, jsonify, render_template, request
+>>>>>>> 23f0461 (solving conflict)
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -74,6 +78,7 @@ def render_patient(patient_id: str) -> str:
 @ajax.route("process_rag", methods=["POST"])
 def process_rag():
     form = request.form
+<<<<<<< HEAD
     patient_id = form.get('patientId', '')
     try:
         patient_id = int(patient_id)
@@ -87,10 +92,19 @@ def process_rag():
     
     document_htmls: list[str] = []
     for document_id in rag_result.get('document_ids'):
+=======
+    patient_id = form.get("patientId")
+
+    rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
+
+    document_htmls: list[str] = []
+    for document_id in rag_result["document_ids"]:
+>>>>>>> 23f0461 (solving conflict)
         document = app.document_service.get_by_id(document_id)
         document_htmls.append(document.render())
 
     case_htmls: list[str] = []
+<<<<<<< HEAD
     for patient_id in rag_result.get('related_patients_ids'):
         patient = app.patient_service.get_by_id(patient_id)
         case_htmls.append(patient.render())
@@ -101,6 +115,19 @@ def process_rag():
         'cases': case_htmls
     })
 
+=======
+    for patient_id in rag_result["related_patients_ids"]:
+        patient = app.patient_service.get_by_id(patient_id)
+        case_htmls.append(patient.render())
+
+    return jsonify(
+        {
+            "diagnostics": rag_result["diagnosys"],
+            "documents": document_htmls,
+            "cases": case_htmls,
+        }
+    )
+>>>>>>> 23f0461 (solving conflict)
 
 
 # ---------------
@@ -123,16 +150,27 @@ def get_results(patient_id: str):
     #     patient = app.patient_service.get_by_id(patient_id)
     #     case_htmls.append(patient.render())
 
+<<<<<<< HEAD
     return jsonify({
         'diagnostics': patient.diagnostic,
         'cases': case_htmls
     })
+=======
+    print({"diagnostics": patient.diagnostic, "cases": case_htmls})
+
+    return jsonify({"diagnostics": patient.diagnostic, "cases": case_htmls})
+>>>>>>> 23f0461 (solving conflict)
 
 
 @ajax.route("update_context/<patient_id>", methods=["POST"])
 def update_context(patient_id: str):
+<<<<<<< HEAD
     data = request.get_json()
     context = data.get('context')
     print('CONTEXT:', context, flush=True)
+=======
+    form = request.form
+    context = form.get("context")
+>>>>>>> 23f0461 (solving conflict)
     app.patient_service.update_context(patient_id, context)
     return "", 200
