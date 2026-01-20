@@ -33,6 +33,7 @@ def get_logging_config() -> dict:
     """
     app_name = os.getenv("APP_NAME", "diagnosys")
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    print_console = os.getenv("PRINT_CONSOLE_LOGS", "true").lower() == "true"
 
     return {
         "version": 1,
@@ -58,7 +59,7 @@ def get_logging_config() -> dict:
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": f"logs/{app_name}.log",
                 "maxBytes": 10485760,  # 10MB
-                "backupCount": 5,
+                "backupCount": 2,
                 "level": log_level,
                 "formatter": "detailed",
             },
@@ -107,38 +108,45 @@ def get_logging_config() -> dict:
         "loggers": {
             "werkzeug": {
                 "level": "INFO",
-                "handlers": ["console", "werkzeug_file"],
+                "handlers": ["console", "werkzeug_file"]
+                if print_console
+                else ["werkzeug_file"],
                 "propagate": False,
             },
             "app": {
                 "level": log_level,
-                "handlers": ["app_file"],
+                "handlers": ["console", "app_file"] if print_console else ["app_file"],
                 "propagate": False,
             },
             "app.config": {
                 "level": log_level,
-                "handlers": ["console", "config_file"],
+                "handlers": ["console", "config_file"]
+                if print_console
+                else ["config_file"],
                 "propagate": True,
             },
             "app.service": {
                 "level": log_level,
-                "handlers": ["console", "service_file"],
+                "handlers": ["console", "service_file"]
+                if print_console
+                else ["service_file"],
                 "propagate": True,
             },
             "app.rag": {
                 "level": log_level,
-                "handlers": ["console", "rag_file"],
+                "handlers": ["console", "rag_file"] if print_console else ["rag_file"],
                 "propagate": True,
             },
             "app.scraper": {
                 "level": log_level,
-                "handlers": ["console", "scrapper_file"],
+                "handlers": ["console", "scrapper_file"]
+                if print_console
+                else ["scrapper_file"],
                 "propagate": True,
             },
         },
         # Default root logger configuration if no other logger matches
         "root": {
-            "level": log_level,
-            "handlers": ["console", "app_file"],
+            "handlers": ["console", "app_file"] if print_console else ["app_file"],
         },
     }

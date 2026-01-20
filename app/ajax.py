@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, render_template, jsonify, current_app, request
+from flask import Blueprint, current_app, jsonify, render_template, request
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -20,10 +20,9 @@ ajax = Blueprint("ajax", __name__)
 sock = Sock()
 
 
-
-
 # ----------------
 # WEB SOCKETS
+
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
@@ -40,19 +39,18 @@ def audio_stt(ws) -> None:
             print("Audio stream ended")
 
 
-
-
 # ---------------
 # RENDER TEMPLATES
 
-@ajax.route("search_patients", methods=['GET'])
+
+@ajax.route("search_patients", methods=["GET"])
 def search_patients():
     """
     Search patient by name with a query.
     Returns all patients if no query provided
     """
 
-    query = request.args.get('query')
+    query = request.args.get("query")
 
     if query:
         patients = app.patient_service.get_by_query(query)
@@ -60,55 +58,57 @@ def search_patients():
         patients = app.patient_service.get_all()
 
     htmls = [p.render() for p in patients]
-    
+
     return jsonify(htmls)
+
 
 @ajax.route("render_patient/<patient_id>", methods=["GET"])
 def render_patient(patient_id: str) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
 
-
 # ---------------
 # RAG
 
-@ajax.route('process_rag', methods=['POST'])
+
+@ajax.route("process_rag", methods=["POST"])
 def process_rag():
     form = request.form
-    patient_id = form.get('patientId')
+    patient_id = form.get("patientId")
 
     rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
-    
+
     document_htmls: list[str] = []
-    for document_id in rag_result['document_ids']:
+    for document_id in rag_result["document_ids"]:
         document = app.document_service.get_by_id(document_id)
         document_htmls.append(document.render())
 
     case_htmls: list[str] = []
-    for patient_id in rag_result['related_patients_ids']:
+    for patient_id in rag_result["related_patients_ids"]:
         patient = app.patient_service.get_by_id(patient_id)
         case_htmls.append(patient.render())
 
-    return jsonify({
-        'diagnostics': rag_result['diagnosys'],
-        'documents': document_htmls,
-        'cases': case_htmls
-    })
-
+    return jsonify(
+        {
+            "diagnostics": rag_result["diagnosys"],
+            "documents": document_htmls,
+            "cases": case_htmls,
+        }
+    )
 
 
 # ---------------
 # DATABASE
 
-@ajax.route('get_context/<patient_id>', methods=['GET'])
+
+@ajax.route("get_context/<patient_id>", methods=["GET"])
 def get_context(patient_id: str):
     patient = app.patient_service.get_by_id(patient_id)
 
-    return jsonify({
-        'context': patient.contexte
-    })
+    return jsonify({"context": patient.contexte})
 
-@ajax.route('get_results/<patient_id>', methods=['GET'])
+
+@ajax.route("get_results/<patient_id>", methods=["GET"])
 def get_results(patient_id: str):
     patient = app.patient_service.get_by_id(patient_id)
 
@@ -117,20 +117,14 @@ def get_results(patient_id: str):
     #     patient = app.patient_service.get_by_id(patient_id)
     #     case_htmls.append(patient.render())
 
-    print({
-        'diagnostics': patient.diagnostic,
-        'cases': case_htmls
-    })
+    print({"diagnostics": patient.diagnostic, "cases": case_htmls})
 
-    return jsonify({
-        'diagnostics': patient.diagnostic,
-        'cases': case_htmls
-    })
+    return jsonify({"diagnostics": patient.diagnostic, "cases": case_htmls})
 
 
-@ajax.route('update_context/<patient_id>', methods=['POST'])
+@ajax.route("update_context/<patient_id>", methods=["POST"])
 def update_context(patient_id: str):
     form = request.form
-    context = form.get('context')
+    context = form.get("context")
     app.patient_service.update_context(patient_id, context)
-    return '', 200
+    return "", 200
