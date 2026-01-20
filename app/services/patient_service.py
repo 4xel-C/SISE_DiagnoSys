@@ -24,7 +24,6 @@ from app.schemas import PatientSchema
 logger = logging.getLogger(__name__)
 
 
-# TODO: For each sqlite update, update also the embeddings in the vector store
 class PatientService:
     """
     Service class for Patient database operations.
@@ -165,7 +164,6 @@ class PatientService:
     # CREATE METHODS
     ################################################################
 
-    # TODO: Create embeddings after patient creation
     def create(self, **kwargs) -> PatientSchema:
         """
         Create a new patient record.
@@ -189,12 +187,23 @@ class PatientService:
             ... )
         """
         logger.debug(f"Creating new patient with data: {kwargs}.")
+        patient_schema: PatientSchema
         with self.db_manager.session() as session:
             patient = Patient(**kwargs)
             session.add(patient)
             session.commit()
             logger.info(f"Created patient: {patient}")
-            return PatientSchema.model_validate(patient)
+            patient_schema = PatientSchema.model_validate(patient)
+
+        # update chromadb with new patient
+        patient_store.add(
+            item_id=patient_schema.vector_id,
+            content=patient_schema.content_for_embedding,
+            metadata=patient_schema.to_metadata(),
+            no_chunking=True,
+        )
+
+        return patient_schema
 
     ################################################################
     # DELETE METHODS
@@ -220,6 +229,10 @@ class PatientService:
                 session.delete(patient)
                 session.commit()
                 logger.info(f"Deleted patient with id={patient_id}.")
+
+                # Deletee from chromadb
+                patient_store.delete(item_id=patient.vector_id)
+
                 return True
             logger.debug(f"Patient with id={patient_id} not found for deletion.")
             return False

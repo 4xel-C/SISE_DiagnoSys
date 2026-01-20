@@ -14,12 +14,12 @@ from typing import Optional
 
 from app.config import Database, db
 from app.models import Document
+from app.rag import document_store
 from app.schemas import DocumentSchema
 
 logger = logging.getLogger(__name__)
 
 
-# TODO: For each sqlite update, update also the embeddings in the vector store
 class DocumentService:
     """
     Service class for Document database operations.
@@ -122,6 +122,10 @@ class DocumentService:
 
         return result
 
+    ################################################################
+    # CREATE METHODS
+    ################################################################
+
     def create(self, titre: str, url: str) -> DocumentSchema:
         """
         Create a new document record.
@@ -145,8 +149,19 @@ class DocumentService:
             session.add(document)
             session.commit()
             logger.info(f"Created document: {document}")
+
+            # delete vectors from chromadb
+            document_store.add(
+                item_id=document.vector_id,
+                content=document.content_for_embedding,
+                metadata=document.to_metadata,
+            )
+
             return DocumentSchema.model_validate(document)
 
+    ################################################################
+    # DELETE METHODS
+    ################################################################
     def delete(self, document_id: int) -> bool:
         """
         Delete a document by ID.
@@ -167,6 +182,9 @@ class DocumentService:
                 session.delete(document)
                 session.commit()
                 logger.info(f"Deleted document with id={document_id}.")
+
+                # delete from chroma_db
+                document_store.delete(item_id=document.vector_id)
                 return True
             logger.debug(f"Document with id={document_id} not found for deletion.")
             return False
