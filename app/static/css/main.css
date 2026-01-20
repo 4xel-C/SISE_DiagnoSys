@@ -11,12 +11,13 @@
     --border-color: #ebebeb;
     --border-radius: 12px;
     --accent-color: #8359E8;
+    --accent-second-color: #9c7fe4;
     --bad-color: #ff4d4d;
     --good-color: #4EA252;
     --neutral-color: #ffa64d;
 }
 
-* {
+:where(:not(.editorjs *, .ct--bottom *)) {
     list-style: none;
     text-decoration: none;
     color: var(--text-color);
@@ -31,6 +32,10 @@
 
 
 /* Global formatting */
+
+h2 {
+    font-size: 24px;
+}
 
 h3 {
     font-weight: 400;

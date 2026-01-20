@@ -13,8 +13,7 @@ from flask import Flask
 
 from app.config.database import db
 from app.config.logging_config import get_logging_config
-from app.services.patient_service import PatientService
-
+from app.services import PatientService, RagService, DocumentService
 
 class AppContext(Flask):
     """Typing
@@ -23,6 +22,8 @@ class AppContext(Flask):
     """
 
     patient_service: PatientService
+    rag_service: RagService
+    document_service: DocumentService
 
 
 def create_app() -> Flask:
@@ -49,7 +50,9 @@ def create_app() -> Flask:
 
     # Instantiate services in app context
     with app.app_context():
-        app.patient_service = PatientService()  # type: ignore
+        app.patient_service = PatientService()
+        app.rag_service = RagService()
+        app.document_service = DocumentService()
 
     # Init pages routes
     from .routes import main as main_blueprint

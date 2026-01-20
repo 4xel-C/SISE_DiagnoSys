@@ -17,6 +17,9 @@ from typing import Optional
 
 from pydantic import BaseModel, computed_field
 
+from flask import render_template
+
+
 
 class PatientSchema(BaseModel):
     """
@@ -134,3 +137,29 @@ class PatientSchema(BaseModel):
             "type_maladie": self.type_maladie or "",
             "contexte": self.contexte or "",
         }
+
+    def render(self, style='profile'):
+        """
+        Render a HTML template from the patient
+
+        Arguments:
+            style (str): The template style to render. Value should be in ["profile", "case"]
+
+        Returns:
+            str: HTML string
+        """
+        match style:
+            case 'profile':
+                return render_template(
+                    'elements/patient_profile.html',
+                    id=self.id,
+                    name=self.prenom,
+                    last_name=self.nom,
+                    initials=self.initials
+                )
+            case 'case':
+                return render_template(
+                    'elements/patient_case.html'
+                )
+            case _:
+                raise ValueError(f'Unexpected style argument "{style}". Should be "profile" or "case"')

@@ -1,4 +1,4 @@
-import { loadDiagnostics } from './modules/loader.js';
+import { renderPatient } from './modules/loader.js';
 
 const menu = document.querySelector('#menu-bar');
 const main = document.querySelector('main');
@@ -34,7 +34,7 @@ async function searchPatients(query='') {
         // Bind click -> open diagnostics
         patient.addEventListener('click', () => {
             selectElement(patient);
-            loadDiagnostics(patient.dataset.patientId);
+            renderPatient(patient.dataset.patientId);
         })
     });
 }
@@ -86,7 +86,7 @@ topbar.querySelector('button.see').addEventListener('click', () => {
     const patientId = main.dataset.recordPatientId;
     const patient = patientList.querySelector(`li[data-patient-id="${patientId}"]`);
     selectElement(patient);
-    loadDiagnostics(patientId);
+    renderPatient(patientId);
 });
 
 
