@@ -266,7 +266,7 @@ class PatientService:
                 )
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient.contexte = new_context
+            patient.context = new_context
             session.commit()
             logger.info(f"Updated context for patient id={patient_id}.")
             patient = PatientSchema.model_validate(patient)

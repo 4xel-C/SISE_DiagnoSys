@@ -79,7 +79,7 @@ def render_patient(patient_id: int) -> str:
 @ajax.route("process_rag/<int:patient_id>", methods=["POST"])
 def process_rag(patient_id: int):
     try:
-        # Compute RAG
+        # Compute RAG 
         rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
     except ValueError as e:
         abort(404, e)
@@ -94,11 +94,13 @@ def process_rag(patient_id: int):
         patient = app.patient_service.get_by_id(patient_id)
         case_htmls.append(patient.render())
 
-    return jsonify({
-        "diagnostics": rag_result.get("diagnosys"),
-        "documents": document_htmls,
-        "cases": case_htmls,
-    })
+    return jsonify(
+        {
+            "diagnostics": rag_result.get("diagnosys"),
+            "documents": document_htmls,
+            "cases": case_htmls,
+        }
+    )
 
 
 
@@ -131,6 +133,8 @@ def get_results(patient_id: int):
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):
     data = request.get_json()
+    print('patient_id:', patient_id)
     context = data.get("context")
-    app.patient_service.update_context(patient_id=1, new_context=context)
+    print("context:", context, flush=True)
+    app.patient_service.update_context(patient_id, context)
     return "", 200

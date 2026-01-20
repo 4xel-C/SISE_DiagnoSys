@@ -62,7 +62,7 @@ class Vectorizer:
         self.model_name = model_name or os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
         try:
-            Vectorizer._model = SentenceTransformer(self.model_name, device='cpu')
+            Vectorizer._model = SentenceTransformer(self.model_name)
         except Exception as e:
             logger.error(f"Error loading embedding model '{self.model_name}': {e}")
             raise
@@ -93,7 +93,7 @@ class Vectorizer:
             logger.info(f"Loading embedding model: {self.model_name}")
 
             try:
-                Vectorizer._model = SentenceTransformer(self.model_name, device='cpu')
+                Vectorizer._model = SentenceTransformer(self.model_name)
             except Exception as e:
                 logger.error(f"Error loading embedding model '{self.model_name}': {e}")
                 raise
