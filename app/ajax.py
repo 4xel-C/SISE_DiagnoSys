@@ -8,10 +8,17 @@ front end. No complex logic.
 from typing import cast
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from flask import Blueprint, render_template, jsonify, abort, current_app, request
 =======
 from flask import Blueprint, current_app, jsonify, render_template, request
 >>>>>>> 23f0461 (solving conflict)
+=======
+from flask import Blueprint, current_app, jsonify, render_template, request
+=======
+from flask import Blueprint, render_template, jsonify, abort, current_app, request
+>>>>>>> 7bdc093 (String implementing rag pipeline)
+>>>>>>> f1e378c (merging main on branch)
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -79,6 +86,7 @@ def render_patient(patient_id: str) -> str:
 def process_rag():
     form = request.form
 <<<<<<< HEAD
+<<<<<<< HEAD
     patient_id = form.get('patientId', '')
     try:
         patient_id = int(patient_id)
@@ -93,17 +101,38 @@ def process_rag():
     document_htmls: list[str] = []
     for document_id in rag_result.get('document_ids'):
 =======
+=======
+>>>>>>> f1e378c (merging main on branch)
     patient_id = form.get("patientId")
 
     rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
 
     document_htmls: list[str] = []
     for document_id in rag_result["document_ids"]:
+<<<<<<< HEAD
 >>>>>>> 23f0461 (solving conflict)
+=======
+=======
+    patient_id = form.get('patientId', '')
+    try:
+        patient_id = int(patient_id)
+    except ValueError:
+        abort(420, f"Bad patient_id argument {patient_id}")
+
+    try:
+        rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
+    except ValueError as e:
+        abort(404, e)
+    
+    document_htmls: list[str] = []
+    for document_id in rag_result.get('document_ids'):
+>>>>>>> 7bdc093 (String implementing rag pipeline)
+>>>>>>> f1e378c (merging main on branch)
         document = app.document_service.get_by_id(document_id)
         document_htmls.append(document.render())
 
     case_htmls: list[str] = []
+<<<<<<< HEAD
 <<<<<<< HEAD
     for patient_id in rag_result.get('related_patients_ids'):
         patient = app.patient_service.get_by_id(patient_id)
@@ -116,6 +145,8 @@ def process_rag():
     })
 
 =======
+=======
+>>>>>>> f1e378c (merging main on branch)
     for patient_id in rag_result["related_patients_ids"]:
         patient = app.patient_service.get_by_id(patient_id)
         case_htmls.append(patient.render())
@@ -127,7 +158,22 @@ def process_rag():
             "cases": case_htmls,
         }
     )
+<<<<<<< HEAD
 >>>>>>> 23f0461 (solving conflict)
+=======
+=======
+    for patient_id in rag_result.get('related_patients_ids'):
+        patient = app.patient_service.get_by_id(patient_id)
+        case_htmls.append(patient.render())
+
+    return jsonify({
+        'diagnostics': rag_result.get('diagnosys'),
+        'documents': document_htmls,
+        'cases': case_htmls
+    })
+
+>>>>>>> 7bdc093 (String implementing rag pipeline)
+>>>>>>> f1e378c (merging main on branch)
 
 
 # ---------------
@@ -151,6 +197,7 @@ def get_results(patient_id: str):
     #     case_htmls.append(patient.render())
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     return jsonify({
         'diagnostics': patient.diagnostic,
         'cases': case_htmls
@@ -160,10 +207,22 @@ def get_results(patient_id: str):
 
     return jsonify({"diagnostics": patient.diagnostic, "cases": case_htmls})
 >>>>>>> 23f0461 (solving conflict)
+=======
+    print({"diagnostics": patient.diagnostic, "cases": case_htmls})
+
+    return jsonify({"diagnostics": patient.diagnostic, "cases": case_htmls})
+=======
+    return jsonify({
+        'diagnostics': patient.diagnostic,
+        'cases': case_htmls
+    })
+>>>>>>> 7bdc093 (String implementing rag pipeline)
+>>>>>>> f1e378c (merging main on branch)
 
 
 @ajax.route("update_context/<patient_id>", methods=["POST"])
 def update_context(patient_id: str):
+<<<<<<< HEAD
 <<<<<<< HEAD
     data = request.get_json()
     context = data.get('context')
@@ -172,5 +231,14 @@ def update_context(patient_id: str):
     form = request.form
     context = form.get("context")
 >>>>>>> 23f0461 (solving conflict)
+=======
+    form = request.form
+    context = form.get("context")
+=======
+    data = request.get_json()
+    context = data.get('context')
+    print('CONTEXT:', context, flush=True)
+>>>>>>> 7bdc093 (String implementing rag pipeline)
+>>>>>>> f1e378c (merging main on branch)
     app.patient_service.update_context(patient_id, context)
     return "", 200
