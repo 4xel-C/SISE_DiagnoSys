@@ -34,6 +34,7 @@ main .patient {
             position: absolute;
             bottom: 0;
             right: 0;
+            z-index: 10;
 
             button:not(:last-child) {
                 margin-right: .2rem;

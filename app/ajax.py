@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, current_app, jsonify, render_template, request
+from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -74,23 +74,30 @@ def render_patient(patient_id: str) -> str:
 @ajax.route("process_rag", methods=["POST"])
 def process_rag():
     form = request.form
-    patient_id = form.get("patientId")
+    patient_id = form.get("patientId", "")
+    try:
+        patient_id = int(patient_id)
+    except ValueError:
+        abort(420, f"Bad patient_id argument {patient_id}")
 
-    rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
+    try:
+        rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
+    except ValueError as e:
+        abort(404, e)
 
     document_htmls: list[str] = []
-    for document_id in rag_result["document_ids"]:
+    for document_id in rag_result.get("document_ids"):
         document = app.document_service.get_by_id(document_id)
         document_htmls.append(document.render())
 
     case_htmls: list[str] = []
-    for patient_id in rag_result["related_patients_ids"]:
+    for patient_id in rag_result.get("related_patients_ids"):
         patient = app.patient_service.get_by_id(patient_id)
         case_htmls.append(patient.render())
 
     return jsonify(
         {
-            "diagnostics": rag_result["diagnosys"],
+            "diagnostics": rag_result.get("diagnosys"),
             "documents": document_htmls,
             "cases": case_htmls,
         }
@@ -117,14 +124,13 @@ def get_results(patient_id: str):
     #     patient = app.patient_service.get_by_id(patient_id)
     #     case_htmls.append(patient.render())
 
-    print({"diagnostics": patient.diagnostic, "cases": case_htmls})
-
     return jsonify({"diagnostics": patient.diagnostic, "cases": case_htmls})
 
 
 @ajax.route("update_context/<patient_id>", methods=["POST"])
 def update_context(patient_id: str):
-    form = request.form
-    context = form.get("context")
+    data = request.get_json()
+    context = data.get("context")
+    print("CONTEXT:", context, flush=True)
     app.patient_service.update_context(patient_id, context)
     return "", 200
