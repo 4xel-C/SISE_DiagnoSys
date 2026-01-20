@@ -7,7 +7,6 @@ let contextEditor;
 
 
 async function saveContext(patientId, context) {
-    console.log(context);
     const response = await fetch(`ajax/update_context/${patientId}`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -17,9 +16,7 @@ async function saveContext(patientId, context) {
 }
 
 async function processRAG(patientId) {
-    const data = new FormData();
-    data.append('patientId', patientId);
-    const response = await fetch('ajax/process_rag', {
+    const response = await fetch(`ajax/process_rag/${patientId}`, {
         method: 'POST'
     })
     return await response.json();

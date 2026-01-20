@@ -67,7 +67,7 @@ class DocumentService:
 
         return results
 
-    def get_by_id(self, document_id: int) -> Optional[DocumentSchema]:
+    def get_by_id(self, document_id: int) -> DocumentSchema:
         """
         Retrieve a document by ID.
 
@@ -90,7 +90,12 @@ class DocumentService:
             else:
                 logger.debug(f"Document with id={document_id} not found.")
 
-            return DocumentSchema.model_validate(document) if document else None
+            document_schema = DocumentSchema.model_validate(document) if document else None
+
+            if not document_schema:
+                raise ValueError(f"Document with id={document_id} not found.")
+            
+            return document_schema
 
     def search_by_titre(self, search_term: str) -> list[DocumentSchema]:
         """

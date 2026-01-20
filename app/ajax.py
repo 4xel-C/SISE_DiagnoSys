@@ -20,6 +20,10 @@ ajax = Blueprint("ajax", __name__)
 sock = Sock()
 
 
+
+
+
+
 # ----------------
 # WEB SOCKETS
 
@@ -39,9 +43,9 @@ def audio_stt(ws) -> None:
             print("Audio stream ended")
 
 
+
 # ---------------
 # RENDER TEMPLATES
-
 
 @ajax.route("search_patients", methods=["GET"])
 def search_patients():
@@ -62,36 +66,31 @@ def search_patients():
     return jsonify(htmls)
 
 
-@ajax.route("render_patient/<patient_id>", methods=["GET"])
-def render_patient(patient_id: str) -> str:
+@ajax.route("render_patient/<int:patient_id>", methods=["GET"])
+def render_patient(patient_id: int) -> str:
+    print(patient_id, flush=True)
     return render_template("patient.html", patient_id=patient_id)
+
 
 
 # ---------------
 # RAG
 
-
-@ajax.route("process_rag", methods=["POST"])
-def process_rag():
-    form = request.form
-    patient_id = form.get("patientId", "")
+@ajax.route("process_rag/<int:patient_id>", methods=["POST"])
+def process_rag(patient_id: int):
     try:
-        patient_id = int(patient_id)
-    except ValueError:
-        abort(420, f"Bad patient_id argument {patient_id}")
-
-    try:
+        # Compute RAG 
         rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
     except ValueError as e:
         abort(404, e)
 
     document_htmls: list[str] = []
-    for document_id in rag_result.get("document_ids"):
+    for document_id in rag_result.get("document_ids", []):
         document = app.document_service.get_by_id(document_id)
         document_htmls.append(document.render())
-
+            
     case_htmls: list[str] = []
-    for patient_id in rag_result.get("related_patients_ids"):
+    for patient_id in rag_result.get("related_patients_ids", []):
         patient = app.patient_service.get_by_id(patient_id)
         case_htmls.append(patient.render())
 
@@ -104,33 +103,38 @@ def process_rag():
     )
 
 
+
 # ---------------
 # DATABASE
 
-
-@ajax.route("get_context/<patient_id>", methods=["GET"])
-def get_context(patient_id: str):
+@ajax.route("get_context/<int:patient_id>", methods=["GET"])
+def get_context(patient_id: int):
     patient = app.patient_service.get_by_id(patient_id)
-
     return jsonify({"context": patient.contexte})
 
 
-@ajax.route("get_results/<patient_id>", methods=["GET"])
-def get_results(patient_id: str):
+@ajax.route("get_results/<int:patient_id>", methods=["GET"])
+def get_results(patient_id: int):
     patient = app.patient_service.get_by_id(patient_id)
 
-    case_htmls: list[str] = []
+    case_htmls: list = []
+    document_htmls: list = []
     # for patient_id in patient.cases:
     #     patient = app.patient_service.get_by_id(patient_id)
     #     case_htmls.append(patient.render())
 
-    return jsonify({"diagnostics": patient.diagnostic, "cases": case_htmls})
+    return jsonify({
+        "diagnostics": patient.diagnostic, 
+        "cases": case_htmls, 
+        'documents': document_htmls
+    })
 
 
-@ajax.route("update_context/<patient_id>", methods=["POST"])
-def update_context(patient_id: str):
+@ajax.route("update_context/<int:patient_id>", methods=["POST"])
+def update_context(patient_id: int):
     data = request.get_json()
+    print('patient_id:', patient_id)
     context = data.get("context")
-    print("CONTEXT:", context, flush=True)
+    print("context:", context, flush=True)
     app.patient_service.update_context(patient_id, context)
     return "", 200
