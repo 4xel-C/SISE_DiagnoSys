@@ -23,6 +23,7 @@ nav#menu-bar {
 
         .profile {
             position: relative;
+            font-size: 0;
 
             .recording {
                 position: absolute;
@@ -42,6 +43,7 @@ nav#menu-bar {
     }
     ul > li:hover {
         background-color: var(--bg-frame-color);
+        border-color: var(--bg-frame-color);
     }
     ul > li.selected {
         background-color: var(--bg-frame-color);

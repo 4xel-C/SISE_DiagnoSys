@@ -6,11 +6,21 @@ let contextEditor;
 
 
 
-
-async function processRAG(data) {
-    const response = await fetch('ajax/process_rag', {
+async function saveContext(patientId, context) {
+    console.log(context);
+    const response = await fetch(`ajax/update_context/${patientId}`, {
         method: 'POST',
-        body: data
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({context: context})
+    })
+    return response
+}
+
+async function processRAG(patientId) {
+    const data = new FormData();
+    data.append('patientId', patientId);
+    const response = await fetch('ajax/process_rag', {
+        method: 'POST'
     })
     return await response.json();
 }
@@ -67,17 +77,22 @@ document.addEventListener('patientRendered', (e) => {
     // On context saved
     contextForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('submitted');
         // Save editor and send content
-        if (contextEditor.blocks.getBlocksCount() > 1) {
+        if (contextEditor.blocks.getBlocksCount() <= 1) {
+            console.log(contextEditor.blocks);
             return
         }
         const output = await contextEditor.save();
         const context = await MDfromBlocks(output.blocks);
+        // Request context update
+        const response = await saveContext(patientId, context);
+        if (!response.ok) {
+            console.error('Failed to update context in database');
+            return
+        }
         // Request context processing
-        const data = new FormData();
-        data.append('context', context);
-        data.append('patientId', patientId);
-        const content = await processRAG(data);
+        const content = await processRAG(patientId, context);
         // Update results
         renderDiagnostics(content['diagnostics']);
         renderDocuments(content['documents']);
