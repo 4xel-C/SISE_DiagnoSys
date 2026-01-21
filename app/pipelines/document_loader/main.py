@@ -2,6 +2,7 @@
 Main orchestrator for the document_loader pipeline.
 Executes each step in order: load, parse, update, report.
 """
+
 import logging.config
 from app.config.logging_config import get_logging_config
 
@@ -12,7 +13,11 @@ from . import _01_parse_documents as step1
 from . import _02_update_db as step2
 from . import _03_report as step3
 
+
 def run():
+    """
+    Run the document_loader pipeline.
+    """
     logger.info("[document_loader] Step 0: Loading scraped JSON files...")
     docs = step0.load_scraped_json()
     logger.info(f"Loaded {len(docs)} documents.")

@@ -10,7 +10,15 @@ from app.config.vector_db import CollectionType
 from app.models import Document
 
 
-def update_db(parsed_docs):
+def update_db(parsed_docs: list) -> list:
+    """
+    Update the database with parsed documents.
+    Args:
+        parsed_docs (list): A list of parsed document dictionaries.
+
+    Returns:
+        list: A list of results indicating the action taken for each document.
+    """
     results = []
     doc_service = DocumentService()
     vectorizer = Vectorizer()
@@ -19,19 +27,22 @@ def update_db(parsed_docs):
     for doc in parsed_docs:
         titre = doc.get("title")
         url = doc.get("link", "")
-        # Concatène tous les paragraphes des sections sélectionnées
+
         contenu = "\n".join(
-            p for section in doc.get("sections", []) for p in section.get("paragraphs", [])
+            p
+            for section in doc.get("sections", [])
+            for p in section.get("paragraphs", [])
         )
-        # Ignore les documents sans lien ou sans contenu (ex: Contents)
+
+        # Ignore documents without URL or content
         if not url or not contenu:
-            logger.info(f"Document '{titre}' ignoré (pas de lien ou pas de contenu).")
+            logger.info(f"Document '{titre}' skipped due to missing URL or content.")
             continue
-        # Recherche le document existant
+
         existing = doc_service.search_by_titre(titre)
         if existing:
-            # Met à jour si le contenu ou le lien a changé
             db_doc = existing[0]
+            # Update if content or URL has changed
             if db_doc.contenu != contenu or db_doc.url != url:
                 with doc_service.db_manager.session() as session:
                     document = session.query(Document).filter_by(id=db_doc.id).first()
@@ -51,7 +62,7 @@ def update_db(parsed_docs):
         logger.info(f"Document '{titre}': {action}")
         results.append({"title": titre, "action": action})
 
-        # Embedding et ajout dans ChromaDB
+        # Embed and store in vector DB
         if contenu:
             chunks = vectorizer.chunk_text(contenu)
             embeddings = vectorizer.generate_embeddings(chunks)
