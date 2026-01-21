@@ -10,3 +10,4 @@ class ScrapedDocument:
     title: str
     date: str
     content: dict[str, str]
+    link: str

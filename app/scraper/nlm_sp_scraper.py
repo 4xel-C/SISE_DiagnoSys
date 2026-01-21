@@ -10,6 +10,8 @@ class NLM_StatPearlsScraper(BaseScraper):
     Scraper for NLM StatPearls articles.
     """
 
+    base_url = "https://www.ncbi.nlm.nih.gov"
+
     def fetch(self, url: str) -> str:
         response = requests.get(url)
         response.raise_for_status()
@@ -33,10 +35,12 @@ class NLM_StatPearlsScraper(BaseScraper):
                 items.append({"text": a.get_text(strip=True), "url": a["href"]})
             else:
                 items.append({"text": li.get_text(strip=True), "url": None})
+
         return ScrapedDocument(
             title="Contents",
             date=datetime.now().strftime("%Y-%m-%d"),
             content={"items": items},
+            link=self.base_url,
         )
 
     def validate(self, data: ScrapedDocument) -> bool:

@@ -1,15 +1,23 @@
-from app.scraper.nlm_sp_scraper import NLM_StatPearlsScraper
-from app.scraper.nlm_sp_page_scraper import NLM_SP_PageScraper
-from datetime import datetime
-import os
 import json
+import logging.config
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+
+from app.config.logging_config import get_logging_config
+from app.scraper.nlm_sp_page_scraper import NLM_SP_PageScraper
+from app.scraper.nlm_sp_scraper import NLM_StatPearlsScraper
+
+# Configure logging
+logging.config.dictConfig(get_logging_config())
+logger = logging.getLogger(__name__)
+logger.info("Starting scraping process")
 
 
 def main():
     sp_scrapper = NLM_StatPearlsScraper()
-    sp_scrapper.scrape("https://www.ncbi.nlm.nih.gov/books/NBK430685/")
+    sp_scrapper.scrape(f"{sp_scrapper.base_url}/books/NBK430685/")
 
     json_path = os.path.join(
         "data",
@@ -26,7 +34,7 @@ def main():
             if item["url"]:
                 url = item["url"]
                 if url.startswith("/"):
-                    url = "https://www.ncbi.nlm.nih.gov" + url
+                    url = f"{sp_scrapper.base_url}{url}"
                 document_links.append(url)
 
     print(f"Found {len(document_links)} document links to scrape.")
@@ -38,7 +46,7 @@ def main():
             page_scraper.scrape(link)
             print(f"Scraped: {link}")
         except Exception as e:
-            print(f"Erreur lors du scraping de {link}: {e}")
+            print(f"Error scraping {link}: {e}")
         time.sleep(0.5)
 
     with ThreadPoolExecutor(max_workers=8) as executor:
@@ -48,6 +56,35 @@ def main():
         for future in as_completed(futures):
             completed += 1
             print(f"Remaining tasks: {total - completed}")
+
+    # --- Add the unique link into each document JSON ---
+    import glob
+
+    scraped_folder = os.path.join("data", "scraped_documents")
+    # We create a title -> url mapping from the Contents file
+    title_to_url = {}
+    for item in data.get("content", {}).get("items", []):
+        if item.get("text") and item.get("url"):
+            # Clean the title to match (strip, lower)
+            title_to_url[item["text"].strip().lower()] = item["url"]
+
+    for json_file in glob.glob(os.path.join(scraped_folder, "*.json")):
+        base = os.path.basename(json_file)
+        if base.startswith("Contents_"):
+            continue
+        with open(json_file, "r", encoding="utf-8") as f:
+            doc_data = json.load(f)
+        doc_title = doc_data.get("title", "").strip().lower()
+        matched_url = title_to_url.get(doc_title)
+        # If found, add the full link
+        if matched_url:
+            if matched_url.startswith("/"):
+                matched_url = f"{sp_scrapper.base_url}{matched_url}"
+        # If not found, None
+        doc_data["link"] = matched_url
+        with open(json_file, "w", encoding="utf-8") as f:
+            json.dump(doc_data, f, ensure_ascii=False, indent=4)
+        print(f"Link added in {json_file} : {matched_url}")
 
 
 if __name__ == "__main__":
@@ -64,6 +101,6 @@ if __name__ == "__main__":
             for filename in os.listdir(folder):
                 if filename.endswith(".json"):
                     zipf.write(os.path.join(folder, filename), arcname=filename)
-        print(f"Archive créée : {zip_name}")
+        print(f"Archive created: {zip_name}")
 
     zip_scraped_documents()

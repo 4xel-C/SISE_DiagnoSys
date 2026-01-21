@@ -41,6 +41,10 @@ class DocumentService:
         self.db_manager = db_manager
         logger.debug("DocumentService initialized.")
 
+    ################################################################
+    # READ METHODS
+    ################################################################
+
     def get_all(self) -> list[DocumentSchema]:
         """
         Retrieve all documents from the database.
@@ -132,12 +136,13 @@ class DocumentService:
     # CREATE METHODS
     ################################################################
 
-    def create(self, titre: str, url: str) -> DocumentSchema:
+    def create(self, titre: str, contenu: str, url: str) -> DocumentSchema:
         """
         Create a new document record.
 
         Args:
             titre (str): The document title.
+            contenu (str): The document content.
             url (str): The source URL of the document.
 
         Returns:
@@ -146,17 +151,58 @@ class DocumentService:
         Example:
             >>> doc = service.create(
             ...     titre="Hypertension Guidelines 2024",
+            ...     contenu="Content of the hypertension guidelines.",
             ...     url="https://example.com/hypertension.pdf"
             ... )
         """
         logger.debug(f"Creating new document: {titre}.")
         with self.db_manager.session() as session:
-            document = Document(titre=titre, url=url)
+            document = Document(titre=titre, contenu=contenu, url=url)
             session.add(document)
             session.commit()
             logger.info(f"Created document: {document}")
 
             # add to vector store
+            document_store.add(
+                item_id=document.vector_id,
+                content=document.content_for_embedding,
+                metadata=document.to_metadata,
+            )
+
+            return DocumentSchema.model_validate(document)
+
+    ################################################################
+    # UPDATE METHODS
+    ################################################################
+
+    def update_document(
+        self, document_id: int, titre: str, contenu: str, url: str
+    ) -> DocumentSchema:
+        """Update an existing document with new information.
+
+        Args:
+            document_id (int): The unique identifier of the document to update.
+            titre (str): The new title for the document.
+            contenu (str): The new content for the document.
+            url (str): The new URL for the document.
+
+        Returns:
+            DocumentSchema: The updated Document record.
+        """
+        logger.debug(f"Updating document with id={document_id}.")
+        with self.db_manager.session() as session:
+            document = session.query(Document).filter_by(id=document_id).first()
+            if not document:
+                logger.error(f"Document with id={document_id} not found for update.")
+                raise ValueError(f"Document with id={document_id} not found.")
+
+            document.titre = titre  # type: ignore
+            document.contenu = contenu  # type: ignore
+            document.url = url  # type: ignore
+            session.commit()
+            logger.info(f"Updated document: {document}")
+
+            # update in chroma_db
             document_store.add(
                 item_id=document.vector_id,
                 content=document.content_for_embedding,

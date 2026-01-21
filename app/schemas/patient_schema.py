@@ -13,7 +13,7 @@ Example:
     'patient_1'
 """
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from flask import render_template
 from pydantic import BaseModel, computed_field
