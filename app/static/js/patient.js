@@ -1,4 +1,4 @@
-import { loadContext, loadResults } from './modules/loader.js';
+import { loadContext, loadResults, renderPatient } from './modules/loader.js';
 
 const main = document.querySelector('main');
 let contextEditor;
@@ -37,17 +37,34 @@ async function renderContext(context) {
 
 function renderDiagnostics(diagnostics) {
     // Update diagnostics list
-    console.log('Updating diagnostics');
 }
 
 function renderDocuments(documents) {
     // Update close documents
-    console.log('Updating documents');
+    const documentsList = main.querySelector('.frame.documents ul');
+    documentsList.innerHTML = '';
+    documents.forEach(html => {
+        documentsList.insertAdjacentHTML('beforeend', html);
+        const document = documentsList.lastElementChild;
+        // Bind click -> open diagnostics
+        document.addEventListener('click', () => {
+            window.open(document.dataset.url, '_blank').focus();
+        })
+    });
 }
 
 function renderCases(cases) {
     // Update similar cases
-    console.log('Updating cases');
+    const casesList = main.querySelector('.frame.cases ul');
+    casesList.innerHTML = '';
+    cases.forEach(html => {
+        casesList.insertAdjacentHTML('beforeend', html);
+        const patient = casesList.lastElementChild;
+        // Bind click -> open diagnostics
+        patient.addEventListener('click', () => {
+            renderPatient(patient.dataset.patientId);
+        })
+    });
 }
 
 

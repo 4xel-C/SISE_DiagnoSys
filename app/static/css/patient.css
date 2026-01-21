@@ -29,9 +29,25 @@ main .patient {
     }
     .frame.cases {
         grid-row: 1;
+
+        ul {
+            margin-top: .6rem;
+
+            .patient-result {
+                margin-bottom: .4rem;
+            }
+        }
     }
     .frame.documents {
         grid-row: 2 / span 2;
+
+        ul {
+            margin-top: .6rem;
+
+            .document {
+                margin-bottom: .4rem;
+            }
+        }
     }
 
     form#context-editor {

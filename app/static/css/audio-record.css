@@ -50,12 +50,9 @@ main .top-bar:hover {
 main .audio-record {
     display: none;
     height: 30%;
-    border-radius: var(--border-radius);
     position: relative;
     overflow: hidden;
     transition: height .3s ease;
-    margin: 1rem;
-    margin-top: 0;
     transition: background-color .125s ease;
 
     * {

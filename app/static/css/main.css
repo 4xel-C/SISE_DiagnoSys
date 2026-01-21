@@ -43,4 +43,5 @@ h3 {
 
 img {
     filter: invert(8%);
+    display: block;
 }

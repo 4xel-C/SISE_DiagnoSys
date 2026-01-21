@@ -33,7 +33,6 @@ async function searchPatients(query='') {
         const patient = patientList.lastElementChild;
         // Bind click -> open diagnostics
         patient.addEventListener('click', () => {
-            selectElement(patient);
             renderPatient(patient.dataset.patientId);
         })
     });
@@ -53,11 +52,17 @@ function selectElement(element) {
 
 
 
-// On internal clicked
+// On internal clicked => select it
 internalList.querySelectorAll('li').forEach(internal => {
     internal.addEventListener('click', () => {
         selectElement(internal);
     })
+});
+
+// On patient rendered => select it
+document.addEventListener('patientRendered', (e) => {
+    const element = menu.querySelector(`li.patient-result[data-patient-id="${e.detail.patientId}"]`);
+    selectElement(element)
 });
 
 // On audio recording started

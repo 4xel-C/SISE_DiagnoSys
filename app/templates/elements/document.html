@@ -1,0 +1,9 @@
+<li data-document-id="{{ id }}" data-url="{{ url }}" class="document">
+    <div class="icon">
+        <img src="{{ url_for('static', filename='images/document.svg') }}" alt="" height="16px">
+    </div>
+    <p class="label">{{ title }}</p>
+    {% if score %}
+        <p class="score">{{ score }}</p>
+    {% endif %}
+</li>

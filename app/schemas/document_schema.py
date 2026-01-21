@@ -105,7 +105,7 @@ class DocumentSchema(BaseModel):
         """
         return f"document_{self.id}"
 
-    def render(self) -> str:
+    def render(self, **kwargs) -> str:
         """
         Render a HTML template from the document
 
@@ -113,9 +113,10 @@ class DocumentSchema(BaseModel):
             str: HTML string
         """
         return render_template(
-            "document_result.html",
+            "elements/document.html",
             id=self.id,
             title=self.titre,
             date=self.created_at,
             url=self.url,
+            **kwargs
         )

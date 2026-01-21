@@ -81,9 +81,9 @@ def render_patient(patient_id: int) -> str:
 @ajax.route("process_rag/<int:patient_id>", methods=["POST"])
 def process_rag(patient_id: int):
     try:
-        # Compute RAG
         rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
     except ValueError as e:
+        # Patient not found
         abort(404, e)
 
     document_htmls: list[str] = []
@@ -94,7 +94,7 @@ def process_rag(patient_id: int):
     case_htmls: list[str] = []
     for patient_id in rag_result.get("related_patients_ids", []):
         patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render())
+        case_htmls.append(patient.render(style='case', score=0))
 
     return jsonify({
             "diagnostics": rag_result.get("diagnosys"),
@@ -117,11 +117,21 @@ def get_context(patient_id: int):
 def get_results(patient_id: int):
     patient = app.patient_service.get_by_id(patient_id)
 
-    case_htmls: list = []
-    document_htmls: list = []
-    # for patient_id in patient.cases:
-    #     patient = app.patient_service.get_by_id(patient_id)
-    #     case_htmls.append(patient.render())
+    case_htmls: list[str] = []
+    # TEMP: fake related patient
+    patient = app.patient_service.get_by_id(2)
+    case_htmls.append(patient.render(style='case', score=55))
+    # for related_p in patient.patients_proches:
+    #     patient = app.patient_service.get_by_id(related_p.patient_id)
+    #     case_htmls.append(patient.render(style='case', score=related_p.similarity_score))
+
+    document_htmls: list[str] = []
+    # TEMP: fake related patient
+    document = app.document_service.get_by_id(2)
+    document_htmls.append(document.render(score=71))
+    # for related_d in patient.documents_proches:
+    #     document = app.document_service.get_by_id(related_d.document_id)
+    #     document_htmls.append(document.render(score=related_d.similarity_score))
 
     return jsonify(
         {
