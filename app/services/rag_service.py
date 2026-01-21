@@ -156,6 +156,11 @@ class RagService:
         if not diagnosys_text:
             raise LLMGenerationException("Failed to generate diagnosys.")
 
+        # add the diagnosys to the database
+        self.patient_service.update_diagnosys(
+            patient_id=patient_id, new_diagnosys=diagnosys_text
+        )
+
         return {
             "diagnosys": diagnosys_text,
             "document_ids": document_ids,
