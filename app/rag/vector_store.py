@@ -106,7 +106,6 @@ class VectorStore:
 
         # Prepare metadata for each chunk
         base_metadata = metadata or {}
-        base_metadata[self.id_field] = item_id
 
         ids = []
         documents = []
