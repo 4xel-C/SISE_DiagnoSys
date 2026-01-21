@@ -14,7 +14,10 @@ class DummyScraper(BaseScraper):
     def parse(self, raw_data: str) -> ScrapedDocument:
         # Simple parsing logic for the dummy data
         return ScrapedDocument(
-            title="Exemple", date="2026-01-15", content={"text": "Ceci est un test."}
+            title="Exemple",
+            date="2026-01-15",
+            content={"text": "Ceci est un test."},
+            link="http://dummy.url",
         )
 
     def validate(self, data: ScrapedDocument) -> bool:

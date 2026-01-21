@@ -92,6 +92,7 @@ class NLM_SP_PageScraper(BaseScraper):
                 "sections": sections,
                 "references": references,
             },
+            link="",
         )
 
     def validate(self, data: ScrapedDocument) -> bool:

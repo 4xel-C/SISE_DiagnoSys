@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def main():
     sp_scrapper = NLM_StatPearlsScraper()
-    sp_scrapper.scrape("https://www.ncbi.nlm.nih.gov/books/NBK430685/")
+    sp_scrapper.scrape(f"{sp_scrapper.base_url}/books/NBK430685/")
 
     json_path = os.path.join(
         "data",
@@ -26,37 +26,38 @@ def main():
             if item["url"]:
                 url = item["url"]
                 if url.startswith("/"):
-                    url = "https://www.ncbi.nlm.nih.gov" + url
+                    url = f"{sp_scrapper.base_url}{url}"
                 document_links.append(url)
 
     print(f"Found {len(document_links)} document links to scrape.")
 
-    # page_scraper = NLM_SP_PageScraper()
+    page_scraper = NLM_SP_PageScraper()
 
-    # def scrape_link(link):
-    #     try:
-    #         page_scraper.scrape(link)
-    #         print(f"Scraped: {link}")
-    #     except Exception as e:
-    #         print(f"Erreur lors du scraping de {link}: {e}")
-    #     time.sleep(0.5)
+    def scrape_link(link):
+        try:
+            page_scraper.scrape(link)
+            print(f"Scraped: {link}")
+        except Exception as e:
+            print(f"Error scraping {link}: {e}")
+        time.sleep(0.5)
 
-    # with ThreadPoolExecutor(max_workers=8) as executor:
-    #     futures = [executor.submit(scrape_link, link) for link in document_links]
-    #     total = len(futures)
-    #     completed = 0
-    #     for future in as_completed(futures):
-    #         completed += 1
-    #         print(f"Remaining tasks: {total - completed}")
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = [executor.submit(scrape_link, link) for link in document_links]
+        total = len(futures)
+        completed = 0
+        for future in as_completed(futures):
+            completed += 1
+            print(f"Remaining tasks: {total - completed}")
 
-    # --- Ajout du lien unique dans chaque JSON de document ---
+    # --- Add the unique link into each document JSON ---
     import glob
+
     scraped_folder = os.path.join("data", "scraped_documents")
-    # On crée un mapping titre -> url à partir du fichier Contents
+    # We create a title -> url mapping from the Contents file
     title_to_url = {}
     for item in data.get("content", {}).get("items", []):
         if item.get("text") and item.get("url"):
-            # On nettoie le titre pour matcher (strip, lower)
+            # Clean the title to match (strip, lower)
             title_to_url[item["text"].strip().lower()] = item["url"]
 
     for json_file in glob.glob(os.path.join(scraped_folder, "*.json")):
@@ -67,15 +68,15 @@ def main():
             doc_data = json.load(f)
         doc_title = doc_data.get("title", "").strip().lower()
         matched_url = title_to_url.get(doc_title)
-        # Si trouvé, on ajoute le lien complet
+        # If found, add the full link
         if matched_url:
             if matched_url.startswith("/"):
-                matched_url = "https://www.ncbi.nlm.nih.gov" + matched_url
-        # Si pas trouvé, None
+                matched_url = f"{sp_scrapper.base_url}{matched_url}"
+        # If not found, None
         doc_data["link"] = matched_url
         with open(json_file, "w", encoding="utf-8") as f:
             json.dump(doc_data, f, ensure_ascii=False, indent=4)
-        print(f"Lien ajouté dans {json_file} : {matched_url}")
+        print(f"Link added in {json_file} : {matched_url}")
 
 
 if __name__ == "__main__":
@@ -84,14 +85,14 @@ if __name__ == "__main__":
     print("Scraping process completed.")
 
     # Zip all scraped documents
-    # import zipfile
+    import zipfile
 
-    # def zip_scraped_documents(zip_name="scraped_documents.zip"):
-    #     folder = os.path.join("data", "scraped_documents")
-    #     with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED) as zipf:
-    #         for filename in os.listdir(folder):
-    #             if filename.endswith(".json"):
-    #                 zipf.write(os.path.join(folder, filename), arcname=filename)
-    #     print(f"Archive créée : {zip_name}")
+    def zip_scraped_documents(zip_name="scraped_documents.zip"):
+        folder = os.path.join("data", "scraped_documents")
+        with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for filename in os.listdir(folder):
+                if filename.endswith(".json"):
+                    zipf.write(os.path.join(folder, filename), arcname=filename)
+        print(f"Archive created: {zip_name}")
 
-    # zip_scraped_documents()
+    zip_scraped_documents()
