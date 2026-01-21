@@ -26,23 +26,26 @@ sock = Sock()
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
-    print("starting websocket")
-    with open("received_audio.webm", "wb") as f:  # For testing only
-        try:
-            while True:
-                print("received")
-                data = ws.receive()
-                # STT
-                ws.send()
-                if data is None:
-                    break
-                f.write(data)
-        except ConnectionClosed:
-            print("Audio stream ended")
-        finally:
-            
-            # TODO: return a valid response to prevent `invalid frame header` JS error on 
-            ws.close(1000)
+    patient_id = request.args.get("patient_id", type=int)
+    total: str
+
+    if patient_id is None:
+        ws.close()
+        return
+
+    try:
+        while True:
+            data = ws.receive()
+            # TODO: Call stt_service with audio chunk 
+            # and send transcribed string back to JS:
+            #
+            # transcript, total = app.stt_service.transcribe_chunk(data)
+            # ws.send(transcript)
+    except ConnectionClosed:
+        print("Audio stream ended")
+        # Generate new context from transcribed text
+        context = app.rag_service.update_context_after_audio(patient_id, total)
+        app.patient_service.update_context(patient_id, context)
 
 
 # ---------------
