@@ -68,26 +68,32 @@ document.addEventListener('patientRendered', (e) => {
         placeholder: 'Ajoutez ou modifiez des informations',
         tools: {
             header: Header
+        },
+        onChange: (api, event) => {
+            if (event.type == 'block-changed') {
+                contextForm.classList.add('edited');
+            }
         }
     });
 
     // On context saved
     contextForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('submitted');
-        // Save editor and send content
-        if (contextEditor.blocks.getBlocksCount() <= 1) {
-            console.log(contextEditor.blocks);
+        const output = await contextEditor.save();
+        if (output.blocks.length == 0) {
             return
         }
-        const output = await contextEditor.save();
+        // Export editor blocks to md
         const context = await MDfromBlocks(output.blocks);
         // Request context update
+        contextForm.querySelector('fieldset').disabled = true;
         const response = await saveContext(patientId, context);
+        contextForm.querySelector('fieldset').disabled = false;
         if (!response.ok) {
             console.error('Failed to update context in database');
             return
         }
+        contextForm.classList.remove('edited');
         // Request context processing
         const content = await processRAG(patientId, context);
         // Update results

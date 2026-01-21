@@ -32,11 +32,17 @@ def audio_stt(ws) -> None:
             while True:
                 print("received")
                 data = ws.receive()
+                # STT
+                ws.send()
                 if data is None:
                     break
                 f.write(data)
         except ConnectionClosed:
             print("Audio stream ended")
+        finally:
+            
+            # TODO: return a valid response to prevent `invalid frame header` JS error on 
+            ws.close(1000)
 
 
 # ---------------
@@ -64,7 +70,6 @@ def search_patients():
 
 @ajax.route("render_patient/<int:patient_id>", methods=["GET"])
 def render_patient(patient_id: int) -> str:
-    print(patient_id, flush=True)
     return render_template("patient.html", patient_id=patient_id)
 
 
@@ -90,13 +95,11 @@ def process_rag(patient_id: int):
         patient = app.patient_service.get_by_id(patient_id)
         case_htmls.append(patient.render())
 
-    return jsonify(
-        {
+    return jsonify({
             "diagnostics": rag_result.get("diagnosys"),
             "documents": document_htmls,
             "cases": case_htmls,
-        }
-    )
+    })
 
 
 # ---------------
@@ -132,5 +135,7 @@ def get_results(patient_id: int):
 def update_context(patient_id: int):
     data = request.get_json()
     context = data.get("context")
-    app.patient_service.update_context(patient_id, context)
+    patient = app.patient_service.update_context(patient_id, context)
+    print(patient.id)
+    print(patient.contexte)
     return "", 200

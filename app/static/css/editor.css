@@ -1,15 +1,19 @@
 /* remove max‑width / centering */
 .ce-block__content,
-.ce-toolbar__content{
-  max-width: calc(100% - 40px) !important;
-  margin: 0 auto 0 0 !important;
+.ce-toolbar__content {
+   max-width: calc(100% - 40px) !important;
+   margin: 0 auto 0 0 !important;
 }
 
 .ce-toolbar {
-  left: auto !important;
-  right: 0 !important;
+   left: auto !important;
+   right: 0 !important;
 }
 
 .ce-toolbar__actions {
-  justify-content: flex-end;
+   justify-content: flex-end;
+}
+
+.codex-editor__redactor {
+   padding-bottom: 0 !important;
 }

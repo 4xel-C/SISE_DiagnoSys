@@ -16,6 +16,13 @@ main .patient {
 
     .frame.context {
         grid-row: 1 / span 2;
+
+        form#context-editor .actions{
+            display: none;
+        }
+        form#context-editor.edited .actions{
+            display: block;
+        }
     }
     .frame.diagnostic {
         grid-row: 3;

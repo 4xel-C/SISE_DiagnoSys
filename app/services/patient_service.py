@@ -380,7 +380,11 @@ class PatientService:
                 )
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
+<<<<<<< HEAD
             patient.contexte = new_context  # type: ignore
+=======
+            patient.contexte = new_context
+>>>>>>> 9cbf849 (Changed default flask dev server options + UI fixes)
             session.commit()
             logger.info(f"Updated context for patient id={patient_id}.")
             patient = PatientSchema.model_validate(patient)

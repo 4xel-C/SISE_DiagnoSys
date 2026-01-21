@@ -38,10 +38,16 @@ def create_app() -> Flask:
     # Create logs directory if needed
     os.makedirs("logs", exist_ok=True)
 
+    # Configure logging
+    # logging.config.dictConfig(get_logging_config())
+
     app = Flask(__name__)
 
     # Initialize database
     db.init_db()
+
+    # logger = logging.getLogger(__name__)
+    # logger.info("Starting Flask application")
 
     # Instantiate services in app context
     with app.app_context():

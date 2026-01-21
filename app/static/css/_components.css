@@ -1,3 +1,7 @@
+fieldset {
+        border: none;
+}
+
 input[type="text"] {
     width: 100%;
     background-color: var(--bg-frame-color);
@@ -18,7 +22,7 @@ input:focus {
     border-radius: 6px;
     transition: background-color .125s ease;
 }
-.main-button:hover {
+.main-button:hover:not(:disabled) {
     background-color: var(--accent-second-color);
 }
 
@@ -30,8 +34,12 @@ input:focus {
     border-radius: 6px;
     transition: background-color .125s ease;
 }
-.second-button:hover {
+.second-button:hover:not(:disabled) {
     background-color: var(--border-color);
+}
+
+button:disabled {
+    opacity: .5;
 }
 
 

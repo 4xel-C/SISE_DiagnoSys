@@ -82,7 +82,7 @@ document.addEventListener('audioRecordStoped', (e) => {
 });
 
 // On top bar button clicked
-topbar.querySelector('button.see').addEventListener('click', () => {
+topbar.addEventListener('click', () => {
     const patientId = main.dataset.recordPatientId;
     const patient = patientList.querySelector(`li[data-patient-id="${patientId}"]`);
     selectElement(patient);

@@ -112,10 +112,11 @@ async function stop(patientId) {
 }
 
 function toggleMic() {
-    const patientId = main.querySelector('.patient').dataset.patientId;
     if (socket && socket.readyState === WebSocket.OPEN) {
+        const patientId = main.dataset.recordPatientId;
         stop(patientId);
     } else {
+        const patientId = main.querySelector('.patient').dataset.patientId;
         start(patientId);
     }
 }
