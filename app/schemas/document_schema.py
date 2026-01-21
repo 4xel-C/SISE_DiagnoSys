@@ -21,7 +21,6 @@ from pydantic import BaseModel, computed_field
 from flask import render_template
 
 
-
 class DocumentSchema(BaseModel):
     """
     Pydantic schema for document data indexing in ChromaDB.
@@ -105,7 +104,7 @@ class DocumentSchema(BaseModel):
             str: Unique ID in format 'document_{id}'.
         """
         return f"document_{self.id}"
-    
+
     def render(self) -> str:
         """
         Render a HTML template from the document
@@ -114,9 +113,9 @@ class DocumentSchema(BaseModel):
             str: HTML string
         """
         return render_template(
-            'document_result.html',
+            "document_result.html",
             id=self.id,
             title=self.titre,
             date=self.created_at,
-            url=self.url
+            url=self.url,
         )

@@ -13,12 +13,32 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
+    ForeignKey,
     Integer,
     String,
+    Table,
     Text,
 )
+from sqlalchemy.orm import relationship
 
 from app.models import Base
+
+
+# Association table for Patient <-> Patient (similar patients)
+patients_proches = Table(
+    "patients_proches",
+    Base.metadata,
+    Column("patient_id", Integer, ForeignKey("patients.id"), primary_key=True),
+    Column("patient_proche_id", Integer, ForeignKey("patients.id"), primary_key=True),
+)
+
+# Association table for Patient <-> Document (related documents)
+documents_proches = Table(
+    "documents_proches",
+    Base.metadata,
+    Column("patient_id", Integer, ForeignKey("patients.id"), primary_key=True),
+    Column("document_id", Integer, ForeignKey("documents.id"), primary_key=True),
+)
 
 
 class Patient(Base):
@@ -75,6 +95,21 @@ class Patient(Base):
         Text, nullable=True
     )  # Context for LLM containing diagnosis information
     diagnostic = Column(Text, nullable=True)  # Diagnosis information
+
+    # Relationships
+    patients_proches = relationship(
+        "Patient",
+        secondary=patients_proches,
+        primaryjoin="Patient.id == patients_proches.c.patient_id",
+        secondaryjoin="Patient.id == patients_proches.c.patient_proche_id",
+        backref="patients_similaires",
+    )
+
+    documents_proches = relationship(
+        "Document",
+        secondary=documents_proches,
+        backref="patients_concernes",
+    )
 
     def __repr__(self):
         """Return a string representation of the Patient instance."""

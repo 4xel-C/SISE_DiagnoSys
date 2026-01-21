@@ -20,10 +20,6 @@ ajax = Blueprint("ajax", __name__)
 sock = Sock()
 
 
-
-
-
-
 # ----------------
 # WEB SOCKETS
 
@@ -43,9 +39,9 @@ def audio_stt(ws) -> None:
             print("Audio stream ended")
 
 
-
 # ---------------
 # RENDER TEMPLATES
+
 
 @ajax.route("search_patients", methods=["GET"])
 def search_patients():
@@ -72,14 +68,14 @@ def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
 
-
 # ---------------
 # RAG
+
 
 @ajax.route("process_rag/<int:patient_id>", methods=["POST"])
 def process_rag(patient_id: int):
     try:
-        # Compute RAG 
+        # Compute RAG
         rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
     except ValueError as e:
         abort(404, e)
@@ -88,7 +84,7 @@ def process_rag(patient_id: int):
     for document_id in rag_result.get("document_ids", []):
         document = app.document_service.get_by_id(document_id)
         document_htmls.append(document.render())
-            
+
     case_htmls: list[str] = []
     for patient_id in rag_result.get("related_patients_ids", []):
         patient = app.patient_service.get_by_id(patient_id)
@@ -103,9 +99,9 @@ def process_rag(patient_id: int):
     )
 
 
-
 # ---------------
 # DATABASE
+
 
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):
@@ -123,11 +119,13 @@ def get_results(patient_id: int):
     #     patient = app.patient_service.get_by_id(patient_id)
     #     case_htmls.append(patient.render())
 
-    return jsonify({
-        "diagnostics": patient.diagnostic, 
-        "cases": case_htmls, 
-        'documents': document_htmls
-    })
+    return jsonify(
+        {
+            "diagnostics": patient.diagnostic,
+            "cases": case_htmls,
+            "documents": document_htmls,
+        }
+    )
 
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])

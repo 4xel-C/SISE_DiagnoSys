@@ -13,12 +13,10 @@ Example:
     'patient_1'
 """
 
-from typing import Optional
-
-from pydantic import BaseModel, computed_field
+from typing import List, Optional
 
 from flask import render_template
-
+from pydantic import BaseModel, computed_field
 
 
 class PatientSchema(BaseModel):
@@ -69,7 +67,41 @@ class PatientSchema(BaseModel):
     contexte: Optional[str] = None
     diagnostic: Optional[str] = None
 
+    # Related patients and documents (IDs only for serialization)
+    patients_proches_ids: List[int] = []
+    documents_proches_ids: List[int] = []
+
     model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_orm_with_relations(cls, patient_orm) -> "PatientSchema":
+        """
+        Create a PatientSchema from an ORM object, including relation IDs. Use this method instead of model_validate when a complete request with relations is needed.
+
+        Args:
+            patient_orm: SQLAlchemy Patient object with loaded relationships.
+
+        Returns:
+            PatientSchema: Schema instance with relation IDs populated.
+        """
+        return cls(
+            id=patient_orm.id,
+            nom=patient_orm.nom,
+            prenom=patient_orm.prenom,
+            gravite=patient_orm.gravite,
+            type_maladie=patient_orm.type_maladie,
+            symptomes_exprimes=patient_orm.symptomes_exprimes,
+            fc=patient_orm.fc,
+            fr=patient_orm.fr,
+            spo2=patient_orm.spo2,
+            ta_systolique=patient_orm.ta_systolique,
+            ta_diastolique=patient_orm.ta_diastolique,
+            temperature=patient_orm.temperature,
+            contexte=patient_orm.contexte,
+            diagnostic=patient_orm.diagnostic,
+            patients_proches_ids=[p.id for p in patient_orm.patients_proches],
+            documents_proches_ids=[d.id for d in patient_orm.documents_proches],
+        )
 
     @computed_field
     @property
@@ -138,7 +170,7 @@ class PatientSchema(BaseModel):
             "contexte": self.contexte or "",
         }
 
-    def render(self, style='profile'):
+    def render(self, style="profile"):
         """
         Render a HTML template from the patient
 
@@ -149,17 +181,17 @@ class PatientSchema(BaseModel):
             str: HTML string
         """
         match style:
-            case 'profile':
+            case "profile":
                 return render_template(
-                    'elements/patient_profile.html',
+                    "elements/patient_profile.html",
                     id=self.id,
                     name=self.prenom,
                     last_name=self.nom,
-                    initials=self.initials
+                    initials=self.initials,
                 )
-            case 'case':
-                return render_template(
-                    'elements/patient_case.html'
-                )
+            case "case":
+                return render_template("elements/patient_case.html")
             case _:
-                raise ValueError(f'Unexpected style argument "{style}". Should be "profile" or "case"')
+                raise ValueError(
+                    f'Unexpected style argument "{style}". Should be "profile" or "case"'
+                )

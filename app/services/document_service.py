@@ -10,7 +10,6 @@ Example:
 """
 
 import logging
-from typing import Optional
 
 from app.config import Database, db
 from app.models import Document
@@ -90,11 +89,13 @@ class DocumentService:
             else:
                 logger.debug(f"Document with id={document_id} not found.")
 
-            document_schema = DocumentSchema.model_validate(document) if document else None
+            document_schema = (
+                DocumentSchema.model_validate(document) if document else None
+            )
 
             if not document_schema:
                 raise ValueError(f"Document with id={document_id} not found.")
-            
+
             return document_schema
 
     def search_by_titre(self, search_term: str) -> list[DocumentSchema]:
@@ -155,7 +156,7 @@ class DocumentService:
             session.commit()
             logger.info(f"Created document: {document}")
 
-            # delete vectors from chromadb
+            # add to vector store
             document_store.add(
                 item_id=document.vector_id,
                 content=document.content_for_embedding,

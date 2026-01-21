@@ -15,7 +15,7 @@ import logging
 from sqlalchemy import and_, or_
 
 from app.config import Database, db
-from app.models import Patient
+from app.models import Document, Patient
 from app.rag import (
     patient_store,
 )
@@ -266,7 +266,7 @@ class PatientService:
                 )
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient.context = new_context
+            patient.contexte = new_context  # type: ignore
             session.commit()
             logger.info(f"Updated context for patient id={patient_id}.")
             patient = PatientSchema.model_validate(patient)
@@ -278,5 +278,125 @@ class PatientService:
             metadata=patient.to_metadata(),
             no_chunking=True,
         )
+
+        return patient
+
+    def update_documents(
+        self, patient_id: int, document_ids: list[int]
+    ) -> PatientSchema:
+        """
+        Update the related documents of a patient.
+
+        Args:
+            patient_id (int): The patient's unique identifier.
+            document_ids (list[int]): List of document IDs to relate.
+
+        Returns:
+            str: The updated context of the patient.
+
+        Raises:
+            ValueError: If the patient is not found.
+
+        Example:
+            >>> updated_context = service.update_documents(1, [10, 20, 30])
+        """
+        logger.debug(f"Updating documents for patient id={patient_id}.")
+        with self.db_manager.session() as session:
+            patient = session.query(Patient).filter_by(id=patient_id).first()
+            if not patient:
+                logger.error(
+                    f"Patient with id={patient_id} not found for document update."
+                )
+                raise ValueError(f"Patient with id={patient_id} not found.")
+
+            # Clear existing relations
+            patient.documents_proches.clear()
+
+            # Add new relations
+
+            for doc_id in document_ids:
+                document = session.query(Document).filter_by(id=doc_id).first()
+                if document:
+                    patient.documents_proches.append(document)
+
+            session.commit()
+            logger.info(f"Updated documents for patient id={patient_id}.")
+            updated_patient = PatientSchema.model_validate(patient)
+
+        return updated_patient
+
+    def update_close_patients(
+        self, patient_id: int, close_patient_ids: list[int]
+    ) -> PatientSchema:
+        """
+        Update the related close patients of a patient.
+
+        Args:
+            patient_id (int): The patient's unique identifier.
+            close_patient_ids (list[int]): List of close patient IDs to relate.
+
+        Returns:
+            PatientSchema: The updated Patient record.
+
+        Raises:
+            ValueError: If the patient is not found.
+
+        Example:
+            >>> updated_patient = service.update_close_patients(1, [2, 3, 4])
+        """
+        logger.debug(f"Updating close patients for patient id={patient_id}.")
+        with self.db_manager.session() as session:
+            patient = session.query(Patient).filter_by(id=patient_id).first()
+            if not patient:
+                logger.error(
+                    f"Patient with id={patient_id} not found for close patients update."
+                )
+                raise ValueError(f"Patient with id={patient_id} not found.")
+
+            # Clear existing relations
+            patient.patients_proches.clear()
+
+            # Add new relations
+            for close_id in close_patient_ids:
+                close_patient = session.query(Patient).filter_by(id=close_id).first()
+                if close_patient:
+                    patient.patients_proches.append(close_patient)
+
+            session.commit()
+            logger.info(f"Updated close patients for patient id={patient_id}.")
+            updated_patient = PatientSchema.model_validate(patient)
+
+        return updated_patient
+
+    def update_diagnosys(self, patient_id: int, new_diagnosys: str) -> PatientSchema:
+        """
+        Update the diagnosys field of a patient.
+
+        Args:
+            patient_id (int): The patient's unique identifier.
+            new_diagnosys (str): The new diagnosys to set.
+
+        Returns:
+            PatientSchema: The updated Patient record.
+
+        Raises:
+            ValueError: If the patient is not found.
+
+        Example:
+            >>> updated_patient = service.update_diagnosys(1, "New diagnosys data")
+        """
+        logger.debug(f"Updating diagnosys for patient id={patient_id}.")
+        with self.db_manager.session() as session:
+            patient = session.query(Patient).filter_by(id=patient_id).first()
+            if not patient:
+                logger.error(
+                    f"Patient with id={patient_id} not found for diagnosys update."
+                )
+                raise ValueError(f"Patient with id={patient_id} not found.")
+
+            patient.diagnostic = new_diagnosys  # type: ignore
+            session.commit()
+            logger.info(f"Updated diagnosys for patient id={patient_id}.")
+            patient = PatientSchema.model_validate(patient)
 
         return patient

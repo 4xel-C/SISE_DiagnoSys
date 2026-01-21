@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from app.rag import (
     LLMHandler,
@@ -112,35 +112,49 @@ class RagService:
         """
         # retrieve patient context from DB for embeddings
         patient: PatientSchema = self.patient_service.get_by_id(patient_id=patient_id)
-        patient_chroma = self.patient_vector_store.get(patient.vector_id)
+
+        if not patient:
+            raise ValueError(f"Patient with id={patient_id} not found.")
 
         logger.debug(
             f"compute_rag_diagnosys: Retrieved patient context for patient id={patient_id}."
         )
 
-        if not patient_chroma:
-            raise ValueError(f"No chroma patient with id={patient_id} found.")
+        # ================================================================ Patient retrieval
+        patient_ids = self.find_topk_similar_patients_ids(
+            patient_id=patient_id, context=patient.content_for_embedding, k=5
+        )
 
-        patient_vector = patient_chroma[0].get("embedding", [])
-
-        if not patient_vector:
-            raise ValueError(f"No embedding found for patient id={patient_id}.")
+        # update database
+        self.patient_service.update_close_patients(
+            patient_id=patient_id, close_patient_ids=patient_ids
+        )
 
         # ================================================================ Document retrieval
         # find top 5 relevant document chunks from vector store
-        document_ids, document_chunks = self.find_topk_similar_documents_ids(
-            patient_vector, k=5
+        document_chunks = self.find_topk_similar_documents(
+            patient.content_for_embedding, k=5
         )
 
-        # ================================================================ Patient retrieval
-        patient_ids = self.find_topk_similar_patients_ids(patient_vector, k=5)
+        chunk_text = [chunk["text"] for chunk in document_chunks]
+        document_ids = list(
+            {int(chunk["metadata"]["document_id"]) for chunk in document_chunks}
+        )
 
+        self.patient_service.update_documents(
+            patient_id=patient_id, document_ids=document_ids
+        )
+
+        # ================================================================ Diagnosys generation
         diagnosys_text = self.generate_diagnosys(
             context=patient.contexte
             if patient.contexte
             else "Pas de contexte disponible.",
-            documents_chunks=[res["document"] for res in document_chunks],
+            documents_chunks=chunk_text,
         )
+
+        if not diagnosys_text:
+            raise LLMGenerationException("Failed to generate diagnosys.")
 
         return {
             "diagnosys": diagnosys_text,
@@ -176,28 +190,29 @@ class RagService:
 
         return diagnosys_text
 
-    def find_topk_similar_patients_ids(self, context: str, k: int = 5) -> List[int]:
+    def find_topk_similar_patients_ids(
+        self, patient_id: int, context: str, k: int = 5
+    ) -> List[int]:
         """
         Find top-k similar patients based on patient context.
 
         Args:
+            patient_id (int): The patient's unique identifier.
             context (str): The patient's medical context.
             k (int): Number of similar patients to retrieve.
         Returns:
             List[int]: List of similar patient IDs.
         """
         patient_results = self.patient_vector_store.search(
-            context,
-            n_results=k,
+            context, n_results=k, where={"patient_id": {"$ne": patient_id}}
         )
+
         patient_ids = list(
             {int(result["metadata"]["patient_id"]) for result in patient_results}
         )
         return patient_ids
 
-    def find_topk_similar_documents_ids(
-        self, context: str, k: int = 5
-    ) -> Tuple[List[int], List[dict]]:
+    def find_topk_similar_documents(self, context: str, k: int = 5) -> List[Dict]:
         """
         Find top-k similar documents based on input context.
 
@@ -205,17 +220,27 @@ class RagService:
             context (str): The input text context.
             k (int): Number of similar documents to retrieve.
         Returns:
-            Tuple[List[int], List[dict]]: A tuple containing a list of similar document IDs and the corresponding document chunks.
+            List[Dict]: List of similar document chunks with metadata (vector_store provide the key from the search method).
         """
-        document_chunks = self.document_vector_store.search(
+        document_chunks: List[Dict] = self.document_vector_store.search(
             context,
             n_results=k,
         )
-        document_ids = list(
-            {int(result["metadata"]["document_id"]) for result in document_chunks}
-        )
 
-        return document_ids, document_chunks
+        # seens document id:
+        seen_document_ids = set()
+
+        unique_document_chunks = list()
+
+        # delete duplicates from the results while preserving order
+        for chunk in document_chunks:
+            doc_id = int(chunk["metadata"]["document_id"])
+            if doc_id in seen_document_ids:
+                continue
+            else:
+                seen_document_ids.add(doc_id)
+
+        return unique_document_chunks
 
     # TODO: Implement security and pertinency check function
     def is_pertinent_and_secure(self, user_input: str) -> bool:

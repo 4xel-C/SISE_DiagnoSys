@@ -15,6 +15,7 @@ from app.config.database import db
 from app.config.logging_config import get_logging_config
 from app.services import PatientService, RagService, DocumentService
 
+
 class AppContext(Flask):
     """Typing
     Define the class of app context objects
