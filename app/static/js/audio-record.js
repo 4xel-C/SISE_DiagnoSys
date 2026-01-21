@@ -76,7 +76,7 @@ function createTimerInterval(timerElement) {
 
 async function start(patientId) {
     // Start stream
-    const stream = await startAudioStream();
+    const stream = await startAudioStream(patientId);
     // Setup waveform + interval
     const timerElement = document.querySelector('main .top-bar .timer');
     timer = createTimerInterval(timerElement);

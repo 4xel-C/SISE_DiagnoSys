@@ -4,11 +4,9 @@ let mediaRecorder;
 let sendChain = Promise.resolve();
 
 
-export async function startAudioStream() {
+export async function startAudioStream(patientId) {
     // Open websocket
-    console.log('starting websocker');
-    console.log(location.host);
-    socket = new WebSocket('ws://' + location.host + '/audio_stt');
+    socket = new WebSocket(`ws://' + location.host + '/audio_stt?patient_id=${patientId}`);
     await new Promise(resolve => socket.onopen = resolve);
     // Start stream
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
