@@ -13,10 +13,28 @@ Example:
     'patient_1'
 """
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from flask import render_template
 from pydantic import BaseModel, computed_field
+
+
+class PatientProcheSchema(BaseModel):
+    """Schema for a related patient with similarity score."""
+
+    patient_id: int
+    similarity_score: Optional[float] = None
+
+    model_config = {"from_attributes": True}
+
+
+class DocumentProcheSchema(BaseModel):
+    """Schema for a related document with similarity score."""
+
+    document_id: int
+    similarity_score: Optional[float] = None
+
+    model_config = {"from_attributes": True}
 
 
 class PatientSchema(BaseModel):
@@ -67,22 +85,24 @@ class PatientSchema(BaseModel):
     contexte: Optional[str] = None
     diagnostic: Optional[str] = None
 
-    # Related patients and documents (IDs only for serialization)
-    patients_proches_ids: List[int] = []
-    documents_proches_ids: List[int] = []
+    # Related patients and documents (with similarity scores)
+    patients_proches: List[PatientProcheSchema] = []
+    documents_proches: List[DocumentProcheSchema] = []
 
     model_config = {"from_attributes": True}
 
     @classmethod
     def from_orm_with_relations(cls, patient_orm) -> "PatientSchema":
         """
-        Create a PatientSchema from an ORM object, including relation IDs. Use this method instead of model_validate when a complete request with relations is needed.
+        Create a PatientSchema from an ORM object, including relations with scores.
+
+        Use this method instead of model_validate when relations are needed.
 
         Args:
             patient_orm: SQLAlchemy Patient object with loaded relationships.
 
         Returns:
-            PatientSchema: Schema instance with relation IDs populated.
+            PatientSchema: Schema instance with relations populated.
         """
         return cls(
             id=patient_orm.id,
@@ -99,8 +119,20 @@ class PatientSchema(BaseModel):
             temperature=patient_orm.temperature,
             contexte=patient_orm.contexte,
             diagnostic=patient_orm.diagnostic,
-            patients_proches_ids=[p.id for p in patient_orm.patients_proches],
-            documents_proches_ids=[d.id for d in patient_orm.documents_proches],
+            patients_proches=[
+                PatientProcheSchema(
+                    patient_id=assoc.patient_proche_id,
+                    similarity_score=assoc.similarity_score,
+                )
+                for assoc in patient_orm.patients_proches_assoc
+            ],
+            documents_proches=[
+                DocumentProcheSchema(
+                    document_id=assoc.document_id,
+                    similarity_score=assoc.similarity_score,
+                )
+                for assoc in patient_orm.documents_proches_assoc
+            ],
         )
 
     @computed_field

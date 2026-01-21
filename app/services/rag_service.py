@@ -121,13 +121,18 @@ class RagService:
         )
 
         # ================================================================ Patient retrieval
-        patient_ids = self.find_topk_similar_patients_ids(
+        close_patients = self.find_topk_similar_patients(
             patient_id=patient_id, context=patient.content_for_embedding, k=5
         )
+        patient_ids = [int(p["metadata"]["patient_id"]) for p in close_patients]
+
+        patient_scores = [float(p["similarity"]) for p in close_patients]
 
         # update database
         self.patient_service.update_close_patients(
-            patient_id=patient_id, close_patient_ids=patient_ids
+            patient_id=patient_id,
+            close_patient_ids=patient_ids,
+            similarity_scores=patient_scores,
         )
 
         # ================================================================ Document retrieval
@@ -141,8 +146,12 @@ class RagService:
             {int(chunk["metadata"]["document_id"]) for chunk in document_chunks}
         )
 
+        document_scores = [float(chunk["similarity"]) for chunk in document_chunks]
+
         self.patient_service.update_documents(
-            patient_id=patient_id, document_ids=document_ids
+            patient_id=patient_id,
+            document_ids=document_ids,
+            similarity_scores=document_scores,
         )
 
         # ================================================================ Diagnosys generation
@@ -195,9 +204,9 @@ class RagService:
 
         return diagnosys_text
 
-    def find_topk_similar_patients_ids(
+    def find_topk_similar_patients(
         self, patient_id: int, context: str, k: int = 5
-    ) -> List[int]:
+    ) -> List[Dict]:
         """
         Find top-k similar patients based on patient context.
 
@@ -206,16 +215,12 @@ class RagService:
             context (str): The patient's medical context.
             k (int): Number of similar patients to retrieve.
         Returns:
-            List[int]: List of similar patient IDs.
+            List[Dict]: List of similar patient dictionaries with metadata.
         """
         patient_results = self.patient_vector_store.search(
             context, n_results=k, where={"patient_id": {"$ne": patient_id}}
         )
-
-        patient_ids = list(
-            {int(result["metadata"]["patient_id"]) for result in patient_results}
-        )
-        return patient_ids
+        return patient_results
 
     def find_topk_similar_documents(self, context: str, k: int = 5) -> List[Dict]:
         """
