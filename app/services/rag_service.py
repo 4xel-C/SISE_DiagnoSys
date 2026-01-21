@@ -93,7 +93,7 @@ class RagService:
             patient_id=id, new_context=new_context
         )
 
-        return updated_patient.contexte
+        return updated_patient.contexte # type: ignore
 
     def compute_rag_diagnosys(self, patient_id: int) -> Dict[str, Any]:
         """Generate diagnosys based on patient context and his metadata:

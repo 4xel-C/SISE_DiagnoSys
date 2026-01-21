@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, abort, current_app, jsonify, render_template, request
+from flask import Blueprint, abort, jsonify, render_template, request, current_app
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -30,15 +30,14 @@ def audio_stt(ws) -> None:
     total: str
 
     if patient_id is None:
-        ws.close()
+        ws.close(code=1008, reason="Missing patient_id")
         return
 
     try:
         while True:
-            data = ws.receive()
             # TODO: Call stt_service with audio chunk 
             # and send transcribed string back to JS:
-            #
+            data = ws.receive()
             # transcript, total = app.stt_service.transcribe_chunk(data)
             # ws.send(transcript)
     except ConnectionClosed:
@@ -67,7 +66,6 @@ def search_patients():
         patients = app.patient_service.get_all()
 
     htmls = [p.render() for p in patients]
-
     return jsonify(htmls)
 
 
@@ -138,7 +136,5 @@ def get_results(patient_id: int):
 def update_context(patient_id: int):
     data = request.get_json()
     context = data.get("context")
-    patient = app.patient_service.update_context(patient_id, context)
-    print(patient.id)
-    print(patient.contexte)
+    app.patient_service.update_context(patient_id, context)
     return "", 200
