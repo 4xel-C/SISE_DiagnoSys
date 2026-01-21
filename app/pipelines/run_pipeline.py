@@ -1,10 +1,8 @@
-import sys
 import importlib
+import logging
 import os
-import logging.config
-from app.config.logging_config import get_logging_config
+import sys
 
-logging.config.dictConfig(get_logging_config())
 logger = logging.getLogger("app.pipelines")
 
 

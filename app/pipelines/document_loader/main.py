@@ -3,15 +3,14 @@ Main orchestrator for the document_loader pipeline.
 Executes each step in order: load, parse, update, report.
 """
 
-import logging.config
-from app.config.logging_config import get_logging_config
+import logging
 
-logging.config.dictConfig(get_logging_config())
-logger = logging.getLogger("app.pipelines.document_loader")
 from . import _00_load_scraped_json as step0
 from . import _01_parse_documents as step1
 from . import _02_update_db as step2
 from . import _03_report as step3
+
+logger = logging.getLogger("app.pipelines.document_loader")
 
 
 def run():

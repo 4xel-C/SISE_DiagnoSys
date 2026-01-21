@@ -1,9 +1,7 @@
-import os
 import json
-import logging.config
-from app.config.logging_config import get_logging_config
+import logging
+import os
 
-logging.config.dictConfig(get_logging_config())
 logger = logging.getLogger("app.pipelines.document_loader")
 
 

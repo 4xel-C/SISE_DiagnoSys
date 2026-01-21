@@ -1,10 +1,18 @@
-from app.scraper.nlm_sp_scraper import NLM_StatPearlsScraper
-from app.scraper.nlm_sp_page_scraper import NLM_SP_PageScraper
-from datetime import datetime
-import os
 import json
+import logging.config
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+
+from app.config.logging_config import get_logging_config
+from app.scraper.nlm_sp_page_scraper import NLM_SP_PageScraper
+from app.scraper.nlm_sp_scraper import NLM_StatPearlsScraper
+
+# Configure logging
+logging.config.dictConfig(get_logging_config())
+logger = logging.getLogger(__name__)
+logger.info("Starting scraping process")
 
 
 def main():

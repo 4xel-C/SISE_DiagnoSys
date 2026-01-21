@@ -13,7 +13,7 @@ from flask import Flask
 
 from app.config.database import db
 from app.config.logging_config import get_logging_config
-from app.services import PatientService, RagService, DocumentService
+from app.services import DocumentService, PatientService, RagService
 
 
 class AppContext(Flask):
@@ -38,22 +38,16 @@ def create_app() -> Flask:
     # Create logs directory if needed
     os.makedirs("logs", exist_ok=True)
 
-    # Configure logging
-    logging.config.dictConfig(get_logging_config())
-
     app = Flask(__name__)
 
     # Initialize database
     db.init_db()
 
-    logger = logging.getLogger(__name__)
-    logger.info("Starting Flask application")
-
     # Instantiate services in app context
     with app.app_context():
-        app.patient_service = PatientService()
-        app.rag_service = RagService()
-        app.document_service = DocumentService()
+        app.patient_service = PatientService()  # type: ignore
+        app.rag_service = RagService()  # type: ignore
+        app.document_service = DocumentService()  # type: ignore
 
     # Init pages routes
     from .routes import main as main_blueprint
@@ -74,3 +68,9 @@ def create_app() -> Flask:
 # Usage: gunicorn "app:app" or waitress-serve app:app
 # If imported as a module, the app instance will be used by the server.
 app = create_app()
+
+
+# Configure logging
+logging.config.dictConfig(get_logging_config())
+logger = logging.getLogger(__name__)
+logger.info("Starting Flask application")
