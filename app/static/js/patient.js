@@ -1,4 +1,4 @@
-import { loadContext, loadResults } from './modules/loader.js';
+import { loadContext, loadResults, renderPatient } from './modules/loader.js';
 
 const main = document.querySelector('main');
 let contextEditor;
@@ -37,17 +37,34 @@ async function renderContext(context) {
 
 function renderDiagnostics(diagnostics) {
     // Update diagnostics list
-    console.log('Updating diagnostics');
 }
 
 function renderDocuments(documents) {
     // Update close documents
-    console.log('Updating documents');
+    const documentsList = main.querySelector('.frame.documents ul');
+    documentsList.innerHTML = '';
+    documents.forEach(html => {
+        documentsList.insertAdjacentHTML('beforeend', html);
+        const document = documentsList.lastElementChild;
+        // Bind click -> open diagnostics
+        document.addEventListener('click', () => {
+            window.open(document.dataset.url, '_blank').focus();
+        })
+    });
 }
 
 function renderCases(cases) {
     // Update similar cases
-    console.log('Updating cases');
+    const casesList = main.querySelector('.frame.cases ul');
+    casesList.innerHTML = '';
+    cases.forEach(html => {
+        casesList.insertAdjacentHTML('beforeend', html);
+        const patient = casesList.lastElementChild;
+        // Bind click -> open diagnostics
+        patient.addEventListener('click', () => {
+            renderPatient(patient.dataset.patientId);
+        })
+    });
 }
 
 
@@ -68,26 +85,32 @@ document.addEventListener('patientRendered', (e) => {
         placeholder: 'Ajoutez ou modifiez des informations',
         tools: {
             header: Header
+        },
+        onChange: (api, event) => {
+            if (event.type == 'block-changed') {
+                contextForm.classList.add('edited');
+            }
         }
     });
 
     // On context saved
     contextForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('submitted');
-        // Save editor and send content
-        if (contextEditor.blocks.getBlocksCount() <= 1) {
-            console.log(contextEditor.blocks);
+        const output = await contextEditor.save();
+        if (output.blocks.length == 0) {
             return
         }
-        const output = await contextEditor.save();
+        // Export editor blocks to md
         const context = await MDfromBlocks(output.blocks);
         // Request context update
+        contextForm.querySelector('fieldset').disabled = true;
         const response = await saveContext(patientId, context);
+        contextForm.querySelector('fieldset').disabled = false;
         if (!response.ok) {
             console.error('Failed to update context in database');
             return
         }
+        contextForm.classList.remove('edited');
         // Request context processing
         const content = await processRAG(patientId, context);
         // Update results

@@ -50,7 +50,7 @@ class RagService:
         self,
         id: int,
         audio_input: str,
-    ) -> Optional[str]:
+    ) -> str:
         """From the user input (context modification or speech to text addition to context), return a condensed context to update the patient context.
         The new context if then update in the database before beeing return as a string for further use in the application.
         Args:
@@ -58,7 +58,7 @@ class RagService:
             from_audio (bool): Whether the input comes from audio transcription.
             id_patient (str): The ID of the patient whose context is to be updated.
         Returns:
-            Optional[str]: The updated context string, or None if the input was not pertinent or secure
+            str: The updated context string
         """
 
         # check pertinency and guardrail -> if user input not pertinent, stop the pipeline, as the context would not be refreshed.
@@ -93,7 +93,7 @@ class RagService:
             patient_id=id, new_context=new_context
         )
 
-        return updated_patient.contexte
+        return updated_patient.contexte # type: ignore
 
     def compute_rag_diagnosys(self, patient_id: int) -> Dict[str, Any]:
         """Generate diagnosys based on patient context and his metadata:

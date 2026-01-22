@@ -76,7 +76,7 @@ function createTimerInterval(timerElement) {
 
 async function start(patientId) {
     // Start stream
-    const stream = await startAudioStream();
+    const stream = await startAudioStream(patientId);
     // Setup waveform + interval
     const timerElement = document.querySelector('main .top-bar .timer');
     timer = createTimerInterval(timerElement);
@@ -112,10 +112,11 @@ async function stop(patientId) {
 }
 
 function toggleMic() {
-    const patientId = main.querySelector('.patient').dataset.patientId;
     if (socket && socket.readyState === WebSocket.OPEN) {
+        const patientId = main.dataset.recordPatientId;
         stop(patientId);
     } else {
+        const patientId = main.querySelector('.patient').dataset.patientId;
         start(patientId);
     }
 }

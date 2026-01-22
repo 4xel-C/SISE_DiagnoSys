@@ -4,9 +4,9 @@ let mediaRecorder;
 let sendChain = Promise.resolve();
 
 
-export async function startAudioStream() {
+export async function startAudioStream(patientId) {
     // Open websocket
-    socket = new WebSocket("ws://localhost:8000/audio_stt");
+    socket = new WebSocket(`ws://${location.host}/audio_stt?patient_id=${patientId}`);
     await new Promise(resolve => socket.onopen = resolve);
     // Start stream
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -31,7 +31,7 @@ export async function startAudioStream() {
             socket.close(1000, "done");
         }
     };
-
+    
     mediaRecorder.start(250); // send data every 250ms
 
     return stream

@@ -1,6 +1,8 @@
 import { socket } from './streamer.js';
 
 
+
+
 export async function renderPatient(patientId) {
     const main = document.querySelector('main');
     const content = main.querySelector('.content');

@@ -1,0 +1,9 @@
+<li data-patient-id="{{ id }}" class="patient-result case">
+    <div class="icon">
+        <img src="{{ url_for('static', filename='images/profile.svg') }}" alt="" height="16px">
+    </div>
+    <p class="label">{{ first_name }} {{ last_name }}</p>
+    {% if score %}
+        <p class="score">{{ score }}</p>
+    {% endif %}
+</li>

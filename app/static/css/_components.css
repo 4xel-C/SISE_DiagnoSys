@@ -1,3 +1,9 @@
+/* FORM ELEMENTS */
+
+fieldset {
+        border: none;
+}
+
 input[type="text"] {
     width: 100%;
     background-color: var(--bg-frame-color);
@@ -18,7 +24,7 @@ input:focus {
     border-radius: 6px;
     transition: background-color .125s ease;
 }
-.main-button:hover {
+.main-button:hover:not(:disabled) {
     background-color: var(--accent-second-color);
 }
 
@@ -30,11 +36,16 @@ input:focus {
     border-radius: 6px;
     transition: background-color .125s ease;
 }
-.second-button:hover {
+.second-button:hover:not(:disabled) {
     background-color: var(--border-color);
 }
 
+button:disabled {
+    opacity: .5;
+}
 
+
+/* TEXT */
 
 .tag {
     background-color: rgb(255 255 255 / 15%);
@@ -47,4 +58,86 @@ input:focus {
 .tag > * {
     display: inline-block;
     color: var(--bg-selected-color);
+}
+
+
+/* PATIENT */
+
+.patient-result.profile {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .6rem;
+
+    .pp {
+        position: relative;
+        font-size: 0;
+
+        .recording {
+            position: absolute;
+            bottom: 0px;
+            right: -4px;
+            z-index: 2;
+            border-radius: 100%;
+            padding: 2px;
+            background-color: var(--bg-color);
+
+            img {
+                height: 12px;
+                display: block;
+            }
+        }
+    }
+}
+
+.patient-result.case {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .6rem;
+    background-color: var(--bg-frame-color);
+    border-radius: 6px;
+    border: solid 1px var(--border-color);
+    position: relative;
+
+    .score {
+        background-color: var(--bg-selected-color);
+        padding: 0rem .4rem;
+        border-radius: 100px;
+        color: var(--accent-color);
+        position: absolute;
+        right: .6rem;
+    }
+}
+.patient-result.case:hover {
+    .label {
+        text-decoration: underline;
+    }
+}
+
+/* DOCUMENT */
+
+.document {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .6rem;
+    background-color: var(--bg-frame-color);
+    border-radius: 6px;
+    border: solid 1px var(--border-color);
+    position: relative;
+
+    .score {
+        background-color: var(--bg-selected-color);
+        padding: 0rem .4rem;
+        border-radius: 100px;
+        color: var(--accent-color);
+        position: absolute;
+        right: .6rem;
+    }
+}
+.document:hover {
+    .label {
+        text-decoration: underline;
+    }
 }

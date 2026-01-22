@@ -12,6 +12,7 @@ main .top-bar {
     align-items: center;
     padding: .4rem .6rem;
     background-color: var(--accent-color);
+    transition: background-color .125s ease;
 
     * {
         color: white;
@@ -41,17 +42,17 @@ main .top-bar {
         margin: 0 .1rem;
     }
 }
+main .top-bar:hover {
+    background-color: var(--accent-second-color);
+}
 
 
 main .audio-record {
     display: none;
     height: 30%;
-    border-radius: var(--border-radius);
     position: relative;
     overflow: hidden;
     transition: height .3s ease;
-    margin: 1rem;
-    margin-top: 0;
     transition: background-color .125s ease;
 
     * {

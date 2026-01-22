@@ -71,6 +71,6 @@ app = create_app()
 
 
 # Configure logging
-logging.config.dictConfig(get_logging_config())
-logger = logging.getLogger(__name__)
-logger.info("Starting Flask application")
+# logging.config.dictConfig(get_logging_config())
+# logger = logging.getLogger(__name__)
+# logger.info("Starting Flask application")

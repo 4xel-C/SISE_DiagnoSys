@@ -144,7 +144,7 @@ class PatientSchema(BaseModel):
         Returns:
             str: Initials.
         """
-        return f"{self.prenom[0].upper()}{self.nom[0].lower()}"
+        return f"{self.nom[0].upper()}{self.prenom[0].lower()}"
 
     @computed_field
     @property
@@ -202,7 +202,7 @@ class PatientSchema(BaseModel):
             "contexte": self.contexte or "",
         }
 
-    def render(self, style="profile"):
+    def render(self, style="profile", **kwargs):
         """
         Render a HTML template from the patient
 
@@ -217,12 +217,20 @@ class PatientSchema(BaseModel):
                 return render_template(
                     "elements/patient_profile.html",
                     id=self.id,
-                    name=self.prenom,
+                    first_name=self.prenom,
                     last_name=self.nom,
                     initials=self.initials,
+                    **kwargs
                 )
             case "case":
-                return render_template("elements/patient_case.html")
+                return render_template(
+                    "elements/patient_case.html",
+                    id=self.id,
+                    first_name=self.prenom,
+                    last_name=self.nom,
+                    initials=self.initials,
+                    **kwargs
+                )
             case _:
                 raise ValueError(
                     f'Unexpected style argument "{style}". Should be "profile" or "case"'
