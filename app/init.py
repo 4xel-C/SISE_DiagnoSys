@@ -38,6 +38,9 @@ def create_app() -> Flask:
     # Create logs directory if needed
     os.makedirs("logs", exist_ok=True)
 
+    # Create data directory if needed
+    os.makedirs("data", exist_ok=True)
+
     app = Flask(__name__)
 
     # Initialize database
