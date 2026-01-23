@@ -5,7 +5,7 @@ import logging
 import os
 from typing import Protocol, cast
 
-from vosk import KaldiRecognizer, Model
+from vosk import KaldiRecognizer, Model # type: ignore
 
 from app.asr.base import ASRServiceBase
 from app.asr.factory import ASRServiceFactory
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 type ASRService = type[ASRServiceBase]
-type ASRAnswer = dict[str : str | bool]
+type ASRAnswer = dict[str, str | bool]
 
 # ============================================
 # Vosk ASR Service
@@ -61,15 +61,17 @@ class VoskASRService(ASRServiceBase):
 
     def transcribe_stream(self, audio_chunk: bytes) -> ASRAnswer:
         if len(audio_chunk) == 0:
-            return {"partial": "", "final": False}
+            return {"text": "", "final": False}
 
+        # if accepted as final
         if self._recognizer.AcceptWaveform(audio_chunk):
             result = json.loads(self._recognizer.Result()).get("text", "")
             logger.debug("Vosk final result: %s", result)
-            return {"text": result, "final": True}
-        # else:
-        partial = json.loads(s=self._recognizer.PartialResult()).get("partial", "")
-        return {"partial": partial, "final": False}
+        else: # partial result
+            result = json.loads(s=self._recognizer.PartialResult()).get("partial", "")
+            logger.debug("Vosk partial result: %s", result)
+        print("Vosk result:", result)
+        return {"text": result, "final": False}
 
     def is_available(self) -> bool:
         try:

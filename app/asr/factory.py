@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 type ASRService = type[ASRServiceBase]
-type ASRAnswer = dict[str : str | bool]
+type ASRAnswer = dict[str, str | bool]
 
 
 class ASRServiceFactory:
