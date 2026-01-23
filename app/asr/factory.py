@@ -1,0 +1,101 @@
+"""Factory for ASR services."""
+
+import logging
+import os
+
+from dotenv import load_dotenv
+
+from app.asr.base import ASRServiceBase
+
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
+type ASRService = type[ASRServiceBase]
+type ASRAnswer = dict[str : str | bool]
+
+
+class ASRServiceFactory:
+    """
+    Factory/registry for ASR services.
+
+    Register implementations with:
+        @ASRServiceFactory.register("vosk")
+        class VoskASRService(ASRServiceBase): ...
+    """
+
+    _registry: dict[str, ASRService] = {}
+
+    # Mapping of ONLINE_MODE env var to service name
+    _online_offline_map: dict[int, str] = {
+        0: "kyutai",
+        1: "vosk",
+    }
+
+    @classmethod
+    def register(cls, name: str):
+        """Decorator to register an ASR service class under a given name."""
+        key = name.lower().strip()
+
+        def decorator(service_cls: ASRService) -> ASRService:
+            if key in cls._registry:
+                raise ValueError(f"ASR service '{key}' is already registered.")
+            cls._registry[key] = service_cls
+            return service_cls
+
+        return decorator
+
+    @classmethod
+    def create(cls, which: str | None = None) -> ASRServiceBase:
+        """
+        Create an ASR service instance based on the specified type or environment configuration.
+
+        Args:
+            which: "kyutai" / "vosk" / etc. If None, uses ONLINE_MODE mapping.
+
+        Raises:
+            ValueError: If ONLINE_MODE is invalid or service name is unknown.
+            NotImplementedError: If the requested service is not registered.
+
+        Returns:
+            ASRServiceBase: An instance of the requested ASR service.
+        """
+        if which is None:
+            online_mode = int(os.getenv("ONLINE_MODE", "1"))
+            which = cls._online_offline_map.get(online_mode, None)
+            if which is None:
+                logger.error(
+                    "Invalid ONLINE_MODE=%d; cannot determine ASR service.", online_mode
+                )
+                raise ValueError(
+                    f"Unsupported ONLINE_MODE={online_mode}. Expected one of: {list(cls._online_offline_map)}"
+                )
+
+        key = which.lower().strip()
+        service_cls = cls._registry.get(key)
+        if service_cls is None:
+            logger.error(
+                "ASR service '%s' is not registered. Available services: %s",
+                key,
+                sorted(cls._registry.keys()),
+            )
+            raise NotImplementedError(
+                f"ASR service '{key}' is not registered. Registered services: {sorted(cls._registry.keys())}"
+            )
+        return service_cls()
+
+    @classmethod
+    def available(cls, which: str | None = None) -> bool:
+        """Check if the specified ASR service is available."""
+        try:
+            service = cls.create(which)
+            return service.is_available()
+        except (
+            NotImplementedError,
+            ValueError,
+            OSError,
+            RuntimeError,
+            FileNotFoundError,
+        ):
+            logger.error("ASR service '%s' is not available.", which)
+            return False
