@@ -16,9 +16,8 @@ Example:
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, computed_field
-
 from flask import render_template
+from pydantic import BaseModel, computed_field
 
 
 class DocumentSchema(BaseModel):
@@ -118,5 +117,5 @@ class DocumentSchema(BaseModel):
             title=self.titre,
             date=self.created_at,
             url=self.url,
-            **kwargs
+            **kwargs,
         )

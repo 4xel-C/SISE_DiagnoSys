@@ -51,13 +51,6 @@ class Document(Base):
     url = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.now)
 
-    # Relationship to patients via association object (with similarity scores)
-    patients_concernes_assoc = relationship(
-        "DocumentProche",
-        back_populates="document",
-        cascade="all, delete-orphan",
-    )
-
     def __repr__(self):
         """Return a string representation of the Document instance."""
         return f"<Document(id={self.id}, titre='{self.titre[:50]}...')>"

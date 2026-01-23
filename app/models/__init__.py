@@ -6,6 +6,6 @@ This package contains all SQLAlchemy ORM models for the application.
 
 from app.models.base import Base
 from app.models.document import Document
-from app.models.patient import DocumentProche, Patient, PatientProche
+from app.models.patient import Patient
 
-__all__ = ["Base", "Patient", "PatientProche", "DocumentProche", "Document"]
+__all__ = ["Base", "Patient", "Document"]

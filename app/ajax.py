@@ -35,7 +35,7 @@ def audio_stt(ws) -> None:
 
     try:
         while True:
-            # TODO: Call stt_service with audio chunk 
+            # TODO: Call stt_service with audio chunk
             # and send transcribed string back to JS:
             data = ws.receive()
             # transcript, total = app.stt_service.transcribe_chunk(data)
@@ -94,13 +94,15 @@ def process_rag(patient_id: int):
     case_htmls: list[str] = []
     for patient_id in rag_result.get("related_patients_ids", []):
         patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render(style='case', score=0))
+        case_htmls.append(patient.render(style="case", score=0))
 
-    return jsonify({
+    return jsonify(
+        {
             "diagnostics": rag_result.get("diagnosys"),
             "documents": document_htmls,
             "cases": case_htmls,
-    })
+        }
+    )
 
 
 # ---------------
@@ -120,7 +122,7 @@ def get_results(patient_id: int):
     case_htmls: list[str] = []
     # TEMP: fake related patient
     patient = app.patient_service.get_by_id(2)
-    case_htmls.append(patient.render(style='case', score=55))
+    case_htmls.append(patient.render(style="case", score=55))
     # for related_p in patient.patients_proches:
     #     patient = app.patient_service.get_by_id(related_p.patient_id)
     #     case_htmls.append(patient.render(style='case', score=related_p.similarity_score))

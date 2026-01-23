@@ -54,7 +54,7 @@ def get_logging_config() -> dict:
                 "class": "logging.StreamHandler",
                 "level": log_level,
                 "formatter": "detailed",
-                "stream": "ext://sys.stdout"
+                "stream": "ext://sys.stdout",
             },
             "app_file": {
                 "class": "logging.handlers.RotatingFileHandler",

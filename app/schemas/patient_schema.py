@@ -19,24 +19,6 @@ from flask import render_template
 from pydantic import BaseModel, computed_field
 
 
-class PatientProcheSchema(BaseModel):
-    """Schema for a related patient with similarity score."""
-
-    patient_id: int
-    similarity_score: Optional[float] = None
-
-    model_config = {"from_attributes": True}
-
-
-class DocumentProcheSchema(BaseModel):
-    """Schema for a related document with similarity score."""
-
-    document_id: int
-    similarity_score: Optional[float] = None
-
-    model_config = {"from_attributes": True}
-
-
 class PatientSchema(BaseModel):
     """
     Pydantic schema for patient data indexing in ChromaDB.
@@ -85,10 +67,6 @@ class PatientSchema(BaseModel):
     contexte: Optional[str] = None
     diagnostic: Optional[str] = None
 
-    # Related patients and documents (with similarity scores)
-    patients_proches: List[PatientProcheSchema] = []
-    documents_proches: List[DocumentProcheSchema] = []
-
     model_config = {"from_attributes": True}
 
     @classmethod
@@ -119,20 +97,6 @@ class PatientSchema(BaseModel):
             temperature=patient_orm.temperature,
             contexte=patient_orm.contexte,
             diagnostic=patient_orm.diagnostic,
-            patients_proches=[
-                PatientProcheSchema(
-                    patient_id=assoc.patient_proche_id,
-                    similarity_score=assoc.similarity_score,
-                )
-                for assoc in patient_orm.patients_proches_assoc
-            ],
-            documents_proches=[
-                DocumentProcheSchema(
-                    document_id=assoc.document_id,
-                    similarity_score=assoc.similarity_score,
-                )
-                for assoc in patient_orm.documents_proches_assoc
-            ],
         )
 
     @computed_field
@@ -220,7 +184,7 @@ class PatientSchema(BaseModel):
                     first_name=self.prenom,
                     last_name=self.nom,
                     initials=self.initials,
-                    **kwargs
+                    **kwargs,
                 )
             case "case":
                 return render_template(
@@ -229,7 +193,7 @@ class PatientSchema(BaseModel):
                     first_name=self.prenom,
                     last_name=self.nom,
                     initials=self.initials,
-                    **kwargs
+                    **kwargs,
                 )
             case _:
                 raise ValueError(
