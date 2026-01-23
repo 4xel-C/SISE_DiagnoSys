@@ -91,22 +91,20 @@ def process_rag(patient_id: int):
         abort(404, e)
 
     document_htmls: list[str] = []
-    for document_id in rag_result.get("document_ids", []):
+    for document_id, document_score in rag_result['related_documents']:
         document = app.document_service.get_by_id(document_id)
-        document_htmls.append(document.render())
+        document_htmls.append(document.render(score=document_score))
 
     case_htmls: list[str] = []
-    for patient_id in rag_result.get("related_patients_ids", []):
+    for patient_id, patient_score in rag_result['related_patients']:
         patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render(style="case", score=0))
+        case_htmls.append(patient.render(style='case', score=patient_score))
 
-    return jsonify(
-        {
-            "diagnostics": rag_result.get("diagnosys"),
-            "documents": document_htmls,
-            "cases": case_htmls,
-        }
-    )
+    return jsonify({
+        "diagnostics": rag_result.get("diagnosys"),
+        "documents": document_htmls,
+        "cases": case_htmls,
+    })
 
 
 # ---------------
@@ -124,28 +122,22 @@ def get_results(patient_id: int):
     patient = app.patient_service.get_by_id(patient_id)
 
     case_htmls: list[str] = []
-    # TEMP: fake related patient
-    patient = app.patient_service.get_by_id(2)
-    case_htmls.append(patient.render(style="case", score=55))
-    # for related_p in patient.patients_proches:
-    #     patient = app.patient_service.get_by_id(related_p.patient_id)
-    #     case_htmls.append(patient.render(style='case', score=related_p.similarity_score))
+    related_patients = app.patient_service.get_patients_proches(patient.id)
+    for related_p in related_patients:
+        patient = app.patient_service.get_by_id(related_p.patient_id)
+        case_htmls.append(patient.render(style='case', score=related_p.formatted_score))
 
     document_htmls: list[str] = []
-    # TEMP: fake related patient
-    document = app.document_service.get_by_id(2)
-    document_htmls.append(document.render(score=71))
-    # for related_d in patient.documents_proches:
-    #     document = app.document_service.get_by_id(related_d.document_id)
-    #     document_htmls.append(document.render(score=related_d.similarity_score))
+    related_documents = app.patient_service.get_documents_proches(patient.id)
+    for related_d in related_documents:
+        document = app.document_service.get_by_id(related_d.document_id)
+        document_htmls.append(document.render(score=related_d.formatted_score))
 
-    return jsonify(
-        {
-            "diagnostics": patient.diagnostic,
-            "cases": case_htmls,
-            "documents": document_htmls,
-        }
-    )
+    return jsonify({
+        "diagnostics": patient.diagnostic,
+        "cases": case_htmls,
+        "documents": document_htmls,
+    })
 
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])

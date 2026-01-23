@@ -16,6 +16,8 @@ main .patient {
 
     .frame.context {
         grid-row: 1 / span 2;
+        overflow: hidden;
+        position: relative;
 
         form#context-editor .actions{
             display: none;
@@ -52,11 +54,14 @@ main .patient {
 
     form#context-editor {
         position: relative;
+        overflow-y: auto;
+        margin-right: -1rem;
+        margin-bottom: -1rem;
 
         .actions {
             position: absolute;
-            bottom: 0;
-            right: 0;
+            bottom: 1rem;
+            right: 1rem;
             z-index: 10;
 
             button:not(:last-child) {
