@@ -14,7 +14,7 @@ from flask import Flask
 from app.config.database import db
 from app.config.logging_config import get_logging_config
 from app.services import DocumentService, PatientService, RagService
-# from app.services.asr_service import ASRServiceBase, ASRServiceFactory
+from app.services.asr_service import ASRServiceFactory
 
 
 class AppContext(Flask):
@@ -26,7 +26,7 @@ class AppContext(Flask):
     patient_service: PatientService
     rag_service: RagService
     document_service: DocumentService
-    # asr_service: ASRServiceBase
+    asr_service: ASRServiceFactory
 
 
 def create_app() -> Flask:
@@ -50,10 +50,10 @@ def create_app() -> Flask:
 
     # Instantiate services in app context
     with app.app_context():
-        app.patient_service = PatientService()    # type: ignore
-        app.rag_service = RagService()            # type: ignore
+        app.patient_service = PatientService()  # type: ignore
+        app.rag_service = RagService()  # type: ignore
         app.document_service = DocumentService()  # type: ignore
-        # app.asr_service = ASRServiceFactory.create()
+        app.asr_service = ASRServiceFactory.create()
 
     # Init pages routes
     from .routes import main as main_blueprint

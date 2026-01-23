@@ -13,21 +13,20 @@ Example:
     >>> print(text)
 """
 
+import json
 import logging
 import os
-import json
 from abc import ABC, abstractmethod
 from typing import Protocol, cast
 
 import numpy as np
 from dotenv import load_dotenv
-
-
-from vosk import Model, KaldiRecognizer
+from vosk import KaldiRecognizer, Model
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
 
 class VoskRecognizerProtocol(Protocol):
     """
@@ -35,6 +34,7 @@ class VoskRecognizerProtocol(Protocol):
     The methods are defined here for type checking purposes,
     because the vosk package lacks proper type hints.
     """
+
     def AcceptWaveform(self, data: bytes) -> bool: ...
     def Result(self) -> str: ...
     def PartialResult(self) -> str: ...
@@ -64,8 +64,8 @@ class ASRServiceBase(ABC):
         match which:
             case "int16":
                 audio_int16 = (
-                        np.frombuffer(chunk_float, dtype=np.float32) * 32768
-                    ).astype(np.int16)
+                    np.frombuffer(chunk_float, dtype=np.float32) * 32768
+                ).astype(np.int16)
                 return audio_int16.tobytes()
 
             case "float32":
@@ -73,7 +73,6 @@ class ASRServiceBase(ABC):
 
             case _:
                 raise ValueError(f"Unsupported audio format: {which}")
-
 
     @abstractmethod
     def transcribe_stream(self, audio_chunk: bytes) -> dict[str, str | bool]:
@@ -87,7 +86,6 @@ class ASRServiceBase(ABC):
             dict: Partial or final transcription result.
         """
 
-
     @abstractmethod
     def is_available(self) -> bool:
         """
@@ -100,6 +98,7 @@ class ASRServiceBase(ABC):
 
 type ASRService = type[ASRServiceBase]
 type ASRAnswer = dict[str, str | bool]
+
 
 class ASRServiceFactory:
     """
@@ -150,13 +149,21 @@ class ASRServiceFactory:
             online_mode = int(os.getenv("ONLINE_MODE", "1"))
             which = cls._online_offline_map.get(online_mode, None)
             if which is None:
-                logger.error("Invalid ONLINE_MODE=%d; cannot determine ASR service.", online_mode)
-                raise ValueError(f"Unsupported ONLINE_MODE={online_mode}. Expected one of: {list(cls._online_offline_map)}")
+                logger.error(
+                    "Invalid ONLINE_MODE=%d; cannot determine ASR service.", online_mode
+                )
+                raise ValueError(
+                    f"Unsupported ONLINE_MODE={online_mode}. Expected one of: {list(cls._online_offline_map)}"
+                )
 
         key = which.lower().strip()
         service_cls = cls._registry.get(key)
         if service_cls is None:
-            logger.error("ASR service '%s' is not registered. Available services: %s", key, sorted(cls._registry.keys()))
+            logger.error(
+                "ASR service '%s' is not registered. Available services: %s",
+                key,
+                sorted(cls._registry.keys()),
+            )
             raise NotImplementedError(
                 f"ASR service '{key}' is not registered. Registered services: {sorted(cls._registry.keys())}"
             )
@@ -168,7 +175,13 @@ class ASRServiceFactory:
         try:
             service = cls.create(which)
             return service.is_available()
-        except (NotImplementedError, ValueError, OSError, RuntimeError, FileNotFoundError):
+        except (
+            NotImplementedError,
+            ValueError,
+            OSError,
+            RuntimeError,
+            FileNotFoundError,
+        ):
             logger.error("ASR service '%s' is not available.", which)
             return False
 
@@ -188,12 +201,13 @@ class VoskASRService(ASRServiceBase):
     def __init__(self):
         self._model = Model(self.VOSK_MODEL_PATH)
         self._recognizer = cast(
-            VoskRecognizerProtocol,
-            KaldiRecognizer(self._model, self.SAMPLE_RATE)
+            VoskRecognizerProtocol, KaldiRecognizer(self._model, self.SAMPLE_RATE)
         )
-        self._recognizer.SetWords(enable_words = True)
-        self._recognizer.SetPartialWords(enable_partial_words = True)
-        logger.debug("Vosk ASR Service initialized with model at %s", self.VOSK_MODEL_PATH)
+        self._recognizer.SetWords(enable_words=True)
+        self._recognizer.SetPartialWords(enable_partial_words=True)
+        logger.debug(
+            "Vosk ASR Service initialized with model at %s", self.VOSK_MODEL_PATH
+        )
 
     def transcribe_stream(self, audio_chunk: bytes) -> ASRAnswer:
         if len(audio_chunk) == 0:
@@ -204,7 +218,7 @@ class VoskASRService(ASRServiceBase):
             logger.debug("Vosk final result: %s", result)
             return {"text": result, "final": True}
         # else:
-        partial = json.loads(s = self._recognizer.PartialResult()).get("partial", "")
+        partial = json.loads(s=self._recognizer.PartialResult()).get("partial", "")
         return {"partial": partial, "final": False}
 
     def is_available(self) -> bool:

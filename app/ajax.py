@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, abort, jsonify, render_template, request, current_app
+from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -35,7 +35,6 @@ def audio_stt(ws) -> None:
 
     try:
         while True:
-
             # receive audio chunk
             data: bytes = ws.receive()
 
@@ -50,7 +49,6 @@ def audio_stt(ws) -> None:
                 ws.send(answer["partial"])
 
     except ConnectionClosed:
-
         # Generate new context from transcribed text
         context = app.rag_service.update_context_after_audio(patient_id, total)
         app.patient_service.update_context(patient_id, context)
@@ -103,13 +101,15 @@ def process_rag(patient_id: int):
     case_htmls: list[str] = []
     for patient_id in rag_result.get("related_patients_ids", []):
         patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render(style='case', score=0))
+        case_htmls.append(patient.render(style="case", score=0))
 
-    return jsonify({
+    return jsonify(
+        {
             "diagnostics": rag_result.get("diagnosys"),
             "documents": document_htmls,
             "cases": case_htmls,
-    })
+        }
+    )
 
 
 # ---------------
@@ -129,7 +129,7 @@ def get_results(patient_id: int):
     case_htmls: list[str] = []
     # TEMP: fake related patient
     patient = app.patient_service.get_by_id(2)
-    case_htmls.append(patient.render(style='case', score=55))
+    case_htmls.append(patient.render(style="case", score=55))
     # for related_p in patient.patients_proches:
     #     patient = app.patient_service.get_by_id(related_p.patient_id)
     #     case_htmls.append(patient.render(style='case', score=related_p.similarity_score))
