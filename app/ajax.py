@@ -39,7 +39,7 @@ def audio_stt(ws) -> None:
             data: bytes = ws.receive()
 
             # transcribe chunk
-            answer = app.asr_service.transcribe_stream(data)
+            answer = app.rag_service.transcribe_stream(data)
 
             # if final, send full text, else send partial
             if answer["final"]:
