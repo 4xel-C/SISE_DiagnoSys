@@ -27,7 +27,7 @@ sock = Sock()
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
     patient_id = request.args.get("patient_id", type=int)
-    total: str
+    total: str = ""
 
     if patient_id is None:
         ws.close(code=1008, reason="Missing patient_id")
@@ -35,13 +35,22 @@ def audio_stt(ws) -> None:
 
     try:
         while True:
-            # TODO: Call stt_service with audio chunk 
-            # and send transcribed string back to JS:
-            data = ws.receive()
-            # transcript, total = app.stt_service.transcribe_chunk(data)
-            # ws.send(transcript)
+
+            # receive audio chunk
+            data: bytes = ws.receive()
+
+            # transcribe chunk
+            answer = app.asr_service.transcribe_stream(data)
+
+            # if final, send full text, else send partial
+            if answer["final"]:
+                ws.send(answer["text"])
+                total += " " + answer["text"]
+            else:
+                ws.send(answer["partial"])
+
     except ConnectionClosed:
-        print("Audio stream ended")
+
         # Generate new context from transcribed text
         context = app.rag_service.update_context_after_audio(patient_id, total)
         app.patient_service.update_context(patient_id, context)
