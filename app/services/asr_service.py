@@ -195,7 +195,7 @@ class VoskASRService(ASRServiceBase):
     #TODO: example et tout
     """
 
-    VOSK_MODEL_PATH = os.getenv("VOSK_MODEL_PATH", "vosk-model-small-fr-0.22")
+    VOSK_MODEL_PATH = os.getenv("VOSK_MODEL_PATH", "data/vosk-model-small-fr-0.22")
     SAMPLE_RATE = 16000
 
     def __init__(self):

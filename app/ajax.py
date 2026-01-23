@@ -47,11 +47,13 @@ def audio_stt(ws) -> None:
                 total += " " + answer["text"]
             else:
                 ws.send(answer["partial"])
+            print(answer)
 
     except ConnectionClosed:
+        pass
         # Generate new context from transcribed text
-        context = app.rag_service.update_context_after_audio(patient_id, total)
-        app.patient_service.update_context(patient_id, context)
+        # context = app.rag_service.update_context_after_audio(patient_id, total)
+        # app.patient_service.update_context(patient_id, context)
 
 
 # ---------------
@@ -64,7 +66,6 @@ def search_patients():
     Search patient by name with a query.
     Returns all patients if no query provided
     """
-
     query = request.args.get("query")
 
     if query:
