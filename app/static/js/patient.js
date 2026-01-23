@@ -1,4 +1,5 @@
 import { loadContext, loadResults, renderPatient } from './modules/loader.js';
+// import { parseToBlocks, parseToMarkdown } from './modules/editorjs-markdown-parser/bundle.js';
 
 const main = document.querySelector('main');
 let contextEditor;
@@ -84,10 +85,19 @@ document.addEventListener('patientRendered', (e) => {
         holder: 'context',
         placeholder: 'Ajoutez ou modifiez des informations',
         tools: {
-            header: Header
+            header: Header,
+            list: { 
+                class: NestedList,
+                inlineToolbar: true,
+                config: {
+                    defaultStyle: 'unordered'
+                },
+            },
         },
-        onChange: (api, event) => {
+        onChange: async (api, event) => {
             if (event.type == 'block-changed') {
+                const output = await contextEditor.save();
+                console.log(output.blocks);
                 contextForm.classList.add('edited');
             }
         }
