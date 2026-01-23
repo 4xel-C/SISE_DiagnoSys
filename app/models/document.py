@@ -18,7 +18,6 @@ Example:
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Integer, String, Text
-from sqlalchemy.orm import relationship
 
 from app.models import Base
 
@@ -50,13 +49,6 @@ class Document(Base):
     contenu = Column(Text, nullable=False)
     url = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.now)
-
-    # Relationship to patients via association object (with similarity scores)
-    patients_concernes_assoc = relationship(
-        "DocumentProche",
-        back_populates="document",
-        cascade="all, delete-orphan",
-    )
 
     def __repr__(self):
         """Return a string representation of the Document instance."""

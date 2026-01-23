@@ -13,60 +13,12 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
-    ForeignKey,
     Integer,
     String,
     Text,
 )
-from sqlalchemy.orm import relationship
 
 from app.models import Base
-
-
-class PatientProche(Base):
-    """
-    Association model for Patient <-> Patient relationship with similarity score.
-
-    Attributes:
-        patient_id: The source patient ID.
-        patient_proche_id: The similar patient ID.
-        similarity_score: Similarity score between 0 and 1.
-    """
-
-    __tablename__ = "patients_proches"
-
-    patient_id = Column(Integer, ForeignKey("patients.id"), primary_key=True)
-    patient_proche_id = Column(Integer, ForeignKey("patients.id"), primary_key=True)
-    similarity_score = Column(Float, nullable=True)
-
-    # Relationships to access the Patient objects
-    patient = relationship(
-        "Patient", foreign_keys=[patient_id], back_populates="patients_proches_assoc"
-    )
-    patient_proche = relationship("Patient", foreign_keys=[patient_proche_id])
-
-
-class DocumentProche(Base):
-    """
-    Association model for Patient <-> Document relationship with similarity score.
-
-    Attributes:
-        patient_id: The patient ID.
-        document_id: The related document ID.
-        similarity_score: Similarity score between 0 and 1.
-    """
-
-    __tablename__ = "documents_proches"
-
-    patient_id = Column(Integer, ForeignKey("patients.id"), primary_key=True)
-    document_id = Column(Integer, ForeignKey("documents.id"), primary_key=True)
-    similarity_score = Column(Float, nullable=True)
-
-    # Relationships to access the objects
-    patient = relationship(
-        "Patient", foreign_keys=[patient_id], back_populates="documents_proches_assoc"
-    )
-    document = relationship("Document", back_populates="patients_concernes_assoc")
 
 
 class Patient(Base):
@@ -123,21 +75,6 @@ class Patient(Base):
         Text, nullable=True
     )  # Context for LLM containing diagnosis information
     diagnostic = Column(Text, nullable=True)  # Diagnosis information
-
-    # Relationships via association objects (with similarity scores)
-    patients_proches_assoc = relationship(
-        "PatientProche",
-        foreign_keys="PatientProche.patient_id",
-        back_populates="patient",
-        cascade="all, delete-orphan",
-    )
-
-    documents_proches_assoc = relationship(
-        "DocumentProche",
-        foreign_keys="DocumentProche.patient_id",
-        back_populates="patient",
-        cascade="all, delete-orphan",
-    )
 
     def __repr__(self):
         """Return a string representation of the Patient instance."""
