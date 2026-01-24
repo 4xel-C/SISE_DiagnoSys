@@ -75,19 +75,3 @@ export async function renderPatient(patientId, force=false) {
         })
     );
 }
-
-export async function loadContext(patientId) {
-    // request patient context
-    // return md formatted string
-    const response = await fetch(`ajax/get_context/${patientId}`);
-    const content = await response.json();
-    return content['context'];
-}
-
-export async function loadResults(patientId) {
-    // request patient diagnostics, documents and similar cases
-    // return dict
-    const response = await fetch(`ajax/get_results/${patientId}`);
-    const content = await response.json();
-    return content
-}

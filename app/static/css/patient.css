@@ -14,8 +14,9 @@ main .patient {
         padding: 1rem;
     }
     .frame.waiting {
-        background-color: var(--border-color);
-        animation: fadeInOut 3s ease-in-out infinite;
+        background-color: var(--bg-second-color);
+        animation: 3s ease-in-out 0s infinite normal none running fadeInOut;
+        border-color: var(--bg-second-color);
 
         > * {
             display: none;
@@ -24,8 +25,23 @@ main .patient {
 
     .frame.context {
         grid-row: 1 / span 2;
-        overflow: hidden;
         position: relative;
+        padding: 1rem 0 0 1rem;
+
+        form#context-editor {
+            overflow-y: auto;
+
+            .actions {
+                position: absolute;
+                bottom: 1rem;
+                right: 1rem;
+                z-index: 10;
+
+                button:not(:last-child) {
+                    margin-right: .2rem;
+                }
+            }
+        }
 
         form#context-editor .actions{
             display: none;
@@ -36,6 +52,12 @@ main .patient {
     }
     .frame.diagnostic {
         grid-row: 3;
+        overflow: hidden;
+        padding: 1rem 0 0 1rem;
+
+        .editor {
+            overflow-y: hidden;
+        }
     }
     .frame.cases {
         grid-row: 1;
@@ -59,31 +81,13 @@ main .patient {
             }
         }
     }
-
-    form#context-editor {
-        position: relative;
-        overflow-y: auto;
-        margin-right: -1rem;
-        margin-bottom: -1rem;
-
-        .actions {
-            position: absolute;
-            bottom: 1rem;
-            right: 1rem;
-            z-index: 10;
-
-            button:not(:last-child) {
-                margin-right: .2rem;
-            }
-        }
-    }
 }
 
 
 
 
 @keyframes fadeInOut {
-  0%   { opacity: 0; }
+  0%   { opacity: .2; }
   50%  { opacity: 1; }
-  100% { opacity: 0; }
+  100% { opacity: .2; }
 }

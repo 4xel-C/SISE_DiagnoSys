@@ -16,3 +16,7 @@
       display: none;
    }
 }
+
+.ql-editor.ql-blank::before {
+   left: 0 !important;
+}
