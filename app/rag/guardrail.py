@@ -27,6 +27,7 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Optional
 
+import joblib
 import numpy as np
 import pandas as pd
 
@@ -226,8 +227,6 @@ class GuardrailClassifier:
             return
 
         try:
-            import joblib
-
             logger.info(f"Loading guardrail model from {self._model_path}")
 
             if not self._model_path.exists():
@@ -455,22 +454,5 @@ class GuardrailClassifier:
         return not self.predict(text).is_injection
 
 
-# Singleton instance for convenient access
-_guardrail_classifier: Optional[GuardrailClassifier] = None
-
-
-def get_guardrail_classifier() -> GuardrailClassifier:
-    """
-    Get or create the singleton GuardrailClassifier instance.
-
-    Returns:
-        The shared GuardrailClassifier instance.
-    """
-    global _guardrail_classifier
-    if _guardrail_classifier is None:
-        _guardrail_classifier = GuardrailClassifier()
-    return _guardrail_classifier
-
-
-# Convenience alias
-guardrail_classifier = get_guardrail_classifier
+# Pre-configured instance for convenient access
+guardrail_classifier = GuardrailClassifier()

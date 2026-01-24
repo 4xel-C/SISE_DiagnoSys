@@ -7,6 +7,7 @@ from app.rag import (
     SystemPromptTemplate,
     VectorStore,
     document_store,
+    guardrail_classifier,
     llm_handler,
     patient_store,
 )
@@ -259,13 +260,10 @@ class RagService:
         Returns:
             True if the input is safe, False if injection detected.
         """
-        from app.rag import get_guardrail_classifier
-
         if not user_input or not user_input.strip():
             return True
 
-        classifier = get_guardrail_classifier()
-        result = classifier.predict(user_input)
+        result = guardrail_classifier.predict(user_input)
 
         if result.is_injection:
             logger.warning(
