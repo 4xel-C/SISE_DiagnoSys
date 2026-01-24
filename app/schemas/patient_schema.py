@@ -165,12 +165,8 @@ class PatientSchema(BaseModel):
                     first_name=self.prenom,
                     last_name=self.nom,
                     initials=self.initials,
-<<<<<<< HEAD
-                    **kwargs,
-=======
                     # date=self.created_at,
                     **kwargs
->>>>>>> f914c1b (Save on switch patient popup)
                 )
             case _:
                 raise ValueError(

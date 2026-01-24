@@ -134,15 +134,15 @@ def get_results(patient_id: int):
 
     case_htmls: list[str] = []
     related_patients = app.patient_service.get_patients_proches(patient.id)
-    for related_p in related_patients:
-        patient = app.patient_service.get_by_id(related_p.patient_id)
-        case_htmls.append(patient.render(style='case', score=related_p.formatted_score))
+    for id, score in related_patients:
+        patient = app.patient_service.get_by_id(id)
+        case_htmls.append(patient.render(style='case', score=score))
 
     document_htmls: list[str] = []
     related_documents = app.patient_service.get_documents_proches(patient.id)
-    for related_d in related_documents:
-        document = app.document_service.get_by_id(related_d.document_id)
-        document_htmls.append(document.render(score=related_d.formatted_score))
+    for id, score in related_documents:
+        document = app.document_service.get_by_id(id)
+        document_htmls.append(document.render(score=score))
 
     return jsonify({
         "diagnostics": patient.diagnostic,
