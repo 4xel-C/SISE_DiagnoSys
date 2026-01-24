@@ -534,7 +534,7 @@ class GuardrailClassifier:
                  embedding_model='paraphrase-multilingual-MiniLM-L12-v2',
                  threshold=0.5):
 
-        base_path = pathlib.Path(__file__).parent
+        base_path = pathlib.Path(__file__).parent.parent / "data" / "ml_models"
         self.model = joblib.load(base_path / model_path)
         self.scaler = joblib.load(base_path / scaler_path)
         self.feature_extractor = joblib.load(base_path / feature_extractor_path)
@@ -687,16 +687,17 @@ def main():
 
     # Save model artifacts
     print("\n[7/7] Saving model artifacts...")
-    base_path = pathlib.Path(__file__).parent
+    models_path = pathlib.Path(__file__).parent.parent / "data" / "ml_models"
+    models_path.mkdir(parents=True, exist_ok=True)
 
-    joblib.dump(final_model, base_path / 'guardrail_ensemble_v2.joblib')
-    print("  Saved: guardrail_ensemble_v2.joblib")
+    joblib.dump(final_model, models_path / 'guardrail_ensemble_v2.joblib')
+    print("  Saved: data/ml_models/guardrail_ensemble_v2.joblib")
 
-    joblib.dump(final_scaler, base_path / 'guardrail_scaler_v2.joblib')
-    print("  Saved: guardrail_scaler_v2.joblib")
+    joblib.dump(final_scaler, models_path / 'guardrail_scaler_v2.joblib')
+    print("  Saved: data/ml_models/guardrail_scaler_v2.joblib")
 
-    joblib.dump(feature_extractor, base_path / 'guardrail_feature_extractor_v2.joblib')
-    print("  Saved: guardrail_feature_extractor_v2.joblib")
+    joblib.dump(feature_extractor, models_path / 'guardrail_feature_extractor_v2.joblib')
+    print("  Saved: data/ml_models/guardrail_feature_extractor_v2.joblib")
 
     # Test the classifier
     print("\n" + "="*60)

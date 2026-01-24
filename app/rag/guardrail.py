@@ -35,11 +35,8 @@ from app.rag.vectorizer import Vectorizer
 
 logger = logging.getLogger(__name__)
 
-# TODO : Update model paths if we move the model files in the future or potentially use config for it.
-# TODO : When deploying to docker potentially copy the models to a specific path in the image.
-
-# Path to model artifacts in explore directory
-MODELS_PATH = pathlib.Path(__file__).resolve().parent.parent.parent / "explore"
+# Path to model artifacts
+MODELS_PATH = pathlib.Path(__file__).resolve().parent.parent.parent / "data" / "ml_models"
 
 
 @dataclass

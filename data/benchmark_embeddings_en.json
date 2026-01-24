@@ -1,0 +1,402 @@
+[
+    {
+        "query_extracted": "Patient presents productive cough and fever 39°C for 3 days",
+        "query_transcript": "Doctor: What brings you in today? Patient: Well, I've been feeling really unwell for about three days now. I have this terrible cough that won't go away, and it's bringing up phlegm. Doctor: I see. Any fever? Patient: Yes, I've been checking my temperature and it's been around 39 degrees. I feel very hot and tired.",
+        "expected_doc": "Diagnostic protocol for acute respiratory infections and pneumonia",
+        "category": "Pulmonology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Chest pain radiating to left arm with sweating and nausea",
+        "query_transcript": "Doctor: Tell me what's happening. Patient: I have this crushing pain in my chest, and it's going down my left arm. I'm sweating a lot and feel like I'm going to vomit. Doctor: When did this start? Patient: About 20 minutes ago. It came on suddenly while I was resting.",
+        "expected_doc": "Emergency management of Acute Coronary Syndrome (ACS)",
+        "category": "Cardiology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Polyuria, polydipsia with unexplained weight loss",
+        "query_transcript": "Doctor: What concerns brought you here? Patient: I'm constantly thirsty and drinking water all the time, but I keep needing to urinate. Doctor: How often? Patient: Every hour or two, even at night. And I've lost about 10 pounds in the last month without trying.",
+        "expected_doc": "Diagnostic criteria and monitoring for type 1 and type 2 diabetes",
+        "category": "Endocrinology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Severe headache with photophobia and neck stiffness",
+        "query_transcript": "Doctor: Describe your symptoms. Patient: I have the worst headache of my life. The light is bothering my eyes so much I can barely keep them open. Doctor: Can you touch your chin to your chest? Patient: No, my neck is really stiff and it hurts to try.",
+        "expected_doc": "Diagnostic and management protocol for meningitis",
+        "category": "Neurology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Jaundice with dark urine and pale stools for one week",
+        "query_transcript": "Doctor: What changes have you noticed? Patient: My skin and eyes have turned yellow over the past week. My urine is really dark, almost like tea. Doctor: What about your bowel movements? Patient: They're very pale, almost white. That's not normal, right?",
+        "expected_doc": "Differential diagnosis of jaundice and hepatobiliary investigations",
+        "category": "Hepatology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Acute dyspnea with diffuse wheezing and intercostal retractions",
+        "query_transcript": "Doctor: How is your breathing? Patient: I can't... catch my breath. Doctor: I can hear wheezing. Do you have asthma? Patient: Yes, but this is worse than usual. My chest feels so tight. Doctor: I can see you're using your chest muscles to breathe. We need to act quickly.",
+        "expected_doc": "Management of severe acute asthma exacerbation",
+        "category": "Pulmonology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Severe right lower quadrant abdominal pain with guarding",
+        "query_transcript": "Doctor: Where is the pain? Patient: It started around my belly button but now it's really sharp in my lower right side. Doctor: Does it hurt when I press here? Patient: Ouch! Yes, and even more when you let go! Doctor: Your abdomen feels rigid. How long has this been going on? Patient: Started yesterday, getting worse.",
+        "expected_doc": "Diagnostic and treatment protocol for acute appendicitis",
+        "category": "Surgery",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Painless gross hematuria in 65-year-old smoker",
+        "query_transcript": "Doctor: What brought you in today? Patient: I noticed blood in my urine this morning. Quite a bit actually. Doctor: Does it hurt when you urinate? Patient: No, no pain at all. Doctor: I see from your chart you're 65 and have a smoking history. Patient: Yes, I've smoked for 40 years.",
+        "expected_doc": "Investigation of hematuria and bladder tumor screening",
+        "category": "Urology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Sudden loss of consciousness with tonic-clonic movements",
+        "query_transcript": "Doctor: Tell me what happened. Family: He suddenly collapsed and started shaking all over. His whole body went stiff and then he was jerking. Doctor: How long did it last? Family: Maybe two minutes. He was unconscious and didn't respond when we called his name. Doctor: Did he bite his tongue or lose control of his bladder?",
+        "expected_doc": "Management of status epilepticus and generalized seizures",
+        "category": "Neurology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Epigastric burning pain relieved by eating",
+        "query_transcript": "Doctor: Tell me about your pain. Patient: I have this burning feeling in my upper stomach. It's worse when I'm hungry. Doctor: Does anything help? Patient: Yes, eating makes it better for a while. But then it comes back a few hours later.",
+        "expected_doc": "Diagnosis and treatment of peptic ulcer disease",
+        "category": "Gastroenterology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Maculopapular rash with fever in child",
+        "query_transcript": "Doctor: When did the rash appear? Parent: This morning. He's had a fever for two days and now these red spots are all over his body. Doctor: Are they raised? Parent: Some are flat and some are slightly bumpy. Doctor: Any other symptoms? Parent: He's been tired and not eating much.",
+        "expected_doc": "Differential diagnosis of febrile exanthems in children",
+        "category": "Pediatrics",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Palpitations with irregular tachycardia 150 bpm and dyspnea",
+        "query_transcript": "Doctor: What are you feeling? Patient: My heart is racing and it feels like it's skipping beats. I can't catch my breath. Doctor: Let me check your pulse... It's very fast and irregular, around 150. Patient: Is that bad? I feel dizzy too.",
+        "expected_doc": "Management of rapid atrial fibrillation",
+        "category": "Cardiology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Lumbabdominal pain radiating to genitals",
+        "query_transcript": "Doctor: Describe the pain. Patient: It started in my lower back and side, but now it's shooting down toward my groin. Doctor: On a scale of 1 to 10? Patient: Ten. It comes in waves and is absolutely excruciating. I can't find a comfortable position.",
+        "expected_doc": "Diagnosis and treatment of renal colic",
+        "category": "Urology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Projectile vomiting with axial hypotonia in infant",
+        "query_transcript": "Doctor: What's concerning you about your baby? Parent: He's been vomiting forcefully after every feeding. It shoots out. Doctor: How old is he? Parent: Six weeks. Doctor: I notice he seems quite floppy. Has he been gaining weight? Parent: No, he's lost weight this week.",
+        "expected_doc": "Emergency diagnosis of pyloric stenosis",
+        "category": "Pediatrics",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Bilateral lower extremity edema with rapid weight gain",
+        "query_transcript": "Doctor: What changes have you noticed? Patient: My legs and ankles are so swollen I can barely wear shoes. Doctor: Any weight changes? Patient: I've gained 15 pounds in just two weeks. I'm also short of breath when I climb stairs.",
+        "expected_doc": "Investigation of congestive heart failure",
+        "category": "Cardiology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Rotational vertigo with nausea and horizontal nystagmus",
+        "query_transcript": "Doctor: What happens when the dizziness starts? Patient: The whole room spins around me, especially when I turn my head or get out of bed. Doctor: Does it make you feel sick? Patient: Yes, very nauseous. Doctor: I can see your eyes are moving side to side involuntarily.",
+        "expected_doc": "Diagnosis and management of benign paroxysmal positional vertigo",
+        "category": "ENT",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Mental confusion with tremors and sweating in alcoholic patient",
+        "query_transcript": "Doctor: When did you last have a drink? Patient: Two days ago... I'm trying to quit. Doctor: You're trembling quite badly and sweating. Are you confused about where you are? Patient: I... I'm not sure. I keep seeing things that aren't there.",
+        "expected_doc": "Management of delirium tremens and alcohol withdrawal",
+        "category": "Psychiatry",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Unilateral calf pain with edema and positive Homans sign",
+        "query_transcript": "Doctor: Which leg hurts? Patient: My right calf. It's swollen and tender. Doctor: Does it hurt when I flex your foot upward? Patient: Ouch! Yes, that really hurts. Doctor: How long has it been like this? Patient: Since yesterday. I just got off a long flight.",
+        "expected_doc": "Diagnosis and treatment of deep vein thrombosis",
+        "category": "Vascular Medicine",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Migratory arthralgias with malar rash and photosensitivity",
+        "query_transcript": "Doctor: Tell me about your joint pain. Patient: It moves around - my hands one day, my knees the next. Doctor: I notice a butterfly-shaped rash on your cheeks. Patient: Yes, it gets worse in the sun. I've become very sensitive to sunlight lately.",
+        "expected_doc": "Diagnostic criteria for systemic lupus erythematosus",
+        "category": "Rheumatology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Progressive dysphagia for solids then liquids",
+        "query_transcript": "Doctor: When did swallowing become difficult? Patient: It started a few months ago with solid food getting stuck. Now even liquids are hard to swallow. Doctor: Have you lost weight? Patient: Yes, about 20 pounds because eating is so difficult.",
+        "expected_doc": "Investigation of dysphagia and esophageal cancer",
+        "category": "Gastroenterology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Petechial purpura with fever and altered general condition",
+        "query_transcript": "Doctor: When did these spots appear? Patient: This morning. They're all over my body and they don't fade when I press on them. Doctor: You feel very hot. What's your temperature? Patient: 40 degrees. I feel terrible, very weak.",
+        "expected_doc": "Emergency management of purpura fulminans and meningococcemia",
+        "category": "Infectious Disease",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Eye pain with blurred vision and colored halos",
+        "query_transcript": "Doctor: What's wrong with your eye? Patient: It's very painful and my vision is blurry. Doctor: Do you see anything unusual? Patient: Yes, I see rainbow-colored rings around lights. Doctor: Your eye feels very hard. This is urgent.",
+        "expected_doc": "Diagnosis and treatment of acute angle-closure glaucoma",
+        "category": "Ophthalmology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Chronic productive cough over 3 months in smoker",
+        "query_transcript": "Doctor: How long have you had this cough? Patient: Several months now, at least three or four. Every morning I'm coughing up phlegm. Doctor: Do you smoke? Patient: Yes, a pack a day for 30 years. Doctor: Any shortness of breath? Patient: Yes, especially with exercise.",
+        "expected_doc": "Diagnosis of chronic obstructive pulmonary disease (COPD)",
+        "category": "Pulmonology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Bloody diarrhea with tenesmus and urgency",
+        "query_transcript": "Doctor: Describe your bowel movements. Patient: I have diarrhea with blood in it, and I feel like I constantly need to go even when there's nothing there. Doctor: How many times per day? Patient: At least 10 times. It's crampy and painful.",
+        "expected_doc": "Investigation of inflammatory bowel disease and ulcerative colitis",
+        "category": "Gastroenterology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Progressive symmetric proximal muscle weakness",
+        "query_transcript": "Doctor: What difficulties are you having? Patient: I'm having trouble getting up from chairs and climbing stairs. My shoulders feel weak too when I try to lift things. Doctor: How long has this been developing? Patient: It's gotten worse over the past few months.",
+        "expected_doc": "Diagnosis of inflammatory myopathies and polymyositis",
+        "category": "Neurology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Post-menopausal vaginal bleeding",
+        "query_transcript": "Doctor: What brought you in today? Patient: I had vaginal bleeding yesterday. Doctor: When was your last menstrual period? Patient: I went through menopause five years ago. I haven't had a period since then. Doctor: Any bleeding at all needs to be investigated. Patient: Is it serious?",
+        "expected_doc": "Systematic investigation of post-menopausal bleeding",
+        "category": "Gynecology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Acute testicular pain with elevated testicle",
+        "query_transcript": "Doctor: What's the problem? Patient: My left testicle is killing me. The pain came on suddenly. Doctor: I can see it's sitting higher than the other one and is already quite swollen. Patient: What does that mean? Doctor: This is an emergency. We need to get you to surgery immediately.",
+        "expected_doc": "Emergency management of testicular torsion",
+        "category": "Urology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Hyperthermia, muscle rigidity and confusion after neuroleptic use",
+        "query_transcript": "Doctor: When did these symptoms start? Family: After he started the new psychiatric medication two days ago. He's very hot, his muscles are stiff, and he's confused. Doctor: What's his temperature? Family: 41 degrees. We're very worried.",
+        "expected_doc": "Diagnosis and treatment of neuroleptic malignant syndrome",
+        "category": "Psychiatry",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Persistent dry cough with exertional dyspnea and bilateral crackles",
+        "query_transcript": "Doctor: Tell me about your breathing problems. Patient: I have this dry cough that won't go away, and I get out of breath easily now. Doctor: Let me listen to your lungs... I hear crackling sounds on both sides. Patient: What does that mean?",
+        "expected_doc": "Diagnosis of interstitial pulmonary fibrosis",
+        "category": "Pulmonology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Unilateral pulsating headache with nausea and phonophobia",
+        "query_transcript": "Doctor: Where is the headache? Patient: Just on the right side, and it's throbbing. Doctor: Any other symptoms? Patient: I feel nauseous and noise is really bothering me. I had to turn off the TV. Doctor: Do you get these often? Patient: Yes, a few times a month.",
+        "expected_doc": "Management of migraine attacks and preventive treatment",
+        "category": "Neurology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Symmetric small joint polyarthritis with morning stiffness",
+        "query_transcript": "Doctor: Which joints are affected? Patient: My fingers and wrists, both hands. It's worst in the morning - I'm stiff for over an hour. Doctor: How long has this been going on? Patient: About three months now, and it's getting worse.",
+        "expected_doc": "Diagnostic criteria for rheumatoid arthritis",
+        "category": "Rheumatology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Retrosternal burning sensation worse when lying down",
+        "query_transcript": "Doctor: When do you get this burning feeling? Patient: Mostly after meals, and it's much worse when I lie down at night. Doctor: Where do you feel it? Patient: Behind my breastbone, and sometimes it comes up into my throat. Doctor: Does it ever wake you up? Patient: Yes, several times a week.",
+        "expected_doc": "Diagnosis and treatment of gastroesophageal reflux disease (GERD)",
+        "category": "Gastroenterology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Microcytic anemia with pallor and fatigue in woman of childbearing age",
+        "query_transcript": "Doctor: What symptoms brought you in? Patient: I'm always tired and people say I look pale. Doctor: I see your blood test shows anemia with small red blood cells. Are your periods heavy? Patient: Yes, very heavy every month. Doctor: That's likely causing iron deficiency.",
+        "expected_doc": "Investigation of iron deficiency anemia",
+        "category": "Hematology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Inspiratory dyspnea with stridor and suprasternal retractions in child",
+        "query_transcript": "Doctor: How is your child breathing? Parent: He's making a high-pitched sound when he breathes in, and I can see his throat pulling in. Doctor: When did this start? Parent: Tonight, he had a cold and then suddenly this happened. He sounds like a seal barking when he coughs.",
+        "expected_doc": "Management of acute laryngitis and croup",
+        "category": "Pediatrics",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Acute big toe pain with redness and warmth",
+        "query_transcript": "Doctor: What's wrong with your toe? Patient: My big toe is incredibly painful. It's red, swollen and hot to touch. Doctor: When did it start? Patient: I woke up with it this morning. I can't even put a sheet over it. Doctor: Have you had this before? Patient: Once, a few years ago.",
+        "expected_doc": "Diagnosis and treatment of acute gout attack",
+        "category": "Rheumatology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Involuntary weight loss with cervical lymphadenopathy and night sweats",
+        "query_transcript": "Doctor: How much weight have you lost? Patient: About 30 pounds in three months without trying. Doctor: I can feel swollen lymph nodes in your neck. Any other symptoms? Patient: I wake up drenched in sweat at night. I have to change my sheets.",
+        "expected_doc": "Investigation of lymphomas and hematologic malignancies",
+        "category": "Hematology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Periumbilical pain migrating to right lower quadrant",
+        "query_transcript": "Doctor: Where did the pain start? Patient: Around my belly button yesterday. But this morning it moved to my lower right side and got much worse. Doctor: Any nausea? Patient: Yes, and I can't eat. The thought of food makes me feel sick.",
+        "expected_doc": "Classic presentation of acute appendicitis",
+        "category": "Surgery",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Refractory hypertension in young patient with hypokalemia",
+        "query_transcript": "Doctor: Your blood pressure is very high despite three medications. That's unusual for someone your age. Patient: I'm only 32. Doctor: Your potassium is also low. Do you have excessive thirst or muscle weakness? Patient: Yes, both actually.",
+        "expected_doc": "Diagnosis of primary hyperaldosteronism (Conn syndrome)",
+        "category": "Endocrinology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Tremor, nervousness and weight loss despite preserved appetite",
+        "query_transcript": "Doctor: What changes have you noticed? Patient: I'm shaky, anxious all the time, and I've lost 15 pounds even though I'm eating more than usual. Doctor: Do you feel hot? Patient: Yes, I'm always sweating. My heart races too.",
+        "expected_doc": "Diagnosis of hyperthyroidism and Graves disease",
+        "category": "Endocrinology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Fluctuating diplopia and ptosis worse at end of day",
+        "query_transcript": "Doctor: When do your symptoms occur? Patient: My eyelid droops and I see double, especially in the evening. Doctor: Is it better in the morning? Patient: Yes, after rest it improves but gets worse as the day goes on.",
+        "expected_doc": "Diagnosis of autoimmune myasthenia gravis",
+        "category": "Neurology",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Unilateral purulent nasal discharge with facial pain",
+        "query_transcript": "Doctor: What's bothering you? Patient: I have thick yellow discharge from my right nostril and my cheek hurts on that side. Doctor: Does the pain get worse when you bend forward? Patient: Yes, and I can feel pressure in my face.",
+        "expected_doc": "Diagnosis and treatment of acute maxillary sinusitis",
+        "category": "ENT",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Severe generalized itching without primary skin lesions",
+        "query_transcript": "Doctor: Tell me about the itching. Patient: It's constant and all over my body, driving me crazy. Doctor: Let me examine your skin... I don't see any rash or lesions. Patient: That's what's strange. I'm itching but there's nothing visible.",
+        "expected_doc": "Investigation of pruritus sine materia and systemic causes",
+        "category": "Dermatology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Anuria with generalized edema and severe hypertension",
+        "query_transcript": "Doctor: When did you last urinate? Patient: I haven't gone in over 12 hours. Doctor: Your blood pressure is dangerously high at 210/120. I can see you're swollen all over. Patient: I feel terrible. What's happening?",
+        "expected_doc": "Management of acute renal failure",
+        "category": "Nephrology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Scintillating scotoma preceding unilateral headache",
+        "query_transcript": "Doctor: Describe what you see. Patient: I get these shimmering zigzag lines in my vision, and then about 20 minutes later a headache starts on one side. Doctor: Does the visual disturbance go away? Patient: Yes, it lasts maybe 15-20 minutes, then the headache begins.",
+        "expected_doc": "Diagnosis of migraine with visual aura",
+        "category": "Neurology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Flu-like syndrome with diffuse myalgias and malaise in elderly patient",
+        "query_transcript": "Doctor: What symptoms do you have? Patient: I feel like I have the flu - fever, body aches all over, completely exhausted. Doctor: How old are you? Patient: 78. Doctor: When did this start? Patient: Three days ago. Everyone at the senior center has been sick.",
+        "expected_doc": "Management of seasonal influenza and complications",
+        "category": "Infectious Disease",
+        "query_language": "en",
+        "severity": "jaune"
+    },
+    {
+        "query_extracted": "Symptomatic bradycardia with recurrent presyncope",
+        "query_transcript": "Doctor: Tell me about these dizzy spells. Patient: I keep feeling like I'm going to faint. Everything goes gray. Doctor: Let me check your pulse... Your heart rate is only 35 beats per minute. Patient: Is that why I feel this way?",
+        "expected_doc": "Indications for permanent cardiac pacing",
+        "category": "Cardiology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Retro-orbital pain with sudden visual acuity loss",
+        "query_transcript": "Doctor: When did your vision change? Patient: This morning I woke up and couldn't see clearly out of my left eye. There's pain behind it too. Doctor: Can you read the eye chart? Patient: No, everything is very blurry. I'm worried.",
+        "expected_doc": "Diagnosis of retrobulbar optic neuritis",
+        "category": "Ophthalmology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Persistent hiccups resistant to usual treatments",
+        "query_transcript": "Doctor: How long have you had hiccups? Patient: For three weeks now. They won't stop. Doctor: Have you tried the usual remedies? Patient: Everything - holding my breath, drinking water, everything. Nothing works. I can't sleep or eat properly.",
+        "expected_doc": "Investigation of chronic hiccups and underlying causes",
+        "category": "Gastroenterology",
+        "query_language": "en",
+        "severity": "vert"
+    },
+    {
+        "query_extracted": "Unilateral flaccid paralysis episode resolving within one hour",
+        "query_transcript": "Doctor: What happened? Patient: My right arm and leg suddenly went limp. I couldn't move them at all. Doctor: How long did it last? Patient: About 45 minutes, then everything came back to normal. Doctor: This is a warning sign. We need to investigate immediately.",
+        "expected_doc": "Management of transient ischemic attack (TIA)",
+        "category": "Neurology",
+        "query_language": "en",
+        "severity": "rouge"
+    },
+    {
+        "query_extracted": "Perineal pain with dysuria and frequency in young man",
+        "query_transcript": "Doctor: Where is the pain located? Patient: Between my legs, in the perineal area. It hurts when I urinate and I need to go all the time. Doctor: Any fever? Patient: Yes, I've been running a temperature. Doctor: How old are you? Patient: 28.",
+        "expected_doc": "Diagnosis and treatment of acute prostatitis",
+        "category": "Urology",
+        "query_language": "en",
+        "severity": "jaune"
+    }
+]

@@ -310,14 +310,14 @@ def main():
         all_results.extend(old_results)
 
     # Benchmark new ensemble (if available)
-    base_path = pathlib.Path(__file__).parent
-    ensemble_path = base_path / 'guardrail_ensemble_v2.joblib'
+    models_path = pathlib.Path(__file__).parent.parent / "data" / "ml_models"
+    ensemble_path = models_path / 'guardrail_ensemble_v2.joblib'
 
     if ensemble_path.exists() and not args.old_only:
         print("\nLoading new ensemble model...")
         ensemble_model = joblib.load(ensemble_path)
-        scaler = joblib.load(base_path / 'guardrail_scaler_v2.joblib')
-        feature_extractor = joblib.load(base_path / 'guardrail_feature_extractor_v2.joblib')
+        scaler = joblib.load(models_path / 'guardrail_scaler_v2.joblib')
+        feature_extractor = joblib.load(models_path / 'guardrail_feature_extractor_v2.joblib')
 
         new_results = benchmark_new_ensemble(
             datasets, vectorizer_multi, feature_extractor, scaler, ensemble_model
