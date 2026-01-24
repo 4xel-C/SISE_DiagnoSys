@@ -26,6 +26,7 @@ sock = Sock()
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
+
     patient_id = request.args.get("patient_id", type=int)
     total: str = ""
 
@@ -75,6 +76,24 @@ def audio_stt(ws) -> None:
             except Exception:
                 logger = __import__("logging").getLogger(__name__)
                 logger.exception("Failed to end ASR session")
+        print("Audio stream ended")
+
+        if len(total.strip()) > 0:
+            context = app.rag_service.update_context_after_audio(patient_id, total)
+            app.patient_service.update_context(patient_id, context)
+        else:
+            print("No transcription total available to update context.")
+
+
+
+# ---------------
+# RENDER POPUP
+
+@ajax.route("custom_popup", methods=["GET"])
+def custom_popup():
+    params = request.args.to_dict()
+    print(params)
+    return render_template('elements/custom_popup.html', **params)
 
 
 # ---------------
@@ -116,22 +135,20 @@ def process_rag(patient_id: int):
         abort(404, e)
 
     document_htmls: list[str] = []
-    for document_id in rag_result.get("document_ids", []):
+    for document_id, document_score in rag_result['related_documents']:
         document = app.document_service.get_by_id(document_id)
-        document_htmls.append(document.render())
+        document_htmls.append(document.render(score=document_score))
 
     case_htmls: list[str] = []
-    for patient_id in rag_result.get("related_patients_ids", []):
+    for patient_id, patient_score in rag_result['related_patients']:
         patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render(style="case", score=0))
+        case_htmls.append(patient.render(style='case', score=patient_score))
 
-    return jsonify(
-        {
-            "diagnostics": rag_result.get("diagnosys"),
-            "documents": document_htmls,
-            "cases": case_htmls,
-        }
-    )
+    return jsonify({
+        "diagnostics": rag_result.get("diagnosys"),
+        "documents": document_htmls,
+        "cases": case_htmls,
+    })
 
 
 # ---------------
@@ -140,42 +157,56 @@ def process_rag(patient_id: int):
 
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):
-    patient = app.patient_service.get_by_id(patient_id)
-    return jsonify({"context": patient.contexte})
+    context = app.patient_service.get_context(patient_id)
+    return jsonify({
+        "context": context
+    })
 
+@ajax.route("get_diagnostic/<int:patient_id>", methods=["GET"])
+def get_diagnostic(patient_id: int):
+    diagnostic = app.patient_service.get_diagnostic(patient_id)
+    return jsonify({
+        'diagnostic': diagnostic
+    })
 
-@ajax.route("get_results/<int:patient_id>", methods=["GET"])
-def get_results(patient_id: int):
-    patient = app.patient_service.get_by_id(patient_id)
-
-    case_htmls: list[str] = []
-    # TEMP: fake related patient
-    patient = app.patient_service.get_by_id(2)
-    case_htmls.append(patient.render(style="case", score=55))
-    # for related_p in patient.patients_proches:
-    #     patient = app.patient_service.get_by_id(related_p.patient_id)
-    #     case_htmls.append(patient.render(style='case', score=related_p.similarity_score))
-
+@ajax.route("get_related_documents/<int:patient_id>", methods=["GET"])
+def get_related_documents(patient_id: int):
     document_htmls: list[str] = []
-    # TEMP: fake related patient
-    document = app.document_service.get_by_id(2)
-    document_htmls.append(document.render(score=71))
-    # for related_d in patient.documents_proches:
-    #     document = app.document_service.get_by_id(related_d.document_id)
-    #     document_htmls.append(document.render(score=related_d.similarity_score))
+    r_documents = app.patient_service.get_documents_proches(patient_id)
+    for id, score in r_documents:
+        document = app.document_service.get_by_id(id) #type: ignore
+        document_htmls.append(
+            document.render(
+                score=round(score * 100)
+            )
+        )
 
-    return jsonify(
-        {
-            "diagnostics": patient.diagnostic,
-            "cases": case_htmls,
-            "documents": document_htmls,
-        }
-    )
+    return jsonify({
+        "documents": document_htmls
+    })
 
+@ajax.route("get_related_cases/<int:patient_id>", methods=["GET"])
+def get_related_cases(patient_id: int):
+    case_htmls: list[str] = []
+    r_patients = app.patient_service.get_patients_proches(patient_id)
+    for id, score in r_patients:
+        patient = app.patient_service.get_by_id(id) #type: ignore
+        case_htmls.append(
+            patient.render(
+                style='case', 
+                score=round(score * 100)
+            )
+        )
+        
+    return jsonify({
+        "cases": case_htmls
+    })
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):
+    print('updating', patient_id)
     data = request.get_json()
     context = data.get("context")
+    print('context', context)
     app.patient_service.update_context(patient_id, context)
     return "", 200

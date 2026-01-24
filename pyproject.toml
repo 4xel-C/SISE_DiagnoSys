@@ -16,5 +16,6 @@ dependencies = [
     "chromadb>=1.4.1",
     "sentence-transformers>=5.2.0",
     "mistralai>=1.10.1",
-    "vosk>=0.3.45",
+    "gunicorn>=21.2.0",
+    "gevent-websocket>=0.10.1",
 ]

@@ -12,6 +12,7 @@ from app.rag import (
     SystemPromptTemplate,
     VectorStore,
     document_store,
+    guardrail_classifier,
     llm_handler,
     patient_store,
 )
@@ -22,9 +23,26 @@ logger = logging.getLogger(__name__)
 
 
 class UnsafeRequestException(Exception):
-    """Custom exception for unsafe requests in RAG service."""
+    """Custom exception for unsafe requests detected by guardrail."""
 
-    pass
+    def __init__(
+        self,
+        message: str,
+        confidence: float = 0.0,
+        checkpoint: str = "",
+    ):
+        super().__init__(message)
+        self.confidence = confidence
+        self.checkpoint = checkpoint
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON response."""
+        return {
+            "error": str(self),
+            "code": "INJECTION_DETECTED",
+            "confidence": self.confidence,
+            "checkpoint": self.checkpoint,
+        }
 
 
 class LLMGenerationException(Exception):
@@ -80,14 +98,17 @@ class RagService:
             str: The updated context string
         """
 
-        # check pertinency and guardrail -> if user input not pertinent, stop the pipeline, as the context would not be refreshed.
-        if not self.is_pertinent_and_secure(audio_input):
+        # Checkpoint 1: Check raw transcript before LLM summarization
+        if not self.is_pertinent_and_secure(audio_input, checkpoint="raw_transcript"):
             logger.warning(
-                "Audio input not pertinent or secure, stopping context update: "
+                "Raw transcript failed guardrail check, stopping context update: "
                 + audio_input[: min(50, len(audio_input))]
                 + "..."
             )
-            raise UnsafeRequestException("Audio input not pertinent or secure.")
+            raise UnsafeRequestException(
+                "Raw transcript failed security check",
+                checkpoint="raw_transcript",
+            )
 
         # retrieve the patient context from db
         patient = self.patient_service.get_by_id(patient_id=id)
@@ -107,6 +128,16 @@ class RagService:
             logger.error("llm_handler failed to generate updated context")
             raise LLMGenerationException("Failed to generate updated context")
 
+        # Checkpoint 2: Check synthesized context before storing/embedding
+        if not self.is_pertinent_and_secure(new_context, checkpoint="synthesized_context"):
+            logger.warning(
+                "Synthesized context failed guardrail check, stopping context update"
+            )
+            raise UnsafeRequestException(
+                "Synthesized context failed security check",
+                checkpoint="synthesized_context",
+            )
+
         # update the patient context in the database
         updated_patient = self.patient_service.update_context(
             patient_id=id, new_context=new_context
@@ -125,8 +156,8 @@ class RagService:
             Dict[str, str]: diagnosys response from LLM with the following structure:
                 {
                     "diagnosys": str,
-                    "document_ids": List[int],
-                    "related_patients_ids": List[int],
+                    "related_documents": List[int, float],
+                    "related_patients": List[int, float],
                 }
         """
         # retrieve patient context from DB for embeddings
@@ -148,6 +179,19 @@ class RagService:
         chunk_text = [chunk["text"] for chunk in document_chunks]
 
         # ================================================================ Diagnosys generation
+        # Checkpoint 3: Check patient context before diagnosis LLM call
+        if patient.contexte and not self.is_pertinent_and_secure(
+            patient.contexte, checkpoint="pre_diagnosis"
+        ):
+            logger.warning(
+                f"Patient context failed guardrail check before diagnosis, "
+                f"patient_id={patient_id}"
+            )
+            raise UnsafeRequestException(
+                "Patient context failed security check before diagnosis generation",
+                checkpoint="pre_diagnosis",
+            )
+
         diagnosys_text = self.generate_diagnosys(
             context=patient.contexte
             if patient.contexte
@@ -223,9 +267,34 @@ class RagService:
 
         return unique_document_chunks
 
-    # TODO: Implement security and pertinency check function
-    def is_pertinent_and_secure(self, user_input: str) -> bool:
-        """TO BE IMPLEMENTED: Check pertinency and security of user input."""
+    # TODO : Add pertinency check with a classifier to avoid useless calls to the llm 
+    def is_pertinent_and_secure(self, user_input: str, checkpoint: str = "raw_input") -> bool:
+        """
+        Check if user input is safe from prompt injection attacks.
+
+        Args:
+            user_input: The text to validate.
+            checkpoint: Identifier for where the check is performed (for logging).
+
+        Returns:
+            True if the input is safe, False if injection detected.
+        """
+        if not user_input or not user_input.strip():
+            return True
+
+        result = guardrail_classifier.predict(user_input)
+
+        if result.is_injection:
+            logger.warning(
+                f"Guardrail [{checkpoint}]: Injection detected "
+                f"(confidence={result.confidence:.3f}), "
+                f"input_preview='{user_input[:50]}...'"
+            )
+            return False
+
+        logger.debug(
+            f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
+        )
         return True
 
     # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?

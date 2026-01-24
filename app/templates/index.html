@@ -2,18 +2,20 @@
 <html lang="fr">
 
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>DiagnoSys</title>
-   <!-- Custom Style -->
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/_components.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/menu-bar.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
-   <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiagnoSys</title>
+    <!-- Quill CSS plugin -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.bubble.css" rel="stylesheet" />
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/_components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu-bar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
+    <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
 </head>
 
 <body>
@@ -71,14 +73,8 @@
    </main>
 </body>
 
-<!-- Editor.js plugin -->
-<script src="https://cdn.jsdelivr.net/npm/editorjs-md-parser@0.0.3/dist/bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/link@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+<!-- Quill JS plugin -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 <!-- Custom scripts -->
 <script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}" type="module"></script>

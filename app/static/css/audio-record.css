@@ -49,7 +49,7 @@ main .top-bar:hover {
 
 main .audio-record {
     display: none;
-    height: 30%;
+    flex: 1 1 auto;
     position: relative;
     overflow: hidden;
     transition: height .3s ease;
@@ -150,8 +150,11 @@ main.streaming {
         display: flex;
     }
 
+    .content {
+        max-height: 85%;
+    }
+
     .audio-record {
-        height: 15%;
         background-color: var(--bg-selected-color);
 
         .states {

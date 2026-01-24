@@ -1,23 +1,22 @@
 /* remove max‑width / centering */
-.ce-block__content,
-.ce-toolbar__content {
-   max-width: calc(100% - 40px) !important;
-   margin: 0 auto 0 0 !important;
+.ql-editor {
+   padding: 0;
+   margin-top: .6rem;
+
+   p {
+      margin-bottom: 8px;
+   }
 }
 
-.ce-toolbar {
-   left: auto !important;
-   right: 0 !important;
+.ql-tooltip {
+   background-color: var(--text-color) !important;
+   border-radius: 12px !important;
+
+   .ql-tooltip-arrow {
+      display: none;
+   }
 }
 
-.ce-toolbar__actions {
-   justify-content: flex-end;
-}
-
-.codex-editor__redactor {
-   padding-bottom: 0 !important;
-}
-
-.ct--top * {
-   color: white;
+.ql-editor.ql-blank::before {
+   left: 0 !important;
 }
