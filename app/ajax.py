@@ -26,8 +26,9 @@ sock = Sock()
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
+
     patient_id = request.args.get("patient_id", type=int)
-    total: str
+    total = None
 
     if patient_id is None:
         ws.close(code=1008, reason="Missing patient_id")
@@ -42,9 +43,12 @@ def audio_stt(ws) -> None:
             # ws.send(transcript)
     except ConnectionClosed:
         print("Audio stream ended")
-        # Generate new context from transcribed text
-        context = app.rag_service.update_context_after_audio(patient_id, total)
-        app.patient_service.update_context(patient_id, context)
+
+        if total is not None:
+            context = app.rag_service.update_context_after_audio(patient_id, total)
+            app.patient_service.update_context(patient_id, context)
+        else:
+            print("No transcription total available to update context.")
 
 
 # ---------------
