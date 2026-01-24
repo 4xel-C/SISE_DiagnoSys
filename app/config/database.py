@@ -17,6 +17,7 @@ Example:
 import logging
 import os
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Generator, Optional
 
 from dotenv import load_dotenv
@@ -59,7 +60,14 @@ class Database:
                 If not provided, uses DATABASE_PATH env var or defaults
                 to "diagnosys.db".
         """
+        # Check if data directory exists, create if not
         self.db_path = db_path or os.getenv("DATABASE_PATH", "data/diagnosys.db")
+
+        if not os.path.exists(self.db_path):
+            data_dir = Path(self.db_path).parent
+            data_dir.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created data directory at: {data_dir}")
+
         logger.debug(f"Initialisation: Database path set to: {self.db_path}")
         self._engine: Engine | None = None
         self._session_factory: sessionmaker | None = None

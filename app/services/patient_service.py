@@ -11,16 +11,14 @@ Example:
 """
 
 import logging
+from typing import List, Tuple
 
 from sqlalchemy import and_, or_
 
 from app.config import Database, db
-from app.models import Document, Patient
-from app.models.patient import DocumentProche, PatientProche
-from app.rag import (
-    patient_store,
-)
-from app.schemas import DocumentProcheSchema, PatientProcheSchema, PatientSchema
+from app.models import Patient
+from app.rag import document_store, patient_store
+from app.schemas import PatientSchema
 
 logger = logging.getLogger(__name__)
 
@@ -186,93 +184,94 @@ class PatientService:
             logger.debug(f"Retrieved context for patient id={patient_id}.")
             return patient.contexte if patient.contexte else ""  # type: ignore
 
-    def get_documents_proches(self, patient_id: int) -> list[DocumentProcheSchema]:
+    def get_documents_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
         """
         Retrieve related documents for a patient, sorted by similarity score.
+        The proximity from the documents are directly calculated from the Chromadb.
 
         Args:
             patient_id (int): The patient's unique identifier.
+            n (int): Number of document chunks to retrieve (default = 5).
 
         Returns:
-            list[DocumentProcheSchema]: List of related documents with scores.
+            List[Tuple[int, float]]: A list of the closest document with their similarity scores.
 
         Raises:
             ValueError: If the patient is not found.
 
         Example:
             >>> docs = service.get_documents_proches(1)
-            >>> for doc in docs:
-            ...     print(f"Document {doc.document_id}: {doc.similarity_score}")
         """
         logger.debug(f"Fetching related documents for patient id={patient_id}.")
+
+        # Get the patient to retrive the context.
         with self.db_manager.session() as session:
             patient = session.query(Patient).filter_by(id=patient_id).first()
+
             if not patient:
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            associations = (
-                session.query(DocumentProche)
-                .filter_by(patient_id=patient_id)
-                .order_by(DocumentProche.similarity_score.desc())
-                .all()
-            )
+            patient_content = patient.content_for_embedding
 
-            result = [
-                DocumentProcheSchema(
-                    document_id=a.document_id,  # type: ignore
-                    similarity_score=a.similarity_score,  # type: ignore
-                )
-                for a in associations
-            ]
-            logger.debug(
-                f"Found {len(result)} related documents for patient id={patient_id}."
-            )
+        document_chunks = document_store.search(
+            patient_content,
+            n_results=5,
+        )
 
-        return result
+        # seens document id:
+        document_ids = list()
+        similarity_scores = list()
 
-    def get_patients_proches(self, patient_id: int) -> list[PatientProcheSchema]:
+        # delete duplicates from the results while preserving order
+        for chunk in document_chunks:
+            doc_id = int(chunk["metadata"]["document_id"])
+            if doc_id in document_ids:
+                continue
+            else:
+                document_ids.append(doc_id)
+                similarity_scores.append(chunk["similarity"])
+
+        return list(zip(document_ids, similarity_scores))
+
+    def get_patients_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
         """
-        Retrieve related (similar) patients for a patient, sorted by similarity score.
+        Retrieve a set of patient having a similar medical context with their similarity score.
+        The proximity from the documents are directly calculated from the Chromadb.
 
         Args:
             patient_id (int): The patient's unique identifier.
+            n (int): The number of patients to retrieve.
 
         Returns:
-            list[PatientProcheSchema]: List of related patients with scores.
+            List[Tuple[int, float]]: A list containing the patients ids with their similarity score.
 
         Raises:
             ValueError: If the patient is not found.
 
         Example:
             >>> patients = service.get_patients_proches(1)
-            >>> for p in patients:
-            ...     print(f"Patient {p.patient_id}: {p.similarity_score}")
         """
-        logger.debug(f"Fetching related patients for patient id={patient_id}.")
+        logger.debug(f"Fetching related patients context for patient id={patient_id}.")
+
+        # get the patient context
         with self.db_manager.session() as session:
             patient = session.query(Patient).filter_by(id=patient_id).first()
+
             if not patient:
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            associations = (
-                session.query(PatientProche)
-                .filter_by(patient_id=patient_id)
-                .order_by(PatientProche.similarity_score.desc())
-                .all()
-            )
+            patient_content = patient.content_for_embedding
 
-            result = [
-                PatientProcheSchema(
-                    patient_id=a.patient_proche_id,  # type: ignore
-                    similarity_score=a.similarity_score,  # type: ignore
-                )
-                for a in associations
-            ]
-            logger.debug(
-                f"Found {len(result)} related patients for patient id={patient_id}."
-            )
+        patient_results = patient_store.search(
+            patient_content, n_results=n, where={"patient_id": {"$ne": patient_id}}
+        )
 
-        return result
+        patient_ids = [
+            patient["metadata"].get("patient_id", []) for patient in patient_results
+        ]
+        similarity_scores = [patient["similarity"] for patient in patient_results]
+
+        return list(zip(patient_ids, similarity_scores))
 
     ################################################################
     # CREATE METHODS
@@ -394,128 +393,6 @@ class PatientService:
         )
 
         return patient
-
-    def update_documents(
-        self,
-        patient_id: int,
-        document_ids: list[int],
-        similarity_scores: list[float] | None = None,
-    ) -> PatientSchema:
-        """
-        Update the related documents of a patient with optional similarity scores.
-
-        Args:
-            patient_id (int): The patient's unique identifier.
-            document_ids (list[int]): List of document IDs to relate.
-            similarity_scores (list[float] | None): Optional list of similarity scores
-                corresponding to each document. Must have same length as document_ids.
-
-        Returns:
-            PatientSchema: The updated Patient record.
-
-        Raises:
-            ValueError: If the patient is not found or if similarity_scores length
-                doesn't match document_ids length.
-
-        Example:
-            >>> updated_patient = service.update_documents(1, [10, 20], [0.95, 0.87])
-        """
-        logger.debug(f"Updating documents for patient id={patient_id}.")
-
-        if similarity_scores and len(similarity_scores) != len(document_ids):
-            raise ValueError(
-                "similarity_scores must have the same length as document_ids."
-            )
-
-        with self.db_manager.session() as session:
-            patient = session.query(Patient).filter_by(id=patient_id).first()
-            if not patient:
-                logger.error(
-                    f"Patient with id={patient_id} not found for document update."
-                )
-                raise ValueError(f"Patient with id={patient_id} not found.")
-
-            # Clear existing relations
-            session.query(DocumentProche).filter_by(patient_id=patient_id).delete()
-
-            # Add new relations with scores
-            for i, doc_id in enumerate(document_ids):
-                document = session.query(Document).filter_by(id=doc_id).first()
-                if document:
-                    score = similarity_scores[i] if similarity_scores else None
-                    assoc = DocumentProche(
-                        patient_id=patient_id,
-                        document_id=doc_id,
-                        similarity_score=score,
-                    )
-                    session.add(assoc)
-
-            session.commit()
-            logger.info(f"Updated documents for patient id={patient_id}.")
-            updated_patient = PatientSchema.model_validate(patient)
-
-        return updated_patient
-
-    def update_close_patients(
-        self,
-        patient_id: int,
-        close_patient_ids: list[int],
-        similarity_scores: list[float] | None = None,
-    ) -> PatientSchema:
-        """
-        Update the related close patients of a patient with optional similarity scores.
-
-        Args:
-            patient_id (int): The patient's unique identifier.
-            close_patient_ids (list[int]): List of close patient IDs to relate.
-            similarity_scores (list[float] | None): Optional list of similarity scores
-                corresponding to each close patient. Must have same length as close_patient_ids.
-
-        Returns:
-            PatientSchema: The updated Patient record.
-
-        Raises:
-            ValueError: If the patient is not found or if similarity_scores length
-                doesn't match close_patient_ids length.
-
-        Example:
-            >>> updated_patient = service.update_close_patients(1, [2, 3], [0.92, 0.85])
-        """
-        logger.debug(f"Updating close patients for patient id={patient_id}.")
-
-        if similarity_scores and len(similarity_scores) != len(close_patient_ids):
-            raise ValueError(
-                "similarity_scores must have the same length as close_patient_ids."
-            )
-
-        with self.db_manager.session() as session:
-            patient = session.query(Patient).filter_by(id=patient_id).first()
-            if not patient:
-                logger.error(
-                    f"Patient with id={patient_id} not found for close patients update."
-                )
-                raise ValueError(f"Patient with id={patient_id} not found.")
-
-            # Clear existing relations
-            session.query(PatientProche).filter_by(patient_id=patient_id).delete()
-
-            # Add new relations with scores
-            for i, close_id in enumerate(close_patient_ids):
-                close_patient = session.query(Patient).filter_by(id=close_id).first()
-                if close_patient:
-                    score = similarity_scores[i] if similarity_scores else None
-                    assoc = PatientProche(
-                        patient_id=patient_id,
-                        patient_proche_id=close_id,
-                        similarity_score=score,
-                    )
-                    session.add(assoc)
-
-            session.commit()
-            logger.info(f"Updated close patients for patient id={patient_id}.")
-            updated_patient = PatientSchema.model_validate(patient)
-
-        return updated_patient
 
     def update_diagnosys(self, patient_id: int, new_diagnosys: str) -> PatientSchema:
         """

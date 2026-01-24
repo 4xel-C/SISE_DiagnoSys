@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from app.asr import (
     ASRServiceBase,
@@ -139,21 +139,6 @@ class RagService:
             f"compute_rag_diagnosys: Retrieved patient context for patient id={patient_id}."
         )
 
-        # ================================================================ Patient retrieval
-        close_patients = self.find_topk_similar_patients(
-            patient_id=patient_id, context=patient.content_for_embedding, k=5
-        )
-        patient_ids = [int(p["metadata"]["patient_id"]) for p in close_patients]
-
-        patient_scores = [float(p["similarity"]) for p in close_patients]
-
-        # update database
-        self.patient_service.update_close_patients(
-            patient_id=patient_id,
-            close_patient_ids=patient_ids,
-            similarity_scores=patient_scores,
-        )
-
         # ================================================================ Document retrieval
         # find top 5 relevant document chunks from vector store
         document_chunks = self.find_topk_similar_documents(
@@ -161,17 +146,6 @@ class RagService:
         )
 
         chunk_text = [chunk["text"] for chunk in document_chunks]
-        document_ids = list(
-            {int(chunk["metadata"]["document_id"]) for chunk in document_chunks}
-        )
-
-        document_scores = [float(chunk["similarity"]) for chunk in document_chunks]
-
-        self.patient_service.update_documents(
-            patient_id=patient_id,
-            document_ids=document_ids,
-            similarity_scores=document_scores,
-        )
 
         # ================================================================ Diagnosys generation
         diagnosys_text = self.generate_diagnosys(
@@ -189,13 +163,7 @@ class RagService:
             patient_id=patient_id, new_diagnosys=diagnosys_text
         )
 
-        return {
-            "diagnosys": diagnosys_text,
-            "document_ids": document_ids,
-            "document_scores": document_scores,
-            "related_patients_ids": patient_ids,
-            "related_patients_scores": patient_scores,
-        }
+        return {"diagnosys": diagnosys_text}
 
     def generate_diagnosys(self, context: str, documents_chunks: List[str]) -> str:
         """
@@ -224,24 +192,6 @@ class RagService:
             diagnosys_text = ""
 
         return diagnosys_text
-
-    def find_topk_similar_patients(
-        self, patient_id: int, context: str, k: int = 5
-    ) -> List[Dict]:
-        """
-        Find top-k similar patients based on patient context.
-
-        Args:
-            patient_id (int): The patient's unique identifier.
-            context (str): The patient's medical context.
-            k (int): Number of similar patients to retrieve.
-        Returns:
-            List[Dict]: List of similar patient dictionaries with metadata.
-        """
-        patient_results = self.patient_vector_store.search(
-            context, n_results=k, where={"patient_id": {"$ne": patient_id}}
-        )
-        return patient_results
 
     def find_topk_similar_documents(self, context: str, k: int = 5) -> List[Dict]:
         """

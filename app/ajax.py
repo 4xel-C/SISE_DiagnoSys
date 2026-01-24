@@ -45,6 +45,8 @@ def audio_stt(ws) -> None:
 
         while True:
             # receive audio chunk
+            # TODO: Call stt_service with audio chunk
+            # and send transcribed string back to JS:
             data = ws.receive()
             if data is None:
                 break
