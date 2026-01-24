@@ -137,7 +137,7 @@ def get_diagnostic(patient_id: int):
     })
 
 @ajax.route("get_related_documents/<int:patient_id>", methods=["GET"])
-def get_related(patient_id: int):
+def get_related_documents(patient_id: int):
     document_htmls: list[str] = []
     r_documents = app.patient_service.get_documents_proches(patient_id)
     for id, score in r_documents:
