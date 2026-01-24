@@ -1,7 +1,15 @@
+import { fromDelta, toDelta } from 'https://cdn.jsdelivr.net/npm/@slite/quill-delta-markdown@0.0.8/+esm'
 import { loadContext, loadResults, renderPatient } from './modules/loader.js';
-// import { parseToBlocks, parseToMarkdown } from './modules/editorjs-markdown-parser/bundle.js';
+
 
 const main = document.querySelector('main');
+let frames = {
+    context: null,
+    diagnostic: null,
+    documents: null,
+    cases: null
+};
+
 let diagnosticViewer;
 let contextEditor;
 
@@ -25,34 +33,29 @@ async function processRAG(patientId) {
 }
 
 async function renderContext(context) {
-    // Convert markdown to Editor.js blocks
-    const blocks = await MDtoBlocks(context);
-    contextEditor.isReady.then(() => {
-        // Clear editor if not empty
-        if (contextEditor.blocks.getBlocksCount() > 1) {
-            contextEditor.clear()
-        }
-        // Render with new blocks
-        contextEditor.render({blocks: blocks});
-    });
+    const frame = main.querySelector('.frame.context');
+    // Convert markdown to quill delta
+    const content = toDelta(context);
+    // Overwrite editor
+    contextEditor.setContents(content);
+    // Update UI
+    frame.classList.remove('waiting')
 }
 
 async function renderDiagnostics(diagnostics) {
-     // Convert markdown to Editor.js blocks
-    const blocks = await MDtoBlocks(diagnostics);
-    diagnosticViewer.isReady.then(() => {
-        // Clear editor if not empty
-        if (diagnosticViewer.blocks.getBlocksCount() > 1) {
-            diagnosticViewer.clear()
-        }
-        // Render with new blocks
-        diagnosticViewer.render({blocks: blocks});
-    });
+    const frame = main.querySelector('.frame.diagnostic');
+    // Convert markdown to quill delta
+    const content = toDelta(diagnostics);
+    // Overwrite editor
+    diagnosticViewer.setContents(content);
+    // Update UI
+    frame.classList.remove('waiting');
 }
 
 function renderDocuments(documents) {
     // Update close documents
-    const documentsList = main.querySelector('.frame.documents ul');
+    const frame = main.querySelector('.frame.documents');
+    const documentsList = frame.querySelector('ul');
     documentsList.innerHTML = '';
     documents.forEach(html => {
         documentsList.insertAdjacentHTML('beforeend', html);
@@ -62,11 +65,14 @@ function renderDocuments(documents) {
             window.open(document.dataset.url, '_blank').focus();
         })
     });
+    // Update UI
+    frame.classList.remove('waiting');
 }
 
 function renderCases(cases) {
     // Update similar cases
-    const casesList = main.querySelector('.frame.cases ul');
+    const frame = main.querySelector('.frame.cases');
+    const casesList = frame.querySelector('ul');
     casesList.innerHTML = '';
     cases.forEach(html => {
         casesList.insertAdjacentHTML('beforeend', html);
@@ -76,6 +82,8 @@ function renderCases(cases) {
             renderPatient(patient.dataset.patientId);
         })
     });
+    // Update UI
+    frame.classList.remove('waiting');
 }
 
 
@@ -89,47 +97,39 @@ document.addEventListener('patientRendered', (e) => {
     const patientId = e.detail.patientId;
     const patientContainer = main.querySelector('.patient');
     const contextForm = patientContainer.querySelector('form#context-editor');
+    frames = {
+        context: patientContainer.querySelector('.frame.context'),
+        diagnostic: patientContainer.querySelector('.frame.diagnostic'),
+        documents: patientContainer.querySelector('.frame.documents'),
+        cases: patientContainer.querySelector('.frame.cases')
+    }
 
     // Create context editor
-    contextEditor = new EditorJS({
-        holder: 'context',
+    contextEditor = new Quill('#context', {
         placeholder: 'Ajoutez ou modifiez des informations',
-        tools: {
-            header: Header,
-            list: { 
-                class: NestedList,
-                inlineToolbar: true,
-                config: {
-                    defaultStyle: 'unordered'
-                },
-            },
-        },
-        onChange: async (api, event) => {
-            if (event.type == 'block-changed') {
-                const output = await contextEditor.save();
-                console.log(output.blocks);
-                contextForm.classList.add('edited');
-                main.classList.add('unsaved');
-            }
+        theme: 'bubble'
+    });
+
+    contextEditor.on('text-change', (delta, oldDelta, source) => {
+        if (source == 'user') {
+            contextForm.classList.add('edited');
+            main.classList.add('unsaved');
         }
     });
 
     // Create diagnostic viewer
-    diagnosticViewer = new EditorJS({
-        holder: 'diagnostic',
+    diagnosticViewer = new Quill('#diagnostic', {
+        theme: 'bubble',
         readOnly: true
     });
 
     // On context saved
     contextForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('submitted');
-        const output = await contextEditor.save();
-        if (output.blocks.length == 0) {
+        if (contextEditor.getText().trim().length === 0) {
             return
         }
-        // Export editor blocks to md
-        const context = await MDfromBlocks(output.blocks);
+        const context = fromDelta(contextEditor.getContents());
         // Request context update
         contextForm.querySelector('fieldset').disabled = true;
         const response = await saveContext(patientId, context);
@@ -141,12 +141,19 @@ document.addEventListener('patientRendered', (e) => {
         contextForm.classList.remove('edited');
         main.classList.remove('unsaved');
         // Request context processing
+        frames.diagnostic.classList.add('waiting');
+        frames.cases.classList.add('waiting');
+        frames.documents.classList.add('waiting');
         const content = await processRAG(patientId, context);
         // Update results
         renderDiagnostics(content['diagnostics']);
         renderDocuments(content['documents']);
         renderCases(content['cases']);
     });
+
+    Object.values(frames).forEach(frame => {
+        frame.classList.add('waiting');
+    })
 
     // Load and render context
     loadContext(patientId).then((context) => {
@@ -159,3 +166,4 @@ document.addEventListener('patientRendered', (e) => {
         renderCases(content['cases']);
     });
 });
+

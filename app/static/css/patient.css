@@ -13,6 +13,14 @@ main .patient {
         border: solid 1px var(--border-color);
         padding: 1rem;
     }
+    .frame.waiting {
+        background-color: var(--border-color);
+        animation: fadeInOut 3s ease-in-out infinite;
+
+        > * {
+            display: none;
+        }
+    }
 
     .frame.context {
         grid-row: 1 / span 2;
@@ -69,4 +77,13 @@ main .patient {
             }
         }
     }
+}
+
+
+
+
+@keyframes fadeInOut {
+  0%   { opacity: 0; }
+  50%  { opacity: 1; }
+  100% { opacity: 0; }
 }
