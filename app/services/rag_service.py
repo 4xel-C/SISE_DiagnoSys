@@ -43,7 +43,7 @@ class RagService:
         patient_service: PatientService = PatientService(),
         document_service: DocumentService = DocumentService(),
         llm_handler: LLMHandler = llm_handler,
-        asr_models: Optional[ASRServiceBase] = None,
+        asr_model: Optional[ASRServiceBase] = None,
     ):
         # save the instances of the core components
         self.document_vector_store = document_vector_store
@@ -51,7 +51,7 @@ class RagService:
         self.patient_service = patient_service
         self.document_service = document_service
         self.llm_handler = llm_handler
-        self.asr_models = asr_models if asr_models else ASRServiceFactory.create()
+        self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
 
     def transcribe_stream(self, audio_chunk: bytes) -> Dict[str, Any]:
         """
@@ -63,7 +63,7 @@ class RagService:
         Returns:
             Dict[str, Any]: The transcription result (partial or final).
         """
-        return self.asr_models.transcribe_stream(audio_chunk)
+        return self.asr_model.transcribe_stream(audio_chunk)
 
     def update_context_after_audio(
         self,

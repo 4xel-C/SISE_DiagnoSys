@@ -40,14 +40,13 @@ def audio_stt(ws) -> None:
 
             # transcribe chunk
             answer = app.rag_service.transcribe_stream(data)
-
+            
             # if final, send full text, else send partial
+            ws.send(answer["text"])
             if answer["final"]:
-                ws.send(answer["text"])
                 total += " " + answer["text"]
-            else:
-                ws.send(answer["partial"])
             print(answer)
+
 
     except ConnectionClosed:
         pass

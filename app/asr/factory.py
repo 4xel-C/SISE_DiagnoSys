@@ -5,7 +5,7 @@ import os
 
 from dotenv import load_dotenv
 
-from app.asr.base import ASRServiceBase
+from app.asr.base_asr import ASRServiceBase
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class ASRServiceFactory:
     # Mapping of ONLINE_MODE env var to service name
     _online_offline_map: dict[int, str] = {
         0: "kyutai",
-        1: "vosk",
+        1: "sherpa_onnx",
     }
 
     @classmethod
