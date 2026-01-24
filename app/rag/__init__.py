@@ -2,7 +2,6 @@ from app.rag.guardrail import (
     FeatureExtractor,
     GuardrailClassifier,
     GuardrailResult,
-    get_guardrail_classifier,
     guardrail_classifier,
 )
 from app.rag.llm import LLMHandler, llm_handler
@@ -14,7 +13,6 @@ __all__ = [
     "FeatureExtractor",
     "GuardrailClassifier",
     "GuardrailResult",
-    "get_guardrail_classifier",
     "guardrail_classifier",
     "LLMHandler",
     "llm_handler",
