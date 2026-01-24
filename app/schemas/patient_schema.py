@@ -13,6 +13,7 @@ Example:
     'patient_1'
 """
 
+from datetime import datetime
 from typing import Optional
 
 from flask import render_template
@@ -56,6 +57,7 @@ class PatientSchema(BaseModel):
     gravite: Optional[str] = None
     type_maladie: Optional[str] = None
     symptomes_exprimes: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     # Vital signs
     fc: Optional[int] = None
@@ -68,36 +70,6 @@ class PatientSchema(BaseModel):
     diagnostic: Optional[str] = None
 
     model_config = {"from_attributes": True}
-
-    @classmethod
-    def from_orm_with_relations(cls, patient_orm) -> "PatientSchema":
-        """
-        Create a PatientSchema from an ORM object, including relations with scores.
-
-        Use this method instead of model_validate when relations are needed.
-
-        Args:
-            patient_orm: SQLAlchemy Patient object with loaded relationships.
-
-        Returns:
-            PatientSchema: Schema instance with relations populated.
-        """
-        return cls(
-            id=patient_orm.id,
-            nom=patient_orm.nom,
-            prenom=patient_orm.prenom,
-            gravite=patient_orm.gravite,
-            type_maladie=patient_orm.type_maladie,
-            symptomes_exprimes=patient_orm.symptomes_exprimes,
-            fc=patient_orm.fc,
-            fr=patient_orm.fr,
-            spo2=patient_orm.spo2,
-            ta_systolique=patient_orm.ta_systolique,
-            ta_diastolique=patient_orm.ta_diastolique,
-            temperature=patient_orm.temperature,
-            contexte=patient_orm.contexte,
-            diagnostic=patient_orm.diagnostic,
-        )
 
     @computed_field
     @property
