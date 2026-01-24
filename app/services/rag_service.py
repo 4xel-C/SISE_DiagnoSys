@@ -106,8 +106,8 @@ class RagService:
             Dict[str, str]: diagnosys response from LLM with the following structure:
                 {
                     "diagnosys": str,
-                    "document_ids": List[int],
-                    "related_patients_ids": List[int],
+                    "related_documents": List[int, float],
+                    "related_patients": List[int, float],
                 }
         """
         # retrieve patient context from DB for embeddings

@@ -183,6 +183,31 @@ class PatientService:
 
             logger.debug(f"Retrieved context for patient id={patient_id}.")
             return patient.contexte if patient.contexte else ""  # type: ignore
+        
+    def get_diagnostic(self, patient_id: int) -> str:
+        """
+        Retrieve the diagnostic field of a patient.
+
+        Args:
+            patient_id (int): The patient's unique identifier.
+
+        Returns:
+            str: The diagnostic of the patient.
+
+        Example:
+            >>> diagnostic = service.get_diagnostic(1)
+        """
+        logger.debug(f"Fetching diagnostic for patient id={patient_id}.")
+        with self.db_manager.session() as session:
+            patient = session.query(Patient).filter_by(id=patient_id).first()
+            if not patient:
+                logger.error(
+                    f"Patient with id={patient_id} not found for diagnostic retrieval."
+                )
+                raise ValueError(f"Patient with id={patient_id} not found.")
+
+            logger.debug(f"Retrieved diagnostic for patient id={patient_id}.")
+            return patient.diagnostic if patient.diagnostic else ""  # type: ignore
 
     def get_documents_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
         """
@@ -194,7 +219,7 @@ class PatientService:
             n (int): Number of document chunks to retrieve (default = 5).
 
         Returns:
-            List[Tuple[int, float]]: A list of the closest document with their similarity scores.
+            List[Tuple[int, float]]: A list of the closest document IDs with their similarity scores.
 
         Raises:
             ValueError: If the patient is not found.
@@ -211,7 +236,7 @@ class PatientService:
             if not patient:
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient_content = patient.content_for_embedding
+            patient_content = str(patient.contexte)
 
         document_chunks = document_store.search(
             patient_content,
@@ -260,7 +285,7 @@ class PatientService:
             if not patient:
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient_content = patient.content_for_embedding
+            patient_content = str(patient.contexte)
 
         patient_results = patient_store.search(
             patient_content, n_results=n, where={"patient_id": {"$ne": patient_id}}

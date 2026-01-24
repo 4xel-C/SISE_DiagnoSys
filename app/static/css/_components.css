@@ -100,13 +100,22 @@ button:disabled {
     border: solid 1px var(--border-color);
     position: relative;
 
+    .info {
+        position: absolute;
+        right: .6rem;
+    }
+
+    .date {
+        background-color: var(--bg-frame-color);
+        padding: 0rem .4rem;
+        border-radius: 100px;
+    }
+
     .score {
         background-color: var(--bg-selected-color);
         padding: 0rem .4rem;
         border-radius: 100px;
         color: var(--accent-color);
-        position: absolute;
-        right: .6rem;
     }
 }
 .patient-result.case:hover {
@@ -139,5 +148,76 @@ button:disabled {
 .document:hover {
     .label {
         text-decoration: underline;
+    }
+}
+
+/* POPUP */
+
+.popup {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-overlay-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    animation: fadeIn .2s ease;
+
+    .content {
+        width: 30rem;
+        background-color: var(--bg-color);
+        border: solid 1px var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        animation: slideUp .2s ease;
+
+        form {
+            margin-top: 1rem;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: .6rem;
+            margin-top: 1rem;
+
+            button {
+                width: 100%;
+            }
+        }
+
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+    }
+    to {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
     }
 }
