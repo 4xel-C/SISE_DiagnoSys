@@ -33,26 +33,46 @@ def audio_stt(ws) -> None:
         ws.close(code=1008, reason="Missing patient_id")
         return
 
+    model = getattr(app.rag_service, "asr_model", None)
     try:
+        # start per-websocket session if supported
+        if model and hasattr(model, "start_session"):
+            try:
+                model.start_session()
+            except Exception:
+                logger = __import__("logging").getLogger(__name__)
+                logger.exception("Failed to start ASR session")
+
         while True:
             # receive audio chunk
-            data: bytes = ws.receive()
+            data = ws.receive()
+            if data is None:
+                break
 
             # transcribe chunk
             answer = app.rag_service.transcribe_stream(data)
-            
+
             # if final, send full text, else send partial
             ws.send(answer["text"])
             if answer["final"]:
                 total += " " + answer["text"]
             print(answer)
 
-
     except ConnectionClosed:
         pass
-        # Generate new context from transcribed text
-        # context = app.rag_service.update_context_after_audio(patient_id, total)
-        # app.patient_service.update_context(patient_id, context)
+    finally:
+        # end per-websocket session and flush final result if supported
+        if model and hasattr(model, "end_session"):
+            try:
+                final = model.end_session()
+                if final and final.get("text"):
+                    try:
+                        ws.send(final.get("text"))
+                    except Exception:
+                        pass
+            except Exception:
+                logger = __import__("logging").getLogger(__name__)
+                logger.exception("Failed to end ASR session")
 
 
 # ---------------
