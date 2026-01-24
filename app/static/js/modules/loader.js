@@ -1,12 +1,56 @@
 import { socket } from './streamer.js';
 
+const main = document.querySelector('main');
+const content = main.querySelector('.content');
 
 
 
-export async function renderPatient(patientId) {
-    const main = document.querySelector('main');
-    const content = main.querySelector('.content');
+
+
+async function createUnsavedPopup(patientId, contextForm) {
+    // Request popup HTML
+    const params = new URLSearchParams({
+        title: "Modifications non sauvegardées",
+        description: "Voulez-vous sauvegarder les modification apportez a la fiche patient ?",
+        second: "Supprimer",
+        main: "Enregistrer"
+    })
+    const response = await fetch(`ajax/custom_popup?${params}`);
+    const html = await response.text();
+    // Render popup
+    const popup = renderPopup(html);
+    const popupForm = popup.querySelector('form');
+    popupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        contextForm.dispatchEvent(new Event('submit', {
+            bubbles: true,
+            cancelable: true
+        }))
+        popup.remove();
+        renderPatient(patientId, true);
+    })
+    popupForm.addEventListener('reset', () => {
+        popup.remove();
+        renderPatient(patientId, true);
+    })
+}
+
+
+
+
+export async function renderPatient(patientId, force=false) {
     const audioRecord = main.querySelector('.audio-record');
+
+    // Check for unsaved data
+    if (main.classList.contains('unsaved') && !force) {
+        const contextForm = main.querySelector('form#context-editor');
+        if (contextForm) {
+            createUnsavedPopup(patientId, contextForm);
+            return;
+        }
+    }
+    // Reset saved class
+    main.classList.remove('unsaved');
 
     // Request diagnostic HTML
     const response = await fetch(`ajax/render_patient/${patientId}`);

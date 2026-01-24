@@ -51,6 +51,17 @@ def audio_stt(ws) -> None:
             print("No transcription total available to update context.")
 
 
+
+# ---------------
+# RENDER POPUP
+
+@ajax.route("custom_popup", methods=["GET"])
+def custom_popup():
+    params = request.args.to_dict()
+    print(params)
+    return render_template('elements/custom_popup.html', **params)
+
+
 # ---------------
 # RENDER TEMPLATES
 

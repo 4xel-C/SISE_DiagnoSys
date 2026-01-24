@@ -2,6 +2,7 @@ import { loadContext, loadResults, renderPatient } from './modules/loader.js';
 // import { parseToBlocks, parseToMarkdown } from './modules/editorjs-markdown-parser/bundle.js';
 
 const main = document.querySelector('main');
+let diagnosticViewer;
 let contextEditor;
 
 
@@ -36,8 +37,17 @@ async function renderContext(context) {
     });
 }
 
-function renderDiagnostics(diagnostics) {
-    // Update diagnostics list
+async function renderDiagnostics(diagnostics) {
+     // Convert markdown to Editor.js blocks
+    const blocks = await MDtoBlocks(diagnostics);
+    diagnosticViewer.isReady.then(() => {
+        // Clear editor if not empty
+        if (diagnosticViewer.blocks.getBlocksCount() > 1) {
+            diagnosticViewer.clear()
+        }
+        // Render with new blocks
+        diagnosticViewer.render({blocks: blocks});
+    });
 }
 
 function renderDocuments(documents) {
@@ -99,13 +109,21 @@ document.addEventListener('patientRendered', (e) => {
                 const output = await contextEditor.save();
                 console.log(output.blocks);
                 contextForm.classList.add('edited');
+                main.classList.add('unsaved');
             }
         }
+    });
+
+    // Create diagnostic viewer
+    diagnosticViewer = new EditorJS({
+        holder: 'diagnostic',
+        readOnly: true
     });
 
     // On context saved
     contextForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('submitted');
         const output = await contextEditor.save();
         if (output.blocks.length == 0) {
             return
@@ -121,6 +139,7 @@ document.addEventListener('patientRendered', (e) => {
             return
         }
         contextForm.classList.remove('edited');
+        main.classList.remove('unsaved');
         // Request context processing
         const content = await processRAG(patientId, context);
         // Update results
