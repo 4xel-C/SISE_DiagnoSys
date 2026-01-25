@@ -139,6 +139,7 @@ class VectorStore:
         query: str,
         n_results: int = 5,
         where: Optional[dict] = None,
+        embed: bool = False,
     ) -> list[dict]:
         """
         Search for similar items using semantic search.
@@ -147,6 +148,7 @@ class VectorStore:
             query (str): The search query text.
             n_results (int): Maximum number of results. Defaults to 5.
             where (dict, optional): Metadata filter for the search.
+            embed (bool, optional): Whether the query is already an embedding. Defaults to False.
 
         Returns:
             list[dict]: List of results with keys:
@@ -162,7 +164,7 @@ class VectorStore:
         """
         logger.debug(f"Searching: '{query}' (n_results={n_results})")
 
-        query_embedding = self.vectorizer.embed_single(query)
+        query_embedding = query if embed else self.vectorizer.embed_single(query)
 
         search_params = {
             "query_embeddings": [query_embedding],
@@ -220,12 +222,12 @@ class VectorStore:
         logger.info(f"Deleted {len(existing['ids'])} chunks for item {item_id}")
         return True
 
-    def get(self, item_id: str) -> list[dict]:
+    def get(self, item_id: int) -> list[dict]:
         """
         Retrieve all chunks for a specific item.
 
         Args:
-            item_id (str): The item ID to retrieve.
+            item_id (int): The item ID (sqlite3 db index) to retrieve.
 
         Returns:
             list[dict]: List of chunks sorted by index.
@@ -245,6 +247,9 @@ class VectorStore:
                         "metadata": results["metadatas"][i]
                         if results["metadatas"]
                         else {},
+                        "embedding": results["embeddings"][i]
+                        if results["embeddings"] is not None
+                        else [],
                     }
                 )
 
