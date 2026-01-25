@@ -20,17 +20,11 @@ class ASRServiceFactory:
     Factory/registry for ASR services.
 
     Register implementations with:
-        @ASRServiceFactory.register("vosk")
-        class VoskASRService(ASRServiceBase): ...
+        @ASRServiceFactory.register("sherpa_onnx")
+        class SherpaOnnxASRService(ASRServiceBase): ...
     """
 
     _registry: dict[str, ASRService] = {}
-
-    # Mapping of ONLINE_MODE env var to service name
-    _online_offline_map: dict[int, str] = {
-        0: "kyutai",
-        1: "sherpa_onnx",
-    }
 
     @classmethod
     def register(cls, name: str):
@@ -46,31 +40,20 @@ class ASRServiceFactory:
         return decorator
 
     @classmethod
-    def create(cls, which: str | None = None) -> ASRServiceBase:
+    def create(cls, which: str = "sherpa_onnx") -> ASRServiceBase:
         """
         Create an ASR service instance based on the specified type or environment configuration.
 
         Args:
-            which: "kyutai" / "vosk" / etc. If None, uses ONLINE_MODE mapping.
+            which: "kyutai" / "sherpa_onnx" / etc.
 
         Raises:
-            ValueError: If ONLINE_MODE is invalid or service name is unknown.
+            ValueError: If service name is unknown.
             NotImplementedError: If the requested service is not registered.
 
         Returns:
             ASRServiceBase: An instance of the requested ASR service.
         """
-        if which is None:
-            online_mode = int(os.getenv("ONLINE_MODE", "1"))
-            which = cls._online_offline_map.get(online_mode, None)
-            if which is None:
-                logger.error(
-                    "Invalid ONLINE_MODE=%d; cannot determine ASR service.", online_mode
-                )
-                raise ValueError(
-                    f"Unsupported ONLINE_MODE={online_mode}. Expected one of: {list(cls._online_offline_map)}"
-                )
-
         key = which.lower().strip()
         service_cls = cls._registry.get(key)
         if service_cls is None:
@@ -85,7 +68,7 @@ class ASRServiceFactory:
         return service_cls()
 
     @classmethod
-    def available(cls, which: str | None = None) -> bool:
+    def available(cls, which: str = "sherpa_onnx") -> bool:
         """Check if the specified ASR service is available."""
         try:
             service = cls.create(which)
