@@ -30,6 +30,7 @@ def audio_stt(ws) -> None:
     patient_id = request.args.get("patient_id", type=int)
     total: str = ""
 
+    # validate patient_id
     if patient_id is None:
         ws.close(code=1008, reason="Missing patient_id")
         return
@@ -41,8 +42,7 @@ def audio_stt(ws) -> None:
             try:
                 model.start_session()
             except Exception:
-                logger = __import__("logging").getLogger(__name__)
-                logger.exception("Failed to start ASR session")
+                pass
 
         while True:
             # receive audio chunk
@@ -74,8 +74,7 @@ def audio_stt(ws) -> None:
                     except Exception:
                         pass
             except Exception:
-                logger = __import__("logging").getLogger(__name__)
-                logger.exception("Failed to end ASR session")
+                pass
         print("Audio stream ended")
 
         if len(total.strip()) > 0:

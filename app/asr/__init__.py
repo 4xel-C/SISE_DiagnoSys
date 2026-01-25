@@ -4,7 +4,7 @@ ASR package.
 This package contains implementations of Automatic Speech Recognition (ASR) services.
 """
 from app.asr.base_asr import ASRServiceBase
-from app.asr.asr_models import VoskASRService, SherpaOnnxASRService
+from app.asr.asr_models import SherpaOnnxASRService, KyutaiASRService
 from app.asr.factory import ASRServiceFactory
 
 

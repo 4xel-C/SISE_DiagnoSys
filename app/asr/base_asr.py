@@ -1,11 +1,6 @@
 """ASR service base class."""
 
 from abc import ABC, abstractmethod
-import io
-import wave
-
-import numpy as np
-
 
 class ASRServiceBase(ABC):
     """
