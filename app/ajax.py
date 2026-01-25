@@ -7,7 +7,7 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, abort, jsonify, render_template, request, current_app
+from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_sock import ConnectionClosed, Sock
 
 from .init import AppContext
@@ -28,27 +28,59 @@ sock = Sock()
 def audio_stt(ws) -> None:
 
     patient_id = request.args.get("patient_id", type=int)
-    total = None
+    total: str = ""
 
+    # validate patient_id
     if patient_id is None:
         ws.close(code=1008, reason="Missing patient_id")
         return
 
+    model = getattr(app.rag_service, "asr_model", None)
     try:
-        while True:
-            # TODO: Call stt_service with audio chunk
-            # and send transcribed string back to JS:
-            data = ws.receive()
-            # transcript, total = app.stt_service.transcribe_chunk(data)
-            # ws.send(transcript)
-    except ConnectionClosed:
-        print("Audio stream ended")
+        # start per-websocket session if supported
+        if model and hasattr(model, "start_session"):
+            try:
+                model.start_session()
+            except Exception:
+                pass
 
-        if total is not None:
+        while True:
+            # receive audio chunk
+            data = ws.receive()
+            if data is None:
+                break
+
+            # transcribe chunk
+            answer = app.rag_service.transcribe_stream(data)
+
+            # if final, send full text, else send partial
+            ws.send(answer["text"])
+            if answer["final"]:
+                total += " " + answer["text"]
+            # print("ASR answer: %s", answer)
+
+    except ConnectionClosed:
+        pass
+    finally:
+        # End session and get final result
+        if model and hasattr(model, "end_session"):
+            try:
+                final = model.end_session()
+                if final and final.get("text"):
+                    total += " " + final.get("text")
+                    try:
+                        ws.send(final.get("text"))
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        # Update context with complete transcription
+        if len(total.strip()) > 0:
+            # print("Final ASR transcription:", total)
             context = app.rag_service.update_context_after_audio(patient_id, total)
             app.patient_service.update_context(patient_id, context)
         else:
-            print("No transcription total available to update context.")
+            pass
 
 
 
@@ -72,7 +104,6 @@ def search_patients():
     Search patient by name with a query.
     Returns all patients if no query provided
     """
-
     query = request.args.get("query")
 
     if query:

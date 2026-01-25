@@ -1,5 +1,10 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from app.asr import (
+    ASRServiceBase,
+    ASRServiceFactory
+)
 
 from app.rag import (
     LLMHandler,
@@ -56,6 +61,7 @@ class RagService:
         patient_service: PatientService = PatientService(),
         document_service: DocumentService = DocumentService(),
         llm_handler: LLMHandler = llm_handler,
+        asr_model: Optional[ASRServiceBase] = None,
     ):
         # save the instances of the core components
         self.document_vector_store = document_vector_store
@@ -63,6 +69,19 @@ class RagService:
         self.patient_service = patient_service
         self.document_service = document_service
         self.llm_handler = llm_handler
+        self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
+
+    def transcribe_stream(self, audio_chunk: bytes) -> Dict[str, Any]:
+        """
+        Transcribe a chunk of audio stream.
+
+        Args:
+            audio_chunk (bytes): The audio chunk to transcribe.
+
+        Returns:
+            Dict[str, Any]: The transcription result (partial or final).
+        """
+        return self.asr_model.transcribe_stream(audio_chunk)
 
     def update_context_after_audio(
         self,
