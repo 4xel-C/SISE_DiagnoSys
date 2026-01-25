@@ -40,6 +40,10 @@ class MissingAPIKeyError(Exception):
     pass
 
 
+# Type alias for conversation history
+Message = dict[str, str]  # {"role": "user"|"assistant", "content": "..."}
+
+
 class LLMHandler:
     """
     Handler for Mistral LLM interactions.
@@ -156,6 +160,82 @@ class LLMHandler:
 
         logger.debug(
             f"Response generated: {usage.total_tokens} tokens, "
+            f"${usage.cost_usd:.6f}, {usage.latency_ms:.0f}ms"
+        )
+
+        return LLMResponse(
+            content=str(response.choices[0].message.content),
+            usage=usage,
+            model=self.config.model.value,
+            raw_response=response.model_dump()
+            if hasattr(response, "model_dump")
+            else None,
+        )
+
+    def chat(
+        self,
+        new_message: str,
+        history: list[Message],
+        system_prompt: Optional[str] = None,
+    ) -> LLMResponse:
+        """
+        Generate a response in a conversation context with history.
+
+        Args:
+            new_message: The new user message.
+            history: List of previous messages [{"role": "user"|"assistant", "content": "..."}].
+            system_prompt: Optional system prompt (e.g., with user name, context).
+
+        Returns:
+            LLMResponse with content and usage stats.
+
+        Example:
+            >>> history = [
+            ...     {"role": "user", "content": "Bonjour, que puis-je faire pour vous?"},
+            ...     {"role": "assistant", "content": "Je ressens des douleurs."},
+            ... ]
+            >>> response = handler.chat("Pouvez vous préciser?", history, "Tu joues le rôle d'un assistant médical.")
+            >>> history.append({"role": "user", "content": "Pouvez vous préciser?"})
+            >>> history.append({"role": "assistant", "content": response.content})
+        """
+        logger.debug(f"Chat generation with {len(history)} messages in history")
+
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+
+        # Add conversation history
+        messages.extend(history)
+
+        # Add new user message
+        messages.append({"role": "user", "content": new_message})
+
+        start_time = time.time()
+        response = self.client.chat.complete(
+            model=self.config.model.value,
+            messages=messages,
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+        )
+        latency_ms = (time.time() - start_time) * 1000
+
+        if not response.choices or not response.usage:
+            raise ValueError("Invalid response from Mistral API")
+
+        input_tokens = response.usage.prompt_tokens
+        output_tokens = response.usage.completion_tokens
+
+        usage = LLMUsage(
+            input_tokens=input_tokens or 0,
+            output_tokens=output_tokens or 0,
+            cost_usd=self._calculate_cost(input_tokens or 0, output_tokens or 0),
+            latency_ms=latency_ms,
+        )
+
+        self._track_usage(usage)
+
+        logger.debug(
+            f"Chat response generated: {usage.total_tokens} tokens, "
             f"${usage.cost_usd:.6f}, {usage.latency_ms:.0f}ms"
         )
 

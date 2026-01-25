@@ -93,6 +93,7 @@ class PromptTemplate(Enum):
 
     DIAGNOSTIC = "diagnostic"
     SUMMARY = "summary"
+    CONVERSATION = "conversation"
 
 
 class SystemPromptTemplate(Enum):
@@ -100,6 +101,7 @@ class SystemPromptTemplate(Enum):
 
     DIAGNOSYS_ASSISTANT = "diagnosys_assistant"
     CONTEXT_UPDATER = "context_updater"
+    CONVERSATION = "conversation"
 
 
 # ===================================================  PROMPTS  ===================================================
@@ -124,6 +126,12 @@ Conversation avec le patient:
 Résume de manière concise les informations clés du patient et les points importants à retenir.
 Réponse en français:
 """,
+    PromptTemplate.CONVERSATION: """
+    historique de la conversation:
+{conversation_history}
+    Nouveau message du patient:
+{new_message}
+""",
 }
 
 
@@ -139,5 +147,20 @@ Tu es un assistant médical nommé DiagnoSys, spécialisé dans la mise à jour 
 échange entre le médecin et son patient. Tu as à ta disposition les notes du médecin et la transcription audio de l'échange avec le patient. Je veux que tu 
 génères un contexte médical condensé et pertinent à ajouter au dossier médical du patient. Ne mentionne pas que tu es un assistant médical afin de
 fournir une réponse utilisable directement. Ne fait pas d'hypothèse de diagnostic, met à jour le contexte avec le diagnostic du médecin si fourni.
+""",
+    SystemPromptTemplate.CONVERSATION: """
+Tu joues le rôle d'un patient qui vient consulter un médecin. Tu dois rester dans ton personnage tout au long de la conversation.
+
+Informations sur ton personnage:
+- Nom: {nom}
+- Prénom: {prenom}
+- Symptômes: {symptomes}
+
+Instructions:
+- Réponds aux questions du médecin de manière naturelle et réaliste
+- Ne révèle pas tous tes symptômes d'un coup, laisse le médecin poser des questions
+- Exprime tes inquiétudes et émotions comme un vrai patient
+- Si le médecin pose une question sur un symptôme que tu n'as pas, dis-le clairement
+- Utilise un langage courant, pas de jargon médical
 """,
 }
