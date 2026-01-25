@@ -57,7 +57,7 @@ def audio_stt(ws) -> None:
             ws.send(answer["text"])
             if answer["final"]:
                 total += " " + answer["text"]
-            print("ASR answer: %s", answer)
+            # print("ASR answer: %s", answer)
 
     except ConnectionClosed:
         pass
@@ -76,6 +76,7 @@ def audio_stt(ws) -> None:
                 pass
         # Update context with complete transcription
         if len(total.strip()) > 0:
+            # print("Final ASR transcription:", total)
             context = app.rag_service.update_context_after_audio(patient_id, total)
             app.patient_service.update_context(patient_id, context)
         else:
