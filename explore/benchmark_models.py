@@ -16,9 +16,6 @@ import pathlib
 import joblib
 import argparse
 import warnings
-import re
-from collections import Counter
-from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from datasets import load_dataset
@@ -27,79 +24,8 @@ from sklearn.metrics import (
     roc_auc_score, matthews_corrcoef
 )
 from app.rag.vectorizer import Vectorizer
+from app.rag.guardrail import FeatureExtractor
 warnings.filterwarnings("ignore")
-
-# =============================================================================
-# FeatureExtractor class - needed for unpickling saved models
-# =============================================================================
-
-class FeatureExtractor:
-    """Extract handcrafted features for jailbreak detection."""
-
-    JAILBREAK_PATTERNS = [
-        r'ignore.*(?:previous|above|prior).*(?:instruction|prompt)',
-        r'(?:pretend|act|imagine).*(?:you are|you\'re)',
-        r'(?:from now on|starting now)',
-        r'(?:developer|admin|root|sudo).*mode',
-        r'\[.*(?:system|override|bypass).*\]',
-        r'(?:forget|disregard).*(?:rules|guidelines)',
-        r'(?:jailbreak|dan|dude)',
-        r'you.*(?:must|have to|should).*(?:always|never)',
-        r'(?:roleplay|role-play|role play)',
-        r'(?:hypothetically|theoretically|in theory)',
-    ]
-
-    def __init__(self):
-        self.compiled_patterns = [re.compile(p, re.IGNORECASE) for p in self.JAILBREAK_PATTERNS]
-
-    def extract_features(self, text):
-        """Extract features from a single text."""
-        if not isinstance(text, str):
-            text = str(text)
-
-        features = {}
-
-        # Length features
-        features['length'] = len(text)
-        words = text.split()
-        features['word_count'] = len(words)
-        features['avg_word_length'] = np.mean([len(w) for w in words]) if words else 0
-
-        # Character type ratios
-        text_len = max(len(text), 1)
-        features['uppercase_ratio'] = sum(1 for c in text if c.isupper()) / text_len
-        features['special_char_ratio'] = sum(1 for c in text if not c.isalnum() and not c.isspace()) / text_len
-        features['digit_ratio'] = sum(1 for c in text if c.isdigit()) / text_len
-        features['space_ratio'] = sum(1 for c in text if c.isspace()) / text_len
-
-        # Pattern matches
-        features['jailbreak_pattern_count'] = sum(1 for p in self.compiled_patterns if p.search(text))
-
-        # Specific suspicious patterns
-        features['has_brackets'] = 1 if '[' in text or ']' in text else 0
-        features['has_quotes'] = 1 if '"' in text or "'" in text else 0
-        features['exclamation_count'] = text.count('!')
-        features['question_count'] = text.count('?')
-
-        # Entropy
-        char_counts = Counter(text.lower())
-        total = sum(char_counts.values())
-        entropy = -sum((c/total) * np.log2(c/total) for c in char_counts.values() if c > 0)
-        features['entropy'] = entropy
-
-        # Line/sentence structure
-        features['line_count'] = text.count('\n') + 1
-        features['sentence_count'] = len(re.split(r'[.!?]+', text))
-
-        return features
-
-    def extract_batch(self, texts, show_progress=False):
-        """Extract features for a batch of texts."""
-        if show_progress:
-            all_features = [self.extract_features(t) for t in tqdm(texts, desc="Features")]
-        else:
-            all_features = [self.extract_features(t) for t in texts]
-        return pd.DataFrame(all_features)
 
 
 def load_benchmark_datasets():
@@ -140,6 +66,19 @@ def load_benchmark_datasets():
     custom_labels = [1] * len(jb_sample) + [0] * len(benign_sample)
     datasets['custom'] = {'texts': custom_texts, 'labels': custom_labels}
     print(f"  Loaded {len(custom_texts)} samples")
+
+    # 5. Medical consultations (benign + medical injection attacks)
+    medical_path = base_path / "medical_consultations_benign.csv"
+    if medical_path.exists():
+        print("Loading Medical consultations...")
+        df = pd.read_csv(medical_path)
+        datasets['medical'] = {'texts': df['text'].tolist(), 'labels': df['label'].tolist()}
+        benign_count = (df['label'] == 0).sum()
+        injection_count = (df['label'] == 1).sum()
+        print(f"  Loaded {len(df)} samples (benign: {benign_count}, injection: {injection_count})")
+    else:
+        print(f"  Skipping medical consultations (file not found: {medical_path})")
+        print("  Run 'python create_medical_consultation_dataset.py' to generate it.")
 
     return datasets
 

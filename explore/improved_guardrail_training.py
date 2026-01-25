@@ -42,6 +42,7 @@ from sklearn.metrics import (
     confusion_matrix, roc_auc_score, matthews_corrcoef
 )
 from app.rag.vectorizer import Vectorizer
+from app.rag.guardrail import FeatureExtractor
 warnings.filterwarnings('ignore')
 
 # Set random seeds for reproducibility
@@ -129,6 +130,26 @@ def load_all_datasets(max_samples=None):
     })
     datasets['helpful'] = df_benign
     print(f"  Loaded {len(df_benign)} samples")
+
+    # 6. Medical consultations - critical for reducing false positives on real transcripts
+    # This dataset includes both benign consultations AND medical injection attacks
+    # to teach the model that medical context != automatically safe
+    medical_consultations_path = pathlib.Path(__file__).parent / "medical_consultations_benign.csv"
+    if medical_consultations_path.exists():
+        print("Loading Medical consultations (benign + medical injections)...")
+        df_medical = pd.read_csv(medical_consultations_path)
+        df_medical['source'] = 'medical_consultations'
+        # Ensure label column is integer
+        df_medical['label'] = df_medical['label'].astype(int)
+        if max_samples and len(df_medical) > max_samples:
+            df_medical = df_medical.sample(n=max_samples, random_state=RANDOM_STATE)
+        datasets['medical_consultations'] = df_medical[['text', 'label', 'source']]
+        benign_count = (df_medical['label'] == 0).sum()
+        injection_count = (df_medical['label'] == 1).sum()
+        print(f"  Loaded {len(df_medical)} samples (benign: {benign_count}, injection: {injection_count})")
+    else:
+        print(f"Warning: Medical consultations dataset not found at {medical_consultations_path}")
+        print("  Run 'python create_medical_consultation_dataset.py' first to generate it.")
 
     return datasets
 
@@ -224,73 +245,9 @@ class TextAugmenter:
 # Feature Engineering
 # =============================================================================
 
-class FeatureExtractor:
-    """Extract handcrafted features for jailbreak detection."""
-
-    JAILBREAK_PATTERNS = [
-        r'ignore.*(?:previous|above|prior).*(?:instruction|prompt)',
-        r'(?:pretend|act|imagine).*(?:you are|you\'re)',
-        r'(?:from now on|starting now)',
-        r'(?:developer|admin|root|sudo).*mode',
-        r'\[.*(?:system|override|bypass).*\]',
-        r'(?:forget|disregard).*(?:rules|guidelines)',
-        r'(?:jailbreak|dan|dude)',
-        r'you.*(?:must|have to|should).*(?:always|never)',
-        r'(?:roleplay|role-play|role play)',
-        r'(?:hypothetically|theoretically|in theory)',
-    ]
-
-    def __init__(self):
-        self.compiled_patterns = [re.compile(p, re.IGNORECASE) for p in self.JAILBREAK_PATTERNS]
-
-    def extract_features(self, text):
-        """Extract features from a single text."""
-        if not isinstance(text, str):
-            text = str(text)
-
-        features = {}
-
-        # Length features
-        features['length'] = len(text)
-        words = text.split()
-        features['word_count'] = len(words)
-        features['avg_word_length'] = np.mean([len(w) for w in words]) if words else 0
-
-        # Character type ratios
-        text_len = max(len(text), 1)
-        features['uppercase_ratio'] = sum(1 for c in text if c.isupper()) / text_len
-        features['special_char_ratio'] = sum(1 for c in text if not c.isalnum() and not c.isspace()) / text_len
-        features['digit_ratio'] = sum(1 for c in text if c.isdigit()) / text_len
-        features['space_ratio'] = sum(1 for c in text if c.isspace()) / text_len
-
-        # Pattern matches
-        features['jailbreak_pattern_count'] = sum(1 for p in self.compiled_patterns if p.search(text))
-
-        # Specific suspicious patterns
-        features['has_brackets'] = 1 if '[' in text or ']' in text else 0
-        features['has_quotes'] = 1 if '"' in text or "'" in text else 0
-        features['exclamation_count'] = text.count('!')
-        features['question_count'] = text.count('?')
-
-        # Entropy
-        char_counts = Counter(text.lower())
-        total = sum(char_counts.values())
-        entropy = -sum((c/total) * np.log2(c/total) for c in char_counts.values() if c > 0)
-        features['entropy'] = entropy
-
-        # Line/sentence structure
-        features['line_count'] = text.count('\n') + 1
-        features['sentence_count'] = len(re.split(r'[.!?]+', text))
-
-        return features
-
-    def extract_batch(self, texts, show_progress=False):
-        """Extract features for a batch of texts."""
-        if show_progress:
-            all_features = [self.extract_features(t) for t in tqdm(texts, desc="Features")]
-        else:
-            all_features = [self.extract_features(t) for t in texts]
-        return pd.DataFrame(all_features)
+# FeatureExtractor is imported from app.rag.guardrail to ensure pickle compatibility
+# when loading the model in production. The class definition lives in
+# app/rag/guardrail.py to maintain a single source of truth.
 
 
 # =============================================================================
