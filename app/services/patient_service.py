@@ -11,7 +11,7 @@ Example:
 """
 
 import logging
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from sqlalchemy import and_, or_
 
@@ -229,18 +229,18 @@ class PatientService:
         """
         logger.debug(f"Fetching related documents for patient id={patient_id}.")
 
-        # Get the patient to retrive the context.
-        with self.db_manager.session() as session:
-            patient = session.query(Patient).filter_by(id=patient_id).first()
+        # get the embedding of the patient
+        embedding: Optional[List[float]] = patient_store.get(patient_id)[0].get(
+            "embedding"
+        )
 
-            if not patient:
-                raise ValueError(f"Patient with id={patient_id} not found.")
-
-            patient_content = str(patient.contexte)
+        if embedding is None:
+            raise ValueError(f"Embedding for patient with id={patient_id} not found.")
 
         document_chunks = document_store.search(
-            patient_content,
-            n_results=5,
+            embedding,
+            n_results=n,
+            embed=True,
         )
 
         # seens document id:
@@ -278,17 +278,19 @@ class PatientService:
         """
         logger.debug(f"Fetching related patients context for patient id={patient_id}.")
 
-        # get the patient context
-        with self.db_manager.session() as session:
-            patient = session.query(Patient).filter_by(id=patient_id).first()
+        # get the embedding of the patient
+        embedding: Optional[List[float]] = patient_store.get(patient_id)[0].get(
+            "embedding"
+        )
 
-            if not patient:
-                raise ValueError(f"Patient with id={patient_id} not found.")
-
-            patient_content = str(patient.contexte)
+        if embedding is None:
+            raise ValueError(f"Embedding for patient with id={patient_id} not found.")
 
         patient_results = patient_store.search(
-            patient_content, n_results=n, where={"patient_id": {"$ne": patient_id}}
+            embedding,
+            n_results=n,
+            where={"patient_id": {"$ne": patient_id}},
+            embed=True,
         )
 
         patient_ids = [
