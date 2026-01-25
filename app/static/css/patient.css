@@ -14,19 +14,21 @@ main .patient {
         overflow: hidden;
 
         .title {
-            padding: 0.6rem 1rem;
+            padding: 0.4rem 1rem;
             border-bottom: solid 1px var(--border-color);
             background-color: var(--bg-frame-color);
         }
 
         ul.nav {
-            padding: 0.6rem 1rem;
+            padding: 0.4rem 1rem 0;
             border-bottom: solid 1px var(--border-color);
             background-color: var(--bg-frame-color);
 
             > li {
                 display: inline-block;
                 margin-right: 1rem;
+                padding-bottom: calc(.4rem - 2px);
+                border-bottom: solid 2px var(--bg-frame-color);
 
                 h2 {
                     color: var(--text-second-color);
@@ -34,8 +36,12 @@ main .patient {
             }
         }
 
-        ul.nav > li.selected h2 {
-            color: var(--text-color);
+        ul.nav > li.selected {
+            border-bottom: solid 2px var(--accent-color);
+
+            h2 {
+                color: var(--text-color);
+            }
         }
     }
     .frame.waiting {
