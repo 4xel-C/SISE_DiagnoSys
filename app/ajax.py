@@ -79,6 +79,7 @@ def audio_stt(ws) -> None:
             # print("Final ASR transcription:", total)
             context = app.rag_service.update_context_after_audio(patient_id, total)
             app.patient_service.update_context(patient_id, context)
+            app.rag_service.compute_rag_diagnosys(patient_id)
         else:
             pass
 
@@ -155,6 +156,7 @@ def process_rag(patient_id: int):
 
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):
+    # print('getting context for', patient_id)
     context = app.patient_service.get_context(patient_id)
     return jsonify({
         "context": context
@@ -162,13 +164,16 @@ def get_context(patient_id: int):
 
 @ajax.route("get_diagnostic/<int:patient_id>", methods=["GET"])
 def get_diagnostic(patient_id: int):
+    # print('getting diagnostic for', patient_id)
     diagnostic = app.patient_service.get_diagnostic(patient_id)
+    # print('diagnostic', diagnostic)
     return jsonify({
         'diagnostic': diagnostic
     })
 
 @ajax.route("get_related_documents/<int:patient_id>", methods=["GET"])
 def get_related_documents(patient_id: int):
+    # print('getting related documents for', patient_id)
     document_htmls: list[str] = []
     r_documents = app.patient_service.get_documents_proches(patient_id)
     for id, score in r_documents:
@@ -178,7 +183,7 @@ def get_related_documents(patient_id: int):
                 score=round(score * 100)
             )
         )
-
+    # print('related documents', document_htmls)
     return jsonify({
         "documents": document_htmls
     })
@@ -202,9 +207,9 @@ def get_related_cases(patient_id: int):
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):
-    print('updating', patient_id)
+    # print('updating', patient_id)
     data = request.get_json()
     context = data.get("context")
-    print('context', context)
+    # print('context', context)
     app.patient_service.update_context(patient_id, context)
     return "", 200

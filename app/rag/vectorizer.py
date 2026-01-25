@@ -62,9 +62,10 @@ class Vectorizer:
         self.model_name = model_name or os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
         try:
-            Vectorizer._model = SentenceTransformer(self.model_name, device="cpu")
+            Vectorizer._model = SentenceTransformer(self.model_name, device = None, trust_remote_code=True)
         except Exception as e:
             logger.error(f"Error loading embedding model '{self.model_name}': {e}")
+            print("ERROR LOADING MODEL")
             raise
 
         self.chunk_size = chunk_size
@@ -93,7 +94,7 @@ class Vectorizer:
             logger.info(f"Loading embedding model: {self.model_name}")
 
             try:
-                Vectorizer._model = SentenceTransformer(self.model_name, device="cpu")
+                Vectorizer._model = SentenceTransformer(self.model_name, device=None, trust_remote_code=True)
             except Exception as e:
                 logger.error(f"Error loading embedding model '{self.model_name}': {e}")
                 raise

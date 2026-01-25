@@ -39,7 +39,9 @@ logger = logging.getLogger(__name__)
 # TODO : When deploying to docker potentially copy the models to a specific path in the image.
 
 # Path to model artifacts in explore directory
-MODELS_PATH = pathlib.Path(__file__).resolve().parent.parent.parent / "explore"
+# root / app / rag / guardrail.py
+# into root / data
+MODELS_PATH = pathlib.Path(__file__).resolve().parent.parent.parent / "data"
 
 
 @dataclass
@@ -227,6 +229,7 @@ class GuardrailClassifier:
             return
 
         try:
+            print("PROUT : Loading guardrail model from", self._model_path)
             logger.info(f"Loading guardrail model from {self._model_path}")
 
             if not self._model_path.exists():
@@ -234,26 +237,18 @@ class GuardrailClassifier:
                     f"Model file not found: {self._model_path}. "
                     "Run explore/improved_guardrail_training.py first."
                 )
-
+            print("PROUT : Guardrail model file found.")
             GuardrailClassifier._model = joblib.load(self._model_path)
             GuardrailClassifier._scaler = joblib.load(self._scaler_path)
-
-            # Try to load saved feature extractor, fall back to creating new one
-            if self._feature_extractor_path.exists():
-                GuardrailClassifier._feature_extractor = joblib.load(
-                    self._feature_extractor_path
-                )
-            else:
-                logger.warning(
-                    "Feature extractor file not found, creating new instance"
-                )
-                GuardrailClassifier._feature_extractor = FeatureExtractor()
+            print("PROUT : Guardrail model and scaler loaded.")
+            # Create feature extractor (always create new instance since it's lightweight)
+            GuardrailClassifier._feature_extractor = FeatureExtractor()
 
             GuardrailClassifier._vectorizer = Vectorizer(model_name=self.embedding_model)
 
             self._loaded = True
             logger.info("Guardrail model loaded successfully")
-
+            print("Guardrail model loaded successfully")
         except Exception as e:
             logger.error(f"Failed to load guardrail model: {e}")
             raise
@@ -336,6 +331,7 @@ class GuardrailClassifier:
         logger.debug(
             f"Guardrail prediction: {result.label} (confidence: {result.confidence:.3f})"
         )
+        print(f"Guardrail prediction: {result.label} (confidence: {result.confidence:.3f})")
 
         return result
 

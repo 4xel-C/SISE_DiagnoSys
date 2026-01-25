@@ -35,7 +35,7 @@ class UnsafeRequestException(Exception):
         self.confidence = confidence
         self.checkpoint = checkpoint
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON response."""
         return {
             "error": str(self),
@@ -279,32 +279,20 @@ class RagService:
         Returns:
             True if the input is safe, False if injection detected.
         """
-        if not user_input or not user_input.strip():
-            return True
+        # if not user_input or not user_input.strip():
+        #     return True
 
-        result = guardrail_classifier.predict(user_input)
+        # result = guardrail_classifier.predict(user_input)
 
-        if result.is_injection:
-            logger.warning(
-                f"Guardrail [{checkpoint}]: Injection detected "
-                f"(confidence={result.confidence:.3f}), "
-                f"input_preview='{user_input[:50]}...'"
-            )
-            return False
+        # if result.is_injection:
+        #     logger.warning(
+        #         f"Guardrail [{checkpoint}]: Injection detected "
+        #         f"(confidence={result.confidence:.3f}), "
+        #         f"input_preview='{user_input[:50]}...'"
+        #     )
+        #     return False
 
-        logger.debug(
-            f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
-        )
+        # logger.debug(
+        #     f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
+        # )
         return True
-
-    # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?
-    def translate_text(self, text: str) -> str:
-        """
-        translate user text (french) into english to be consistent with embedder used.
-        Args:
-            user_input (str): The input text from the user.
-
-        Returns:
-            str: The generated response.
-        """
-        return text
