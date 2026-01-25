@@ -15,7 +15,6 @@ from .factory import ASRServiceFactory
 
 logger = logging.getLogger(__name__)
 
-
 ASRService = Type[ASRServiceBase]
 ASRAnswer = dict[str, str | bool]
 
@@ -275,5 +274,6 @@ class SherpaOnnxASRService(ASRServiceBase):
 # Note :
 # Here could add more ASR services like Kyutai, Vosk, etc.
 # Remember to add @ASRServiceFactory.register("service_name") decorator.
+# and to import them in app/asr/__init__.py
 # O.B
 # ============================================
