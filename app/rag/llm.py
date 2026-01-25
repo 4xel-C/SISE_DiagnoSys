@@ -28,6 +28,7 @@ from app.rag.llm_options import (
     PromptTemplate,
     SystemPromptTemplate,
 )
+from app.services import LLMUsageService
 
 load_dotenv()
 
@@ -77,8 +78,7 @@ class LLMHandler:
 
         self._client = None
         self.set_model(model)
-        self._total_usage = LLMUsage()
-        self._call_history: list[LLMUsage] = []
+        self._usage_service = LLMUsageService()
 
         logger.info(f"LLMHandler initialized with model: {model}")
 
@@ -277,35 +277,34 @@ class LLMHandler:
         prompt = PROMPT_TEMPLATES[template].format(**kwargs)
         return self.generate(prompt, SYSTEM_PROMPT[system_prompt])
 
-    def _track_usage(self, usage: LLMUsage) -> None:
-        """Track cumulative usage statistics."""
-        self._call_history.append(usage)
-        self._total_usage.input_tokens += usage.input_tokens
-        self._total_usage.output_tokens += usage.output_tokens
-        self._total_usage.total_tokens += usage.total_tokens
-        self._total_usage.cost_usd += usage.cost_usd
+    def _track_usage(self, usage: LLMUsage, success: bool = True) -> None:
+        """
+        Track usage statistics by recording to the database.
 
-    def get_total_usage(self) -> LLMUsage:
-        """Get cumulative usage statistics."""
-        return self._total_usage
+        Args:
+            usage: LLMUsage object with token counts and latency.
+            success: Whether the request was successful.
+        """
+        self._usage_service.record_usage(
+            model_name=self.model_name,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            response_time_ms=usage.latency_ms,
+            success=success,
+        )
 
-    def get_session_stats(self) -> dict:
-        """Get detailed session statistics."""
+    def get_total_usage(self) -> dict:
+        """Get cumulative usage statistics from database."""
+        return self._usage_service.get_summary()
+
+    def get_today_stats(self) -> dict:
+        """Get today's usage statistics."""
         return {
-            "total_calls": len(self._call_history),
-            "total_input_tokens": self._total_usage.input_tokens,
-            "total_output_tokens": self._total_usage.output_tokens,
-            "total_tokens": self._total_usage.total_tokens,
-            "total_cost_usd": self._total_usage.cost_usd,
+            "total_tokens": self._usage_service.get_total_tokens_today(),
+            "total_requests": self._usage_service.get_total_requests_today(),
             "current_model": self.model_name,
             "model_id": self.config.model.value,
         }
-
-    def reset_stats(self) -> None:
-        """Reset usage statistics."""
-        self._total_usage = LLMUsage()
-        self._call_history.clear()
-        logger.info("Usage statistics reset")
 
     @staticmethod
     def list_models() -> list[str]:
