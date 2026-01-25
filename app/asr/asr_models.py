@@ -2,7 +2,6 @@
 
 import logging
 import os
-import time
 import numpy as np
 from typing import Type
 

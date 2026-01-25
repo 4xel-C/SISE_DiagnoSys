@@ -11,7 +11,6 @@ Usage:
     python benchmark_models.py [--model MODEL_PATH] [--all]
 """
 
-import sys
 import pathlib
 import joblib
 import argparse

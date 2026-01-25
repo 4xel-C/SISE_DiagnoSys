@@ -13,7 +13,6 @@ Usage:
     python improved_guardrail_training.py --fast  # Quick mode with smaller samples
 """
 
-import sys
 import pathlib
 import joblib
 import random
