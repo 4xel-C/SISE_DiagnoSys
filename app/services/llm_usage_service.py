@@ -15,6 +15,7 @@ from datetime import date, timedelta
 
 from app.config import Database, db
 from app.models import LLMMetrics
+from app.rag import LLMUsage
 from app.schemas import LLMMetricsSchema
 
 logger = logging.getLogger(__name__)
@@ -194,19 +195,15 @@ class LLMUsageService:
     def record_usage(
         self,
         model_name: str,
-        input_tokens: int,
-        output_tokens: int,
-        response_time_ms: float,
+        usage: LLMUsage,
         success: bool = True,
     ) -> LLMMetricsSchema:
         """
         Record a new LLM usage. Updates today's record if exists, creates one otherwise.
 
         Args:
-            model_name (str): Name of the model used.
-            input_tokens (int): Number of input tokens.
-            output_tokens (int): Number of output tokens.
-            response_time_ms (float): Response time in milliseconds.
+            model (MistralModel): The model used.
+            usage (LLMUsage): Usage statistics including token counts and latency.
             success (bool): Whether the request was successful. Defaults to True.
 
         Returns:
@@ -214,15 +211,21 @@ class LLMUsageService:
 
         Example:
             >>> record = service.record_usage(
-            ...     "mistral-small",
-            ...     input_tokens=150,
-            ...     output_tokens=75,
-            ...     response_time_ms=250.5
+            ...     MistralModel.MISTRAL_SMALL,
+            ...     usage=LLMUsage(input_tokens=150, output_tokens=75, latency_ms=250.5),
+            ...     success=True
             ... )
         """
+
         logger.debug(f"Recording LLM usage for model={model_name}.")
         today = date.today()
 
+        input_tokens = usage.input_tokens
+        output_tokens = usage.output_tokens
+        response_time_ms = usage.latency_ms
+        success = success
+
+        # Connect to the db and record usage
         with self.db_manager.session() as session:
             # Check if record exists for today and this model
             record = (

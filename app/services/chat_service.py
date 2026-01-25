@@ -19,7 +19,7 @@ from typing import Optional
 from app.rag.llm import Message, llm_handler
 from app.rag.llm_options import SYSTEM_PROMPT, SystemPromptTemplate
 from app.schemas import PatientSchema
-from app.services import PatientService
+from app.services import LLMUsageService, PatientService
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,7 @@ class ChatService:
         patient: Optional[PatientSchema] = patient_service.get_by_id(patient_id)
 
         self.patient = patient
+        self.llm_usage_service = LLMUsageService()
 
         # Prepare the system prompt with patient details
         self.system_prompt = SYSTEM_PROMPT[SystemPromptTemplate.CONVERSATION].format(
@@ -85,6 +86,10 @@ class ChatService:
         # Add only the assistant response to history (no user message for greeting)
         self.history.append({"role": "assistant", "content": response.content})
 
+        self.llm_usage_service.record_usage(
+            model_name=response.model, usage=response.usage
+        )
+
         logger.debug(f"Initial greeting generated: {response.content[:50]}...")
 
     def send_message(self, message: str) -> str:
@@ -110,6 +115,10 @@ class ChatService:
         self.history.append({"role": "assistant", "content": response.content})
 
         logger.debug(f"Response received: {response.content[:50]}...")
+
+        self.llm_usage_service.record_usage(
+            model_name=response.model, usage=response.usage
+        )
 
         return response.content
 

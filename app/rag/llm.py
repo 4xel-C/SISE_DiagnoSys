@@ -28,7 +28,6 @@ from app.rag.llm_options import (
     PromptTemplate,
     SystemPromptTemplate,
 )
-from app.services import LLMUsageService
 
 load_dotenv()
 
@@ -78,7 +77,6 @@ class LLMHandler:
 
         self._client = None
         self.set_model(model)
-        self._usage_service = LLMUsageService()
 
         logger.info(f"LLMHandler initialized with model: {model}")
 
@@ -156,8 +154,6 @@ class LLMHandler:
             latency_ms=latency_ms,
         )
 
-        self._track_usage(usage)
-
         logger.debug(
             f"Response generated: {usage.total_tokens} tokens, "
             f"${usage.cost_usd:.6f}, {usage.latency_ms:.0f}ms"
@@ -232,8 +228,6 @@ class LLMHandler:
             latency_ms=latency_ms,
         )
 
-        self._track_usage(usage)
-
         logger.debug(
             f"Chat response generated: {usage.total_tokens} tokens, "
             f"${usage.cost_usd:.6f}, {usage.latency_ms:.0f}ms"
@@ -276,35 +270,6 @@ class LLMHandler:
 
         prompt = PROMPT_TEMPLATES[template].format(**kwargs)
         return self.generate(prompt, SYSTEM_PROMPT[system_prompt])
-
-    def _track_usage(self, usage: LLMUsage, success: bool = True) -> None:
-        """
-        Track usage statistics by recording to the database.
-
-        Args:
-            usage: LLMUsage object with token counts and latency.
-            success: Whether the request was successful.
-        """
-        self._usage_service.record_usage(
-            model_name=self.model_name,
-            input_tokens=usage.input_tokens,
-            output_tokens=usage.output_tokens,
-            response_time_ms=usage.latency_ms,
-            success=success,
-        )
-
-    def get_total_usage(self) -> dict:
-        """Get cumulative usage statistics from database."""
-        return self._usage_service.get_summary()
-
-    def get_today_stats(self) -> dict:
-        """Get today's usage statistics."""
-        return {
-            "total_tokens": self._usage_service.get_total_tokens_today(),
-            "total_requests": self._usage_service.get_total_requests_today(),
-            "current_model": self.model_name,
-            "model_id": self.config.model.value,
-        }
 
     @staticmethod
     def list_models() -> list[str]:

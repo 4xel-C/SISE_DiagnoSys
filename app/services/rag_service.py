@@ -2,7 +2,6 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from app.asr import ASRServiceBase, ASRServiceFactory
-
 from app.rag import (
     LLMHandler,
     PromptTemplate,
@@ -14,7 +13,7 @@ from app.rag import (
     patient_store,
 )
 from app.schemas import PatientSchema
-from app.services import DocumentService, PatientService
+from app.services import DocumentService, LLMUsageService, PatientService
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +57,7 @@ class RagService:
         patient_service: PatientService = PatientService(),
         document_service: DocumentService = DocumentService(),
         llm_handler: LLMHandler = llm_handler,
+        llm_usage_service: LLMUsageService = LLMUsageService(),
         asr_model: Optional[ASRServiceBase] = None,
     ):
         # save the instances of the core components
@@ -66,6 +66,7 @@ class RagService:
         self.patient_service = patient_service
         self.document_service = document_service
         self.llm_handler = llm_handler
+        self.llm_usage_service = llm_usage_service
         self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
 
     def transcribe_stream(self, audio_chunk: bytes) -> Dict[str, Any]:
@@ -116,6 +117,11 @@ class RagService:
             system_prompt=SystemPromptTemplate.CONTEXT_UPDATER,
             context=patient.contexte,
             audio=audio_input,
+        )
+
+        # save the metrics
+        self.llm_usage_service.record_usage(
+            model_name=new_context.model, usage=new_context.usage
         )
 
         if new_context.content:
@@ -225,6 +231,11 @@ class RagService:
             system_prompt=SystemPromptTemplate.DIAGNOSYS_ASSISTANT,
             context=context,
             documents_chunks=documents_chunks,
+        )
+
+        # Log the metrics
+        self.llm_usage_service.record_usage(
+            model_name=diagnosys_response.model, usage=diagnosys_response.usage
         )
 
         if diagnosys_response.content:
