@@ -1,0 +1,302 @@
+[
+    {
+        "query": "Le patient présente une toux grasse et une fièvre à 39 depuis 3 jours.",
+        "expected_doc": "Protocole de diagnostic des infections respiratoires aiguës et pneumonies.",
+        "category": "Pneumologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Douleur thoracique irradiant dans le bras gauche, sueurs et nausées.",
+        "expected_doc": "Prise en charge d'urgence du Syndrome Coronarien Aigu (SCA).",
+        "category": "Cardiologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Polyurie et polydipsie associées à une perte de poids inexpliquée.",
+        "expected_doc": "Critères de diagnostic et suivi du diabète de type 1 et 2.",
+        "category": "Endocrinologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Céphalées intenses avec photophobie et raideur de la nuque.",
+        "expected_doc": "Protocole de diagnostic et prise en charge des méningites.",
+        "category": "Neurologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Ictère, urines foncées et selles décolorées depuis une semaine.",
+        "expected_doc": "Diagnostic différentiel des ictères et explorations hépatobiliaires.",
+        "category": "Hépatologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Dyspnée aiguë avec sibilants diffus et tirage intercostal.",
+        "expected_doc": "Prise en charge de la crise d'asthme aiguë sévère.",
+        "category": "Pneumologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur abdominale intense localisée en fosse iliaque droite avec défense.",
+        "expected_doc": "Protocole de diagnostic et traitement de l'appendicite aiguë.",
+        "category": "Chirurgie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Hématurie macroscopique indolore chez un patient de 65 ans fumeur.",
+        "expected_doc": "Exploration des hématuries et dépistage des tumeurs vésicales.",
+        "category": "Urologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Perte de conscience brutale avec mouvements tonico-cloniques.",
+        "expected_doc": "Prise en charge de l'état de mal épileptique et crises généralisées.",
+        "category": "Neurologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur épigastrique à type de brûlure soulagée par l'alimentation.",
+        "expected_doc": "Diagnostic et traitement de l'ulcère gastroduodénal.",
+        "category": "Gastro-entérologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Éruption érythémateuse maculopapuleuse avec fièvre chez un enfant.",
+        "expected_doc": "Diagnostic différentiel des exanthèmes fébriles de l'enfant.",
+        "category": "Pédiatrie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Palpitations avec tachycardie irrégulière à 150 bpm et dyspnée.",
+        "expected_doc": "Prise en charge de la fibrillation auriculaire rapide.",
+        "category": "Cardiologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur lombo-abdominale irradiant vers les organes génitaux.",
+        "expected_doc": "Diagnostic et traitement de la colique néphrétique.",
+        "category": "Urologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Vomissements en jet avec hypotonie axiale chez un nourrisson.",
+        "expected_doc": "Diagnostic d'urgence de la sténose du pylore.",
+        "category": "Pédiatrie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Œdème des membres inférieurs bilatéral avec prise de poids rapide.",
+        "expected_doc": "Exploration de l'insuffisance cardiaque congestive.",
+        "category": "Cardiologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Vertiges rotatoires avec nausées et nystagmus horizontal.",
+        "expected_doc": "Diagnostic et prise en charge du vertige positionnel paroxystique bénin.",
+        "category": "ORL",
+        "severity": "vert"
+    },
+    {
+        "query": "Confusion mentale avec tremblements et sueurs chez un patient alcoolique.",
+        "expected_doc": "Prise en charge du delirium tremens et sevrage alcoolique.",
+        "category": "Psychiatrie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur au mollet unilatérale avec œdème et signe de Homans positif.",
+        "expected_doc": "Diagnostic et traitement de la thrombose veineuse profonde.",
+        "category": "Angiologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Arthralgies migratoires avec rash malaire et photosensibilité.",
+        "expected_doc": "Critères diagnostiques du lupus érythémateux systémique.",
+        "category": "Rhumatologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Dysphagie progressive aux solides puis aux liquides.",
+        "expected_doc": "Exploration des troubles de la déglutition et cancer œsophagien.",
+        "category": "Gastro-entérologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Purpura pétéchial avec fièvre et altération de l'état général.",
+        "expected_doc": "Prise en charge d'urgence du purpura fulminans et méningococcémie.",
+        "category": "Infectiologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur oculaire avec vision floue et halos colorés.",
+        "expected_doc": "Diagnostic et traitement du glaucome aigu par fermeture de l'angle.",
+        "category": "Ophtalmologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Toux chronique productive depuis plus de 3 mois chez un fumeur.",
+        "expected_doc": "Diagnostic de la bronchopneumopathie chronique obstructive (BPCO).",
+        "category": "Pneumologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Diarrhée sanglante avec ténesme et faux besoins.",
+        "expected_doc": "Exploration des colites inflammatoires et rectocolite hémorragique.",
+        "category": "Gastro-entérologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Faiblesse musculaire proximale symétrique progressive.",
+        "expected_doc": "Diagnostic des myopathies inflammatoires et polymyosites.",
+        "category": "Neurologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Saignement vaginal post-ménopausique.",
+        "expected_doc": "Exploration systématique des métrorragies post-ménopausiques.",
+        "category": "Gynécologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Douleur testiculaire aiguë avec testicule ascensionné.",
+        "expected_doc": "Prise en charge urgente de la torsion testiculaire.",
+        "category": "Urologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Hyperthermie, rigidité musculaire et confusion après prise de neuroleptiques.",
+        "expected_doc": "Diagnostic et traitement du syndrome malin des neuroleptiques.",
+        "category": "Psychiatrie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Toux sèche persistante avec dyspnée d'effort et crépitants bilatéraux.",
+        "expected_doc": "Diagnostic de la fibrose pulmonaire interstitielle.",
+        "category": "Pneumologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Céphalées pulsatiles unilatérales avec nausées et phonophobie.",
+        "expected_doc": "Prise en charge de la crise migraineuse et traitement de fond.",
+        "category": "Neurologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Polyarthrite symétrique des petites articulations avec raideur matinale.",
+        "expected_doc": "Critères diagnostiques de la polyarthrite rhumatoïde.",
+        "category": "Rhumatologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Brûlures rétrosternales ascendantes aggravées par le décubitus.",
+        "expected_doc": "Diagnostic et traitement du reflux gastro-œsophagien (RGO).",
+        "category": "Gastro-entérologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Anémie microcytaire avec pâleur et asthénie chez une femme en âge de procréer.",
+        "expected_doc": "Exploration d'une anémie ferriprive et carence martiale.",
+        "category": "Hématologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Dyspnée inspiratoire avec cornage et tirage sus-sternal chez un enfant.",
+        "expected_doc": "Prise en charge de la laryngite aiguë et croup.",
+        "category": "Pédiatrie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur aiguë du gros orteil avec rougeur et chaleur locale.",
+        "expected_doc": "Diagnostic et traitement de la crise de goutte aiguë.",
+        "category": "Rhumatologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Perte de poids involontaire avec adénopathies cervicales et sueurs nocturnes.",
+        "expected_doc": "Exploration des lymphomes et hémopathies malignes.",
+        "category": "Hématologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Douleur péri-ombilicale migrante vers la fosse iliaque droite.",
+        "expected_doc": "Sémiologie classique de l'appendicite aiguë.",
+        "category": "Chirurgie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Hypertension artérielle réfractaire chez un sujet jeune avec hypokaliémie.",
+        "expected_doc": "Diagnostic de l'hyperaldostéronisme primaire (syndrome de Conn).",
+        "category": "Endocrinologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Trémulations, nervosité et perte de poids malgré appétit conservé.",
+        "expected_doc": "Diagnostic de l'hyperthyroïdie et maladie de Basedow.",
+        "category": "Endocrinologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Diplopie et ptosis fluctuants aggravés en fin de journée.",
+        "expected_doc": "Diagnostic de la myasthénie auto-immune.",
+        "category": "Neurologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Écoulement nasal purulent unilatéral avec douleur faciale.",
+        "expected_doc": "Diagnostic et traitement de la sinusite maxillaire aiguë.",
+        "category": "ORL",
+        "severity": "vert"
+    },
+    {
+        "query": "Prurit généralisé intense sans lésion cutanée primaire.",
+        "expected_doc": "Exploration des prurits sine materia et causes systémiques.",
+        "category": "Dermatologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Anurie avec œdème généralisé et hypertension artérielle sévère.",
+        "expected_doc": "Prise en charge de l'insuffisance rénale aiguë.",
+        "category": "Néphrologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Scotome scintillant précédant une céphalée unilatérale.",
+        "expected_doc": "Diagnostic de la migraine avec aura visuelle.",
+        "category": "Neurologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Syndrome grippal avec myalgies diffuses et AEG chez une personne âgée.",
+        "expected_doc": "Prise en charge de la grippe saisonnière et complications.",
+        "category": "Infectiologie",
+        "severity": "jaune"
+    },
+    {
+        "query": "Bradycardie symptomatique avec lipothymies à répétition.",
+        "expected_doc": "Indications de la stimulation cardiaque définitive.",
+        "category": "Cardiologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur rétro-oculaire avec baisse brutale de l'acuité visuelle.",
+        "expected_doc": "Diagnostic de la névrite optique rétrobulbaire.",
+        "category": "Ophtalmologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Hoquet persistant résistant aux traitements usuels.",
+        "expected_doc": "Exploration d'un hoquet chronique et causes sous-jacentes.",
+        "category": "Gastro-entérologie",
+        "severity": "vert"
+    },
+    {
+        "query": "Épisode de paralysie flasque unilatérale résolutif en moins d'une heure.",
+        "expected_doc": "Prise en charge de l'accident ischémique transitoire (AIT).",
+        "category": "Neurologie",
+        "severity": "rouge"
+    },
+    {
+        "query": "Douleur périnéale avec dysurie et pollakiurie chez l'homme jeune.",
+        "expected_doc": "Diagnostic et traitement de la prostatite aiguë.",
+        "category": "Urologie",
+        "severity": "jaune"
+    }
+]
