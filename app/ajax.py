@@ -46,8 +46,6 @@ def audio_stt(ws) -> None:
 
         while True:
             # receive audio chunk
-            # TODO: Call stt_service with audio chunk
-            # and send transcribed string back to JS:
             data = ws.receive()
             if data is None:
                 break
@@ -59,29 +57,29 @@ def audio_stt(ws) -> None:
             ws.send(answer["text"])
             if answer["final"]:
                 total += " " + answer["text"]
-            print(answer)
+            print("ASR answer: %s", answer)
 
     except ConnectionClosed:
         pass
     finally:
-        # end per-websocket session and flush final result if supported
+        # End session and get final result
         if model and hasattr(model, "end_session"):
             try:
                 final = model.end_session()
                 if final and final.get("text"):
+                    total += " " + final.get("text")
                     try:
                         ws.send(final.get("text"))
                     except Exception:
                         pass
             except Exception:
                 pass
-        print("Audio stream ended")
-
+        # Update context with complete transcription
         if len(total.strip()) > 0:
             context = app.rag_service.update_context_after_audio(patient_id, total)
             app.patient_service.update_context(patient_id, context)
         else:
-            print("No transcription total available to update context.")
+            pass
 
 
 

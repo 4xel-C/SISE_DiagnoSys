@@ -2,6 +2,7 @@
 
 import logging
 import os
+import time
 import numpy as np
 from typing import Type
 
@@ -38,25 +39,29 @@ class SherpaOnnxASRService(ASRServiceBase):
     JOINER = f"{_model_path}/joiner.onnx"
     SAMPLE_RATE = 16000
 
-    CHUNK_SAMPLES = 320  # 20 ms frames at 16k
+    CHUNK_SAMPLES = 320  # 20 ms @ 16k
     _FFMPEG_CMD = [
-        "ffmpeg",
-        "-hide_banner",
-        "-loglevel",
-        "error",
-        "-i",
-        "pipe:0",
-        "-ac",
-        "1",
-        "-ar",
-        str(SAMPLE_RATE),
-        "-f",
-        "s16le",
-        "-codec:a",
-        "pcm_s16le",
-        "pipe:1",
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-i", "pipe:0", "-ac", "1", "-ar", str(SAMPLE_RATE),
+        "-f", "s16le", "-codec:a", "pcm_s16le", "pipe:1",
     ]
-    def __init__(self):
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._available = False
+        self._recognizer = None
+        self._stream = None
+        self._ffmpeg = None
+        self._reader_thread = None
+        self._pcm_buffer = bytearray()
+        self._last_text: str = ""
+        self._last_final: bool = False
+        self._session_active = False
+
+        # counters for diagnostics / safety
+        self._processed_frame_count: int = 0   # number of frames (CHUNK_SAMPLES) fed to recognizer
+        self._processed_bytes: int = 0         # number of raw PCM bytes fed to recognizer
+
         try:
             self._recognizer = sherpa_onnx.OnlineRecognizer.from_transducer(
                 tokens=self.TOKENS,
@@ -67,39 +72,27 @@ class SherpaOnnxASRService(ASRServiceBase):
                 sample_rate=self.SAMPLE_RATE,
                 feature_dim=80,
             )
-            self._stream = self._recognizer.create_stream() # type: ignore
-            # session-related attributes (initialized lazily per websocket session)
             self._available = True
-            self._ffmpeg = None
-            self._reader_thread = None
-            self._pcm_buffer = bytearray()
-            self._last_text = ""
-            self._last_final = False
-            self._lock = threading.Lock()
-            self._session_active = False
-
-            logger.debug("Sherpa ONNX recognizer initialized with tokens=%s", self.TOKENS)
-        except Exception as e:
-            logger.error("Failed to initialize Sherpa ONNX recognizer: %s", e)
+            logger.debug("Sherpa ONNX initialized")
+        except Exception:
+            logger.exception("Failed to initialize Sherpa ONNX")
             self._recognizer = None
-            self._stream = None
             self._available = False
 
     def _pcm16_to_float(self, pcm_bytes: bytes) -> np.ndarray:
-        # Accept bytes/bytearray/memoryview and convert to float32 samples
         if isinstance(pcm_bytes, memoryview):
             pcm_bytes = pcm_bytes.tobytes()
         elif isinstance(pcm_bytes, bytearray):
             pcm_bytes = bytes(pcm_bytes)
-
         if not pcm_bytes:
             return np.array([], dtype=np.float32)
 
         # length should be multiple of 2; caller ensures frames are full
         return np.frombuffer(pcm_bytes, dtype=np.int16).astype(np.float32) / 32768.0
 
-    def _start_ffmpeg_session(self):
-        # Start ffmpeg subprocess for this session and reader thread
+    def _start_ffmpeg_session(self) -> None:
+        if not self._recognizer:
+            return
         try:
             self._ffmpeg = subprocess.Popen(
                 self._FFMPEG_CMD,
@@ -113,161 +106,242 @@ class SherpaOnnxASRService(ASRServiceBase):
             self._ffmpeg = None
             return
 
-        self._session_active = True
+        # create a fresh recognizer stream for this session
+        try:
+            self._stream = self._recognizer.create_stream()  # type: ignore
+        except Exception:
+            logger.exception("Failed to create sherpa stream")
+            self._stream = None
+
         self._pcm_buffer = bytearray()
         self._last_text = ""
         self._last_final = False
+        self._session_active = True
+
+        # reset counters for this session
+        self._processed_frame_count = 0
+        self._processed_bytes = 0
+
         self._reader_thread = threading.Thread(target=self._ffmpeg_reader, daemon=True)
         self._reader_thread.start()
 
     def transcribe_stream(self, audio_chunk: bytes) -> ASRAnswer:
         if not self._available or self._recognizer is None:
-            logger.debug("Sherpa ONNX recognizer not available.")
             return {"text": "", "final": True}
-
-        # Expect caller to have started a session explicitly via start_session().
         if not self._session_active:
-            logger.debug("transcribe_stream called but no active session")
+            logger.debug("transcribe_stream called without active session")
             return {"text": "", "final": False}
 
-        # If caller sends an empty chunk, just return the latest partial (do not close ffmpeg here)
-        if isinstance(audio_chunk, (bytes, bytearray, memoryview)) and len(audio_chunk) == 0:
+        if isinstance(audio_chunk, memoryview):
+            audio_chunk = audio_chunk.tobytes()
+        elif isinstance(audio_chunk, bytearray):
+            audio_chunk = bytes(audio_chunk)
+
+        # empty chunk => just return last known partial/final
+        if not audio_chunk:
             with self._lock:
                 return {"text": self._last_text, "final": self._last_final}
 
-        # Feed encoded chunk to ffmpeg stdin
         try:
             if self._ffmpeg and self._ffmpeg.stdin:
-                if isinstance(audio_chunk, memoryview):
-                    audio_chunk = audio_chunk.tobytes()
-                elif isinstance(audio_chunk, bytearray):
-                    audio_chunk = bytes(audio_chunk)
-
                 try:
                     self._ffmpeg.stdin.write(audio_chunk)
                     self._ffmpeg.stdin.flush()
                 except BrokenPipeError:
-                    logger.exception("ffmpeg stdin broken pipe while writing chunk")
+                    logger.exception("BrokenPipe while writing to ffmpeg stdin")
         except Exception:
-            logger.exception("Error while writing to ffmpeg stdin for Sherpa ONNX")
+            logger.exception("Error writing to ffmpeg stdin")
 
         with self._lock:
             return {"text": self._last_text, "final": self._last_final}
 
     def start_session(self) -> None:
-        """Start ffmpeg/decoding session tied to a websocket connection."""
         if not self._available or self._recognizer is None:
-            logger.debug("Cannot start session: recognizer not available")
+            logger.debug("Cannot start session: recognizer unavailable")
             return
         if self._session_active:
             return
         self._start_ffmpeg_session()
 
     def end_session(self) -> ASRAnswer:
-        """End the active session, flush final result and cleanup."""
+        """End session and return final transcription."""
         if not self._session_active:
+            logger.debug("not self._session_active", not self._session_active)
             with self._lock:
                 return {"text": self._last_text, "final": self._last_final}
-
+        
+        # 1. Stop accepting new audio
+        self._session_active = False
+        
+        # 2. Close ffmpeg stdin to signal EOF
         try:
+            logger.debug("self._ffmpeg and self._ffmpeg.stdin %s", self._ffmpeg and self._ffmpeg.stdin)
             if self._ffmpeg and self._ffmpeg.stdin:
-                try:
-                    self._ffmpeg.stdin.close()
-                except Exception:
-                    logger.exception("Error closing ffmpeg stdin during end_session")
-
-            if self._reader_thread:
-                self._reader_thread.join(timeout=2.0)
+                self._ffmpeg.stdin.close()
         except Exception:
-            logger.exception("Error while ending ffmpeg session")
-
+            logger.exception("Error closing ffmpeg stdin")
+        
+        # 3. Wait for reader thread to process remaining data
+        reader = self._reader_thread
+        if reader and reader.is_alive():
+            reader.join(timeout=5.0)
+        
+        # 4. If reader already finalized, return that result
         with self._lock:
-            text = self._last_text
-            final = self._last_final
+            if self._last_final:
+                self._cleanup()
+                return {"text": self._last_text, "final": True}
+        
+        # 5. Manual flush if reader didn't finalize
+        try:
+            if self._stream and self._recognizer:
+                # Signal input is finished
+                self._stream.input_finished()
+                
+                # Decode remaining frames
+                while self._recognizer.is_ready(self._stream):
+                    self._recognizer.decode_stream(self._stream)
+                
+                # Get final result
+                res = self._recognizer.get_result(self._stream)
+                final_text = getattr(res, "text", "").strip()
+                
+                with self._lock:
+                    if final_text:
+                        self._last_text = final_text
+                    self._last_final = True
+        except Exception:
+            logger.exception("Error during manual flush")
+        
+        # 6. Cleanup and return
+        with self._lock:
+            result = {"text": self._last_text, "final": True}
+        
+        self._cleanup()
+        return result
 
-        # Cleanup ffmpeg handles
+    def _cleanup(self) -> None:
+        """Clean up resources after session ends."""
         try:
             if self._ffmpeg:
-                try:
-                    if self._ffmpeg.stdout:
-                        self._ffmpeg.stdout.close()
-                except Exception:
-                    pass
-                try:
-                    if self._ffmpeg.stderr:
-                        self._ffmpeg.stderr.close()
-                except Exception:
-                    pass
-                try:
-                    if self._ffmpeg.poll() is None:
-                        self._ffmpeg.kill()
-                except Exception:
-                    pass
-        finally:
+                for stream in (self._ffmpeg.stdout, self._ffmpeg.stderr):
+                    if stream:
+                        try:
+                            stream.close()
+                        except Exception:
+                            pass
+                if self._ffmpeg.poll() is None:
+                    self._ffmpeg.kill()
             self._ffmpeg = None
             self._reader_thread = None
-            self._session_active = False
-
-        return {"text": text, "final": final}
+            self._stream = None
+        except Exception:
+            logger.exception("Error during cleanup")
 
     def is_available(self) -> bool:
         return bool(self._available)
 
-    def _ffmpeg_reader(self):
-        # Read raw PCM bytes from ffmpeg.stdout, buffer until we have full frames,
-        # convert to float samples and feed into sherpa recognizer.
-        frame_bytes = self.CHUNK_SAMPLES * 2
-        try:
-            stdout = self._ffmpeg.stdout if self._ffmpeg else None
-            if stdout is None:
-                return
+    def _ffmpeg_reader(self) -> None:
+        if self._ffmpeg is None or self._ffmpeg.stdout is None:
+            return
 
+        frame_bytes = self.CHUNK_SAMPLES * 2
+        stdout = self._ffmpeg.stdout
+
+        try:
             while True:
                 data = stdout.read(4096)
                 if not data:
                     break
 
-                # append data to pcm buffer
+                # accept only bytes-like, keep 16-bit alignment
+                if not isinstance(data, (bytes, bytearray, memoryview)):
+                    logger.warning("ffmpeg reader: unexpected data type %s", type(data))
+                    continue
+                if isinstance(data, memoryview):
+                    data = data.tobytes()
+
                 self._pcm_buffer.extend(data)
 
-                # while we have at least one full frame, process it
+                # alignment check: must be even (16-bit samples)
+                if len(self._pcm_buffer) % 2 != 0:
+                    logger.debug("Dropping odd trailing byte from pcm buffer (len=%d)", len(self._pcm_buffer))
+                    self._pcm_buffer = self._pcm_buffer[:-1]
+
+                # process full CHUNK_SAMPLES frames only
                 while len(self._pcm_buffer) >= frame_bytes:
                     frame = bytes(self._pcm_buffer[:frame_bytes])
-                    # remove processed bytes
                     del self._pcm_buffer[:frame_bytes]
+
+                    # quick validation of frame content/size before handing to model
+                    if not frame or len(frame) != frame_bytes:
+                        logger.warning("Skipping malformed frame (len=%d expected=%d)", len(frame), frame_bytes)
+                        continue
 
                     try:
                         audio = self._pcm16_to_float(frame)
-                        self._stream.accept_waveform(self.SAMPLE_RATE, audio)
-                    except Exception:
-                        logger.exception("Error accepting waveform into Sherpa stream")
+                        if audio.size != self.CHUNK_SAMPLES:
+                            logger.warning("Skipping frame with unexpected sample count %d (expected=%d)",
+                                           audio.size, self.CHUNK_SAMPLES)
+                            continue
 
-                    # decode if ready and store partial result
+                        if self._stream:
+                            try:
+                                self._stream.accept_waveform(self.SAMPLE_RATE, audio)
+                            except Exception:
+                                logger.exception("accept_waveform failed; skipping frame")
+                                continue
+
+                        # update counters
+                        self._processed_frame_count += 1
+                        self._processed_bytes += frame_bytes
+                    except Exception:
+                        logger.exception("Error converting pcm frame to float; skipping frame")
+                        continue
+
+                    # decode as long as recognizer is ready; defend against sherpa native GetFrames issues
                     try:
-                        while self._recognizer.is_ready(self._stream):
+                        while self._recognizer and self._stream and self._recognizer.is_ready(self._stream):
                             self._recognizer.decode_stream(self._stream)
                             res = self._recognizer.get_result(self._stream)
                             text = getattr(res, "text", str(res) if res else "")
                             with self._lock:
                                 self._last_text = text
                                 self._last_final = False
-                    except Exception:
-                        logger.exception("Error decoding Sherpa stream in reader thread")
+                    except Exception as e:
+                        msg = str(e)
+                        # treat sherpa GetFrames complaints as unrecoverable for this session:
+                        if "GetFrames" in msg:
+                            logger.warning(
+                                "Sherpa reported GetFrames issue: %s | frames=%d bytes=%d pcm_remain=%d",
+                                msg, self._processed_frame_count, self._processed_bytes, len(self._pcm_buffer),
+                            )
+                            with self._lock:
+                                self._last_final = True
+                            return
+                        logger.exception("Error decoding sherpa stream")
 
-            # EOF reached, flush final result
+            # EOF reached: flush final result (reader owns this)
             try:
                 if self._recognizer and self._stream:
-                    self._recognizer.decode_stream(self._stream)
+                    # Signal that input is finished
+                    self._stream.input_finished()
+                    
+                    # Decode remaining frames
+                    while self._recognizer.is_ready(self._stream):
+                        self._recognizer.decode_stream(self._stream)
+                    
                     res = self._recognizer.get_result(self._stream)
-                    text = getattr(res, "text", str(res) if res else "")
+                    text = getattr(res, "text", "").strip()
                     with self._lock:
-                        self._last_text = text
+                        if text:
+                            self._last_text = text
                         self._last_final = True
+                    logger.info("Reader finalized: %s", text)
             except Exception:
-                logger.exception("Error flushing Sherpa stream after EOF")
-
+                logger.exception("Error flushing final result")
         except Exception:
-            logger.exception("FFmpeg reader thread crashed")
+            logger.exception("FFmpeg reader crashed")
 
 
 # ============================================
