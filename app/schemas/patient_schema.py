@@ -166,7 +166,7 @@ class PatientSchema(BaseModel):
                     last_name=self.nom,
                     initials=self.initials,
                     # date=self.created_at,
-                    **kwargs
+                    **kwargs,
                 )
             case _:
                 raise ValueError(

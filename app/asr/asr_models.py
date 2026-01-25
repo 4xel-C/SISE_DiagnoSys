@@ -24,12 +24,14 @@ ASRAnswer = dict[str, str | bool]
 # suitable for deployment
 # ============================================
 
+
 @ASRServiceFactory.register("sherpa_onnx")
 class SherpaOnnxASRService(ASRServiceBase):
     """
     Sherpa ONNX ASR Service implementation.
     Uses the Sherpa ONNX model for speech recognition.
     """
+
     # Paths to model files
     _model_path = os.getenv("SHERPA_NCNN_MODEL_PATH", "data/sherpa-onnx")
     TOKENS = f"{_model_path}/tokens.txt"
@@ -40,9 +42,21 @@ class SherpaOnnxASRService(ASRServiceBase):
 
     CHUNK_SAMPLES = 320  # 20 ms @ 16k
     _FFMPEG_CMD = [
-        "ffmpeg", "-hide_banner", "-loglevel", "error",
-        "-i", "pipe:0", "-ac", "1", "-ar", str(SAMPLE_RATE),
-        "-f", "s16le", "-codec:a", "pcm_s16le", "pipe:1",
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-i",
+        "pipe:0",
+        "-ac",
+        "1",
+        "-ar",
+        str(SAMPLE_RATE),
+        "-f",
+        "s16le",
+        "-codec:a",
+        "pcm_s16le",
+        "pipe:1",
     ]
 
     def __init__(self) -> None:
@@ -58,8 +72,10 @@ class SherpaOnnxASRService(ASRServiceBase):
         self._session_active = False
 
         # counters for diagnostics / safety
-        self._processed_frame_count: int = 0   # number of frames (CHUNK_SAMPLES) fed to recognizer
-        self._processed_bytes: int = 0         # number of raw PCM bytes fed to recognizer
+        self._processed_frame_count: int = (
+            0  # number of frames (CHUNK_SAMPLES) fed to recognizer
+        )
+        self._processed_bytes: int = 0  # number of raw PCM bytes fed to recognizer
 
         # Trying to initialize sherpa_onnx recognizer
         try:
@@ -188,7 +204,6 @@ class SherpaOnnxASRService(ASRServiceBase):
         with self._lock:
             return {"text": self._last_text, "final": self._last_final}
 
-
     def start_session(self) -> None:
         """Start a new transcription session."""
         # if recognizer is not available, do nothing
@@ -207,23 +222,26 @@ class SherpaOnnxASRService(ASRServiceBase):
         if not self._session_active:
             with self._lock:
                 return {"text": self._last_text, "final": self._last_final}
-        
+
         # 1. Stop accepting new audio
         self._session_active = False
-        
+
         # 2. Close ffmpeg stdin to signal EOF
         try:
-            logger.debug("self._ffmpeg and self._ffmpeg.stdin %s", self._ffmpeg and self._ffmpeg.stdin)
+            logger.debug(
+                "self._ffmpeg and self._ffmpeg.stdin %s",
+                self._ffmpeg and self._ffmpeg.stdin,
+            )
             if self._ffmpeg and self._ffmpeg.stdin:
                 self._ffmpeg.stdin.close()
         except Exception:
             logger.exception("Error closing ffmpeg stdin")
-        
+
         # 3. Wait for reader thread to process remaining data
         reader = self._reader_thread
         if reader and reader.is_alive():
             reader.join(timeout=5.0)
-        
+
         # 4. If reader already finalized, return that result
         with self._lock:
             if self._last_final:
@@ -311,7 +329,10 @@ class SherpaOnnxASRService(ASRServiceBase):
 
                 # alignment check: must be even (16-bit samples)
                 if len(self._pcm_buffer) % 2 != 0:
-                    logger.debug("Dropping odd trailing byte from pcm buffer (len=%d)", len(self._pcm_buffer))
+                    logger.debug(
+                        "Dropping odd trailing byte from pcm buffer (len=%d)",
+                        len(self._pcm_buffer),
+                    )
                     self._pcm_buffer = self._pcm_buffer[:-1]
 
                 # process full CHUNK_SAMPLES frames only
@@ -321,23 +342,32 @@ class SherpaOnnxASRService(ASRServiceBase):
 
                     # quick validation of frame content/size before handing to model
                     if not frame or len(frame) != frame_bytes:
-                        logger.warning("Skipping malformed frame (len=%d expected=%d)", len(frame), frame_bytes)
+                        logger.warning(
+                            "Skipping malformed frame (len=%d expected=%d)",
+                            len(frame),
+                            frame_bytes,
+                        )
                         continue
 
                     try:
                         # convert pcm16 frame to float32 numpy array
                         audio = self._pcm16_to_float(frame)
                         if audio.size != self.CHUNK_SAMPLES:
-                            logger.warning("Skipping frame with unexpected sample count %d (expected=%d)",
-                                           audio.size, self.CHUNK_SAMPLES)
+                            logger.warning(
+                                "Skipping frame with unexpected sample count %d (expected=%d)",
+                                audio.size,
+                                self.CHUNK_SAMPLES,
+                            )
                             continue
 
                         # feed audio frame to sherpa stream
                         if self._stream:
                             try:
-                                self._stream.accept_waveform(self.SAMPLE_RATE, audio) # type: ignore
+                                self._stream.accept_waveform(self.SAMPLE_RATE, audio)  # type: ignore
                             except Exception:
-                                logger.exception("accept_waveform failed; skipping frame")
+                                logger.exception(
+                                    "accept_waveform failed; skipping frame"
+                                )
                                 continue
 
                         # update counters
@@ -345,12 +375,18 @@ class SherpaOnnxASRService(ASRServiceBase):
                         self._processed_bytes += frame_bytes
 
                     except Exception:
-                        logger.exception("Error converting pcm frame to float; skipping frame")
+                        logger.exception(
+                            "Error converting pcm frame to float; skipping frame"
+                        )
                         continue
 
                     # decode as long as recognizer is ready; defend against sherpa native GetFrames issues
                     try:
-                        while self._recognizer and self._stream and self._recognizer.is_ready(self._stream):
+                        while (
+                            self._recognizer
+                            and self._stream
+                            and self._recognizer.is_ready(self._stream)
+                        ):
                             self._recognizer.decode_stream(self._stream)
                             res = self._recognizer.get_result(self._stream)
                             text = getattr(res, "text", str(res) if res else "")
@@ -363,7 +399,10 @@ class SherpaOnnxASRService(ASRServiceBase):
                         if "GetFrames" in msg:
                             logger.warning(
                                 "Sherpa reported GetFrames issue: %s | frames=%d bytes=%d pcm_remain=%d",
-                                msg, self._processed_frame_count, self._processed_bytes, len(self._pcm_buffer),
+                                msg,
+                                self._processed_frame_count,
+                                self._processed_bytes,
+                                len(self._pcm_buffer),
                             )
                             with self._lock:
                                 self._last_final = True
@@ -375,11 +414,11 @@ class SherpaOnnxASRService(ASRServiceBase):
                 if self._recognizer and self._stream:
                     # Signal that input is finished
                     self._stream.input_finished()
-                    
+
                     # Decode remaining frames
                     while self._recognizer.is_ready(self._stream):
                         self._recognizer.decode_stream(self._stream)
-                    
+
                     # Get final result
                     res = self._recognizer.get_result(self._stream)
                     text = getattr(res, "text", "").strip()

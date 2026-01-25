@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 
+
 class ASRServiceBase(ABC):
     """
     Abstract base class for ASR services.

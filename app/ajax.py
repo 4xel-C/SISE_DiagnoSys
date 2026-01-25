@@ -26,7 +26,6 @@ sock = Sock()
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
-
     patient_id = request.args.get("patient_id", type=int)
     total: str = ""
 
@@ -83,15 +82,15 @@ def audio_stt(ws) -> None:
             pass
 
 
-
 # ---------------
 # RENDER POPUP
+
 
 @ajax.route("custom_popup", methods=["GET"])
 def custom_popup():
     params = request.args.to_dict()
     print(params)
-    return render_template('elements/custom_popup.html', **params)
+    return render_template("elements/custom_popup.html", **params)
 
 
 # ---------------
@@ -133,20 +132,22 @@ def process_rag(patient_id: int):
         abort(404, e)
 
     document_htmls: list[str] = []
-    for document_id, document_score in rag_result['related_documents']:
+    for document_id, document_score in rag_result["related_documents"]:
         document = app.document_service.get_by_id(document_id)
         document_htmls.append(document.render(score=document_score))
 
     case_htmls: list[str] = []
-    for patient_id, patient_score in rag_result['related_patients']:
+    for patient_id, patient_score in rag_result["related_patients"]:
         patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render(style='case', score=patient_score))
+        case_htmls.append(patient.render(style="case", score=patient_score))
 
-    return jsonify({
-        "diagnostics": rag_result.get("diagnosys"),
-        "documents": document_htmls,
-        "cases": case_htmls,
-    })
+    return jsonify(
+        {
+            "diagnostics": rag_result.get("diagnosys"),
+            "documents": document_htmls,
+            "cases": case_htmls,
+        }
+    )
 
 
 # ---------------
@@ -156,55 +157,42 @@ def process_rag(patient_id: int):
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):
     context = app.patient_service.get_context(patient_id)
-    return jsonify({
-        "context": context
-    })
+    return jsonify({"context": context})
+
 
 @ajax.route("get_diagnostic/<int:patient_id>", methods=["GET"])
 def get_diagnostic(patient_id: int):
     diagnostic = app.patient_service.get_diagnostic(patient_id)
-    return jsonify({
-        'diagnostic': diagnostic
-    })
+    return jsonify({"diagnostic": diagnostic})
+
 
 @ajax.route("get_related_documents/<int:patient_id>", methods=["GET"])
 def get_related_documents(patient_id: int):
     document_htmls: list[str] = []
     r_documents = app.patient_service.get_documents_proches(patient_id)
     for id, score in r_documents:
-        document = app.document_service.get_by_id(id) #type: ignore
-        document_htmls.append(
-            document.render(
-                score=round(score * 100)
-            )
-        )
+        document = app.document_service.get_by_id(id)  # type: ignore
+        document_htmls.append(document.render(score=round(score * 100)))
 
-    return jsonify({
-        "documents": document_htmls
-    })
+    return jsonify({"documents": document_htmls})
+
 
 @ajax.route("get_related_cases/<int:patient_id>", methods=["GET"])
 def get_related_cases(patient_id: int):
     case_htmls: list[str] = []
     r_patients = app.patient_service.get_patients_proches(patient_id)
     for id, score in r_patients:
-        patient = app.patient_service.get_by_id(id) #type: ignore
-        case_htmls.append(
-            patient.render(
-                style='case', 
-                score=round(score * 100)
-            )
-        )
-        
-    return jsonify({
-        "cases": case_htmls
-    })
+        patient = app.patient_service.get_by_id(id)  # type: ignore
+        case_htmls.append(patient.render(style="case", score=round(score * 100)))
+
+    return jsonify({"cases": case_htmls})
+
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):
-    print('updating', patient_id)
+    print("updating", patient_id)
     data = request.get_json()
     context = data.get("context")
-    print('context', context)
+    print("context", context)
     app.patient_service.update_context(patient_id, context)
     return "", 200

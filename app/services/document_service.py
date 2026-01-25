@@ -196,9 +196,9 @@ class DocumentService:
                 logger.error(f"Document with id={document_id} not found for update.")
                 raise ValueError(f"Document with id={document_id} not found.")
 
-            document.titre = titre  # type: ignore
-            document.contenu = contenu  # type: ignore
-            document.url = url  # type: ignore
+            document.titre = titre
+            document.contenu = contenu
+            document.url = url
             session.commit()
             logger.info(f"Updated document: {document}")
 

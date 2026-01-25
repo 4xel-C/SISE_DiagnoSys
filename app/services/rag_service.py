@@ -1,10 +1,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from app.asr import (
-    ASRServiceBase,
-    ASRServiceFactory
-)
+from app.asr import ASRServiceBase, ASRServiceFactory
 
 from app.rag import (
     LLMHandler,
@@ -129,7 +126,9 @@ class RagService:
             raise LLMGenerationException("Failed to generate updated context")
 
         # Checkpoint 2: Check synthesized context before storing/embedding
-        if not self.is_pertinent_and_secure(new_context, checkpoint="synthesized_context"):
+        if not self.is_pertinent_and_secure(
+            new_context, checkpoint="synthesized_context"
+        ):
             logger.warning(
                 "Synthesized context failed guardrail check, stopping context update"
             )
@@ -267,8 +266,10 @@ class RagService:
 
         return unique_document_chunks
 
-    # TODO : Add pertinency check with a classifier to avoid useless calls to the llm 
-    def is_pertinent_and_secure(self, user_input: str, checkpoint: str = "raw_input") -> bool:
+    # TODO : Add pertinency check with a classifier to avoid useless calls to the llm
+    def is_pertinent_and_secure(
+        self, user_input: str, checkpoint: str = "raw_input"
+    ) -> bool:
         """
         Check if user input is safe from prompt injection attacks.
 

@@ -10,6 +10,7 @@ like Gunicorn or Waitress with the app instance from app/__init__.py
 
 import os
 import sys
+
 venv_ort = os.path.join(sys.prefix, "Lib", "site-packages", "onnxruntime", "capi")
 if os.path.isdir(venv_ort):
     os.add_dll_directory(venv_ort)

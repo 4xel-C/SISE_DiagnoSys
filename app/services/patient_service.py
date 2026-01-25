@@ -182,8 +182,8 @@ class PatientService:
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
             logger.debug(f"Retrieved context for patient id={patient_id}.")
-            return patient.contexte if patient.contexte else ""  # type: ignore
-        
+            return patient.contexte if patient.contexte else ""
+
     def get_diagnostic(self, patient_id: int) -> str:
         """
         Retrieve the diagnostic field of a patient.
@@ -207,7 +207,7 @@ class PatientService:
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
             logger.debug(f"Retrieved diagnostic for patient id={patient_id}.")
-            return patient.diagnostic if patient.diagnostic else ""  # type: ignore
+            return patient.diagnostic if patient.diagnostic else ""
 
     def get_documents_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
         """
@@ -404,7 +404,7 @@ class PatientService:
                 )
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient.contexte = new_context  # type: ignore
+            patient.contexte = new_context
             session.commit()
             logger.info(f"Updated context for patient id={patient_id}.")
             patient = PatientSchema.model_validate(patient)
@@ -445,7 +445,7 @@ class PatientService:
                 )
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient.diagnostic = new_diagnosys  # type: ignore
+            patient.diagnostic = new_diagnosys
             session.commit()
             logger.info(f"Updated diagnosys for patient id={patient_id}.")
             patient = PatientSchema.model_validate(patient)
