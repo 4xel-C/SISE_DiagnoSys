@@ -46,6 +46,7 @@ def audio_stt(ws) -> None:
         while True:
             # receive audio chunk
             data = ws.receive()
+            print(type(data))
             if data is None:
                 break
 

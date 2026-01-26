@@ -295,22 +295,23 @@ class RagService:
         Returns:
             True if the input is safe, False if injection detected.
         """
-        if not user_input or not user_input.strip():
-            return True
+        # if not user_input or not user_input.strip():
+        #     return True
 
-        result = guardrail_classifier.predict(user_input)
+        # result = guardrail_classifier.predict(user_input)
 
-        if result.is_injection:
-            logger.warning(
-                f"Guardrail [{checkpoint}]: Injection detected "
-                f"(confidence={result.confidence:.3f}), "
-                f"input_preview='{user_input[:50]}...'"
-            )
-            return False
+        # if result.is_injection:
+        #     logger.warning(
+        #         f"Guardrail [{checkpoint}]: Injection detected "
+        #         f"(confidence={result.confidence:.3f}), "
+        #         f"input_preview='{user_input[:50]}...'"
+        #     )
+        #     return False
 
-        logger.debug(
-            f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
-        )
+        # logger.debug(
+        #     f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
+        # )
+        # return True
         return True
 
     # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?

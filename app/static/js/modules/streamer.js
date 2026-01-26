@@ -39,5 +39,6 @@ export async function startAudioStream(patientId) {
 
 
 export function stopAudioStream() {
+    // socket.send('stop');
     mediaRecorder.stop();
 }
