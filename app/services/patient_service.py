@@ -232,6 +232,7 @@ class PatientService:
         # Get the patient to retrive the context.
         with self.db_manager.session() as session:
             patient = session.query(Patient).filter_by(id=patient_id).first()
+            print("patient :", patient)
 
             if not patient:
                 raise ValueError(f"Patient with id={patient_id} not found.")
@@ -242,7 +243,7 @@ class PatientService:
             patient_content,
             n_results=5,
         )
-
+        print("doc chunks : ", document_chunks)
         # seens document id:
         document_ids = list()
         similarity_scores = list()
@@ -256,6 +257,7 @@ class PatientService:
                 document_ids.append(doc_id)
                 similarity_scores.append(chunk["similarity"])
 
+        print(list(zip(document_ids, similarity_scores)))
         return list(zip(document_ids, similarity_scores))
 
     def get_patients_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:

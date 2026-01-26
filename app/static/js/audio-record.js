@@ -11,10 +11,7 @@ const shortcuts = new Map([
     ['Shift+Space', toggleMic]
 ]);
 
-
-
-
-
+const POST_PROCESS_DELAY_SECONDS = 3;
 
 function createWaveformDrawer(stream, canvas) {
     const audioCtx = new AudioContext();
@@ -105,10 +102,31 @@ async function stop(patientId) {
     main.classList.remove('streaming');
     // Dispatch event
     document.dispatchEvent(
-        new CustomEvent('audioRecordStoped', {
+        new CustomEvent('audioRecordStopped', {
             detail: { patientId }
         })
     );
+
+    // Call the server endpoint exactly X seconds after stop() was called
+    if (patientId != null) {
+        setTimeout(async () => {
+            try {
+                const resp = await fetch(`ajax/process_rag/${patientId}`, { method: 'POST' });
+                if (resp.ok) {
+                    // let any listeners update UI (patient.js will refresh)
+                    document.dispatchEvent(
+                        new CustomEvent('ragPostProcessingDone', {
+                            detail: { patientId }
+                        })
+                    );
+                } else {
+                    console.error('process_rag failed', resp.status);
+                }
+            } catch (err) {
+                console.error('process_rag error', err);
+            }
+        }, POST_PROCESS_DELAY_SECONDS * 1000);
+    }
 }
 
 function toggleMic() {
@@ -120,13 +138,6 @@ function toggleMic() {
         start(patientId);
     }
 }
-
-
-
-
-
-
-
 
 window.addEventListener('keydown', (event) => {
     const combo = normalizeCombo(event);

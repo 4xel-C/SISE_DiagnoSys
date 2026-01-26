@@ -164,3 +164,12 @@ document.addEventListener('patientRendered', (e) => {
     renderDocuments(patientId);
 });
 
+// On RAG processing done
+document.addEventListener('ragPostProcessingDone', (e) => {
+    const patientId = e.detail.patientId;
+    // Reuse existing render helpers
+    renderContext(patientId);
+    renderDiagnostics(patientId);
+    renderDocuments(patientId);
+    renderCases(patientId);
+});
