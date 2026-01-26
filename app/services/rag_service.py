@@ -185,8 +185,14 @@ class RagService:
 
         # ================================================================ Diagnosys generation
         # Checkpoint 3: Check patient context before diagnosis LLM call
-        if patient.contexte and not self.is_pertinent_and_secure(
-            patient.contexte, checkpoint="pre_diagnosis"
+        context_text = patient.contexte if patient.contexte else ""
+        context_text += (
+            (" " + patient.symptomes_exprimes) if patient.symptomes_exprimes else ""
+        )
+        context_text += (" " + patient.type_maladie) if patient.type_maladie else ""
+
+        if context_text and not self.is_pertinent_and_secure(
+            context_text, checkpoint="pre_diagnosis"
         ):
             logger.warning(
                 f"Patient context failed guardrail check before diagnosis, "
@@ -198,9 +204,7 @@ class RagService:
             )
 
         diagnosys_text = self.generate_diagnosys(
-            context=patient.contexte
-            if patient.contexte
-            else "Pas de contexte disponible.",
+            context=context_text if context_text else "Pas de contexte disponible.",
             documents_chunks=chunk_text,
         )
 
