@@ -20,4 +20,5 @@ dependencies = [
     "gevent-websocket>=0.10.1",
     "pandas>=3.0.0",
     "sherpa-onnx>=1.12.23",
+    "tiktoken>=0.12.0",
 ]

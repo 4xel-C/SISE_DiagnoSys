@@ -47,7 +47,7 @@ def audio_stt(ws) -> None:
     while True:
         # receive audio chunk
         data = ws.receive()
-        if data == 'stop':
+        if data == "stop":
             break
 
         # transcribe chunk
@@ -71,10 +71,9 @@ def audio_stt(ws) -> None:
     # Update context with complete transcription
     if len(total.strip()) > 0:
         # print("Final ASR transcription:", total)
-        context = app.rag_service.update_context_after_audio(patient_id, total)
-        app.patient_service.update_context(patient_id, context)
+        app.rag_service.update_context_after_audio(patient_id, total)
 
-    ws.send('done')
+    ws.send("done")
 
 
 # ---------------
