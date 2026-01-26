@@ -11,7 +11,38 @@ main .patient {
         background-color: var(--bg-second-color);
         border-radius: var(--border-radius);
         border: solid 1px var(--border-color);
-        padding: 1rem;
+        overflow: hidden;
+
+        .title {
+            padding: 0.4rem 1rem;
+            border-bottom: solid 1px var(--border-color);
+            background-color: var(--bg-frame-color);
+        }
+
+        ul.nav {
+            padding: 0.4rem 1rem 0;
+            border-bottom: solid 1px var(--border-color);
+            background-color: var(--bg-frame-color);
+
+            > li {
+                display: inline-block;
+                margin-right: 1rem;
+                padding-bottom: calc(.4rem - 2px);
+                border-bottom: solid 2px var(--bg-frame-color);
+
+                h2 {
+                    color: var(--text-second-color);
+                }
+            }
+        }
+
+        ul.nav > li.selected {
+            border-bottom: solid 2px var(--accent-color);
+
+            h2 {
+                color: var(--text-color);
+            }
+        }
     }
     .frame.waiting {
         background-color: var(--bg-second-color);
@@ -19,16 +50,30 @@ main .patient {
         border-color: var(--bg-second-color);
 
         > * {
-            display: none;
+            display: none !important;
         }
     }
 
-    .frame.context {
+    .frame .tab {
+        display: none;
+    }
+    .frame .tab.active {
+        display: block;
+    }
+
+    .frame.context-profile {
         grid-row: 1 / span 2;
         position: relative;
-        padding: 1rem 0 0 1rem;
+
+        .tab.context {
+            padding-left: 1rem;
+        }
+        .tab.profile {
+            padding: 1rem;
+        }
 
         form#context-editor {
+            height: 100%;
             overflow-y: auto;
 
             .actions {
@@ -53,9 +98,9 @@ main .patient {
     .frame.diagnostic {
         grid-row: 3;
         overflow: hidden;
-        padding: 1rem 0 0 1rem;
 
         .editor {
+            padding-left: 1rem;
             overflow-y: hidden;
         }
     }
@@ -63,7 +108,7 @@ main .patient {
         grid-row: 1;
 
         ul {
-            margin-top: .6rem;
+            padding: 1rem;
 
             .patient-result {
                 margin-bottom: .4rem;
@@ -74,7 +119,8 @@ main .patient {
         grid-row: 2 / span 2;
 
         ul {
-            margin-top: .6rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
 
             .document {
                 margin-bottom: .4rem;

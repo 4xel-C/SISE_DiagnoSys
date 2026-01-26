@@ -5,14 +5,14 @@
     --accent-color: #8359E8;
     --accent-second-color: #9c7fe4;
     --text-color: #2A2A2A;
-    --text-second-color: #828282;
+    --text-second-color: #a4a4a4;
     --bg-color: #F7F8FE;
     --bg-second-color: white;
     --bg-frame-color: #F7F7F7;
     --bg-selected-color: #EBE5FC;
     --bg-overlay-color: rgba(0 0 0 / .65);
     --border-color: #ebebeb;
-    --border-radius: 12px;
+    --border-radius: 5px;
     --bad-color: #ff4d4d;
     --good-color: #4EA252;
     --neutral-color: #ffa64d;
