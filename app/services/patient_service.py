@@ -209,7 +209,9 @@ class PatientService:
             logger.debug(f"Retrieved diagnostic for patient id={patient_id}.")
             return patient.diagnostic if patient.diagnostic else ""
 
-    def get_documents_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
+    def get_documents_proches(
+        self, patient_id: int, n=5
+    ) -> Optional[List[Tuple[int, float]]]:
         """
         Retrieve related documents for a patient, sorted by similarity score.
         The proximity from the documents are directly calculated from the Chromadb.
@@ -219,7 +221,7 @@ class PatientService:
             n (int): Number of document chunks to retrieve (default = 5).
 
         Returns:
-            List[Tuple[int, float]]: A list of the closest document IDs with their similarity scores.
+            Optional[List[Tuple[int, float]]]: A list of the closest document IDs with their similarity scores.
 
         Raises:
             ValueError: If the patient is not found.
@@ -237,7 +239,7 @@ class PatientService:
         )
 
         if embedding is None:
-            raise ValueError(f"Embedding for patient with id={patient_id} not found.")
+            return None
 
         document_chunks = document_store.search(
             embedding,
@@ -260,7 +262,9 @@ class PatientService:
 
         return list(zip(document_ids, similarity_scores))
 
-    def get_patients_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
+    def get_patients_proches(
+        self, patient_id: int, n=5
+    ) -> Optional[List[Tuple[int, float]]]:
         """
         Retrieve a set of patient having a similar medical context with their similarity score.
         The proximity from the documents are directly calculated from the Chromadb.
@@ -288,7 +292,7 @@ class PatientService:
         )
 
         if embedding is None:
-            raise ValueError(f"Embedding for patient with id={patient_id} not found.")
+            return None
 
         patient_results = patient_store.search(
             embedding,

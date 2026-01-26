@@ -170,8 +170,11 @@ def get_diagnostic(patient_id: int):
 def get_related_documents(patient_id: int):
     document_htmls: list[str] = []
     r_documents = app.patient_service.get_documents_proches(patient_id)
+    if not r_documents:
+        return jsonify({"documents": []})
+
     for id, score in r_documents:
-        document = app.document_service.get_by_id(id)  # type: ignore
+        document = app.document_service.get_by_id(id)
         document_htmls.append(document.render(score=round(score * 100)))
 
     return jsonify({"documents": document_htmls})
@@ -181,6 +184,10 @@ def get_related_documents(patient_id: int):
 def get_related_cases(patient_id: int):
     case_htmls: list[str] = []
     r_patients = app.patient_service.get_patients_proches(patient_id)
+
+    if not r_patients:
+        return jsonify({"cases": []})
+
     for id, score in r_patients:
         patient = app.patient_service.get_by_id(id)  # type: ignore
         case_htmls.append(patient.render(style="case", score=round(score * 100)))
