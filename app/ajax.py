@@ -126,28 +126,11 @@ def render_patient(patient_id: int) -> str:
 @ajax.route("process_rag/<int:patient_id>", methods=["POST"])
 def process_rag(patient_id: int):
     try:
-        rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
+        app.rag_service.compute_rag_diagnosys(patient_id)
+        return "", 200
     except ValueError as e:
         # Patient not found
         abort(404, e)
-
-    document_htmls: list[str] = []
-    for document_id, document_score in rag_result["related_documents"]:
-        document = app.document_service.get_by_id(document_id)
-        document_htmls.append(document.render(score=document_score))
-
-    case_htmls: list[str] = []
-    for patient_id, patient_score in rag_result["related_patients"]:
-        patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render(style="case", score=patient_score))
-
-    return jsonify(
-        {
-            "diagnostics": rag_result.get("diagnosys"),
-            "documents": document_htmls,
-            "cases": case_htmls,
-        }
-    )
 
 
 # ---------------

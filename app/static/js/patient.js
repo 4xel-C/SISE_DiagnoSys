@@ -26,11 +26,25 @@ async function saveContext(patientId, context) {
 }
 
 async function processRAG(patientId) {
-    const response = await fetch(`ajax/process_rag/${patientId}`, {
+    await fetch(`ajax/process_rag/${patientId}`, {
         method: 'POST'
     })
-    return await response.json();
 }
+
+
+function switchTab(frame, li) {
+    // Unselect previous
+    const previousLi = frame.querySelector('li.selected');
+    previousLi.classList.remove('selected');
+    const previousTab = frame.querySelector(`.tab[data-tab-id="${previousLi.dataset.tabId}"]`);
+    previousTab.classList.remove('active');
+    // Select current
+    li.classList.add('selected');
+    const tab = frame.querySelector(`.tab[data-tab-id="${li.dataset.tabId}"]`);
+    tab.classList.add('active');
+}
+
+
 
 async function renderContext(patientId) {
     frames.context.classList.add('waiting');
@@ -106,7 +120,7 @@ document.addEventListener('patientRendered', (e) => {
     const patientContainer = main.querySelector('.patient');
     const contextForm = patientContainer.querySelector('form#context-editor');
     frames = {
-        context: patientContainer.querySelector('.frame.context'),
+        context: patientContainer.querySelector('.frame.context-profile'),
         diagnostic: patientContainer.querySelector('.frame.diagnostic'),
         documents: patientContainer.querySelector('.frame.documents'),
         cases: patientContainer.querySelector('.frame.cases')
@@ -131,6 +145,18 @@ document.addEventListener('patientRendered', (e) => {
         readOnly: true
     });
 
+    // On tab switch
+    Object.values(frames).forEach(frame => {
+        const nav = frame.querySelector('ul.nav');
+        if (nav) {
+            nav.querySelectorAll('li').forEach(li => {
+                li.addEventListener('click', () => {
+                    switchTab(frame, li);
+                })
+            })
+        }
+    });
+
     // On context saved
     contextForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -151,6 +177,7 @@ document.addEventListener('patientRendered', (e) => {
         main.classList.remove('unsaved');
         // Request context processing
         frames.documents.classList.add('waiting');
+        await processRAG();
         // Update results
         renderDiagnostics(patientId);
         renderDocuments(patientId);
@@ -163,4 +190,3 @@ document.addEventListener('patientRendered', (e) => {
     renderCases(patientId);
     renderDocuments(patientId);
 });
-

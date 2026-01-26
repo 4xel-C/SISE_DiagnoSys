@@ -1,26 +1,34 @@
 <div class="patient" data-patient-id="{{ patient_id }}">
-    <div class="frame context">
-        <h2>Contexte</h2>
-        <form id="context-editor">
-            <fieldset>
-                <div id="context" class="editor"></div>
-                <div class="actions">
-                    <button class="second-button">Annuler</button>
-                    <button class="main-button">Valider</button>
-                </div>
-            </fieldset>
-        </form>
+    <div class="frame context-profile">
+        <ul class="nav">
+            <li data-tab-id="context" class="selected"><h2>Context</h2></li>
+            <li data-tab-id="profile"><h2>Profil</h2></li>
+        </ul>
+        <div class="tab context active" data-tab-id="context">
+            <form id="context-editor">
+                <fieldset>
+                    <div id="context" class="editor"></div>
+                    <div class="actions">
+                        <button class="second-button">Annuler</button>
+                        <button class="main-button">Valider</button>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+        <div class="tab profile" data-tab-id="profile">
+            <p>Profil du patient</p>
+        </div>
     </div>
     <div class="frame diagnostic">
-        <h2>Diagnostic</h2>
+        <h2 class="title">Diagnostic</h2>
         <div id="diagnostic" class="editor"></div>
     </div>
     <div class="frame cases">
-        <h2>Cas similaires</h2>
+        <h2 class="title">Cas similaires</h2>
         <ul></ul>
     </div>
     <div class="frame documents">
-        <h2>Resources</h2>
+        <h2 class="title">Resources</h2>
         <ul></ul>
     </div>
 </div>
