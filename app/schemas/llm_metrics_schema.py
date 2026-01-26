@@ -48,7 +48,7 @@ class LLMMetricsSchema(BaseModel):
     gco2: float
     water_ml: float
     mgSb: float
-    date: date
+    usage_date: date
 
     model_config = {"from_attributes": True}
 

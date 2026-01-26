@@ -21,7 +21,6 @@ from app.schemas import LLMMetricsSchema
 logger = logging.getLogger(__name__)
 
 
-# TODO: Add the calculation of environment cost based on the schema
 class LLMUsageService:
     """
     Service class for LLM usage metrics operations.
@@ -277,7 +276,7 @@ class LLMUsageService:
                     gco2=gco2,
                     water_ml=water_ml,
                     mgSb=mgSb,
-                    date=today,
+                    usage_date=today,
                 )
                 session.add(record)
                 logger.info(
