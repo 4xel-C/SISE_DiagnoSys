@@ -21,6 +21,7 @@ from app.schemas import LLMMetricsSchema
 logger = logging.getLogger(__name__)
 
 
+# TODO: Add the calculation of environment cost based on the schema
 class LLMUsageService:
     """
     Service class for LLM usage metrics operations.
@@ -223,6 +224,9 @@ class LLMUsageService:
         input_tokens = usage.input_tokens
         output_tokens = usage.output_tokens
         response_time_ms = usage.latency_ms
+        gco2 = usage.gco2
+        water_ml = usage.water_ml
+        mgSb = usage.mgSb
         success = success
 
         # Connect to the db and record usage
@@ -242,6 +246,9 @@ class LLMUsageService:
                 record.total_completion_tokens += output_tokens
                 record.total_tokens += input_tokens + output_tokens
                 record.total_requests += 1
+                record.gco2 += gco2
+                record.water_ml += water_ml
+                record.mgSb += mgSb
 
                 # Update mean response time (running average)
                 total_requests = record.total_requests
@@ -267,6 +274,9 @@ class LLMUsageService:
                     total_requests=1,
                     total_success=1 if success else 0,
                     total_denials=0 if success else 1,
+                    gco2=gco2,
+                    water_ml=water_ml,
+                    mgSb=mgSb,
                     date=today,
                 )
                 session.add(record)

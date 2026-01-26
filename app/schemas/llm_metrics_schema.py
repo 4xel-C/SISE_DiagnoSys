@@ -31,6 +31,9 @@ class LLMMetricsSchema(BaseModel):
         total_success (int): Number of successful requests.
         total_denials (int): Number of denied requests.
         date (date): Date of the record.
+        gco2 (float): Amount of CO2 emissions in grams.
+        water_ml (float): Amount of water used in milliliters.
+        mgSb (float): Amount of antimony used in milligrams.
     """
 
     id: int
@@ -42,6 +45,9 @@ class LLMMetricsSchema(BaseModel):
     total_requests: Optional[int] = None
     total_success: int
     total_denials: Optional[int] = None
+    gco2: float
+    water_ml: float
+    mgSb: float
     date: date
 
     model_config = {"from_attributes": True}
