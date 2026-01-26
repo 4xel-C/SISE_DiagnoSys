@@ -1,4 +1,5 @@
 export let socket;
+
 let stream;
 let mediaRecorder;
 let sendChain = Promise.resolve();
@@ -15,7 +16,7 @@ export async function startAudioStream(patientId) {
     // On data available -> send data
     mediaRecorder.ondataavailable = (event) => {
         if (event.data.size === 0) return;
-        // queue the send so we know when the last chunk is done
+        // Queue the send so we know when the last chunk is done
         sendChain = sendChain.then(async () => {
             const buffer = await event.data.arrayBuffer();
             if (socket.readyState === WebSocket.OPEN) {
@@ -23,14 +24,14 @@ export async function startAudioStream(patientId) {
             }
         });
     };
-    // On recording stop -> wait for last chunk to be send and close websocket
-    mediaRecorder.onstop = async () => {
-        await sendChain;
-        stream.getTracks().forEach(track => track.stop());
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.close(1000, "done");
-        }
-    };
+    // On websocket closed -> dispatch event
+    socket.onclose = () => {
+        document.dispatchEvent(
+            new CustomEvent('audioProcessCompleted', {
+                detail: { patientId }
+            })
+        );
+    }
     
     mediaRecorder.start(250); // send data every 250ms
 
@@ -38,7 +39,11 @@ export async function startAudioStream(patientId) {
 }
 
 
-export function stopAudioStream() {
-    // socket.send('stop');
-    mediaRecorder.stop();
+export async function stopAudioStream() {
+    if (socket.readyState === WebSocket.OPEN) {
+        await sendChain;
+        mediaRecorder.stop();
+        stream.getTracks().forEach(track => track.stop());
+        socket.send('stop');
+    }
 }

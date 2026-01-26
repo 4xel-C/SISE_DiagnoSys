@@ -50,7 +50,7 @@ main .patient {
         border-color: var(--bg-second-color);
 
         > * {
-            display: none;
+            display: none !important;
         }
     }
 

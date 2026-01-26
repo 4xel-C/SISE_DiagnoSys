@@ -27,7 +27,7 @@ sock = Sock()
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
     patient_id = request.args.get("patient_id", type=int)
-    total: str = ""
+    total = ""
 
     # validate patient_id
     if patient_id is None:
@@ -35,52 +35,46 @@ def audio_stt(ws) -> None:
         return
 
     model = getattr(app.rag_service, "asr_model", None)
-    try:
-        # start per-websocket session if supported
-        if model and hasattr(model, "start_session"):
-            try:
-                model.start_session()
-            except Exception:
-                pass
 
-        while True:
-            # receive audio chunk
-            data = ws.receive()
-            print(type(data))
-            if data is None:
-                break
+    # start per-websocket session if supported
+    if model and hasattr(model, "start_session"):
+        try:
+            model.start_session()
+        except Exception as e:
+            ws.close(code=1008, reason=f"Error loading asr session: {e}")
+            return
 
-            # transcribe chunk
-            answer = app.rag_service.transcribe_stream(data)
+    while True:
+        # receive audio chunk
+        data = ws.receive()
+        if data == 'stop':
+            break
 
-            # if final, send full text, else send partial
-            ws.send(answer["text"])
-            if answer["final"]:
-                total += " " + answer["text"]
-            # print("ASR answer: %s", answer)
+        # transcribe chunk
+        answer = app.rag_service.transcribe_stream(data)
 
-    except ConnectionClosed:
-        pass
-    finally:
-        # End session and get final result
-        if model and hasattr(model, "end_session"):
-            try:
-                final = model.end_session()
-                if final and final.get("text"):
-                    total += " " + final.get("text")
-                    try:
-                        ws.send(final.get("text"))
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-        # Update context with complete transcription
-        if len(total.strip()) > 0:
-            # print("Final ASR transcription:", total)
-            context = app.rag_service.update_context_after_audio(patient_id, total)
-            app.patient_service.update_context(patient_id, context)
-        else:
+        # if final, send full text, else send partial
+        ws.send(answer["text"])
+        if answer["final"]:
+            total += " " + answer["text"]
+        # print("ASR answer: %s", answer)
+
+    # End session and get final result
+    if model and hasattr(model, "end_session"):
+        try:
+            final = model.end_session()
+            if final and final.get("text"):
+                total += " " + final.get("text")
+                ws.send(final.get("text"))
+        except Exception:
             pass
+    # Update context with complete transcription
+    if len(total.strip()) > 0:
+        # print("Final ASR transcription:", total)
+        context = app.rag_service.update_context_after_audio(patient_id, total)
+        app.patient_service.update_context(patient_id, context)
+
+    ws.send('done')
 
 
 # ---------------

@@ -108,6 +108,12 @@ async function renderCases(patientId) {
     });
 }
 
+function renderAll(patientId) {
+    renderContext(patientId);
+    renderDiagnostics(patientId);
+    renderCases(patientId);
+    renderDocuments(patientId);
+}
 
 
 
@@ -160,7 +166,6 @@ document.addEventListener('patientRendered', (e) => {
     // On context saved
     contextForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('updating');
         if (contextEditor.getText().trim().length === 0) {
             return
         }
@@ -185,8 +190,15 @@ document.addEventListener('patientRendered', (e) => {
     });
 
     // Load and render patient content
-    renderContext(patientId);
-    renderDiagnostics(patientId);
-    renderCases(patientId);
-    renderDocuments(patientId);
+    renderAll(patientId);
 });
+
+document.addEventListener('audioRecordStoped', () => {
+    Object.values(frames).forEach(frame => {
+        frame.classList.add('waiting');
+    });
+});
+
+document.addEventListener('audioProcessCompleted', (e) => {
+    renderAll(e.detail.patientId);
+})
