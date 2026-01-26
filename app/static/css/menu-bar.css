@@ -2,6 +2,12 @@ nav#menu-bar {
 
     form.search {
         padding: .6rem;
+        position: relative;
+
+        .tag {
+            position: absolute;
+            right: .6rem;
+        }
     }
 
     ul {
