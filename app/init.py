@@ -6,11 +6,14 @@ logging configuration. The app instance at module level is for production
 WSGI servers (Gunicorn, Waitress, etc.).
 """
 
+import logging
+import logging.config
 import os
 
 from flask import Flask
 
 from app.config.database import db
+from app.config.logging_config import get_logging_config
 from app.services import DocumentService, PatientService, RagService
 
 
@@ -72,6 +75,6 @@ app = create_app()
 
 
 # Configure logging
-# logging.config.dictConfig(get_logging_config())
-# logger = logging.getLogger(__name__)
-# logger.info("Starting Flask application")
+logging.config.dictConfig(get_logging_config())
+logger = logging.getLogger(__name__)
+logger.info("Starting Flask application")

@@ -115,9 +115,7 @@ def get_logging_config() -> dict:
         "loggers": {
             "werkzeug": {
                 "level": "INFO",
-                "handlers": ["console", "werkzeug_file"]
-                if print_console
-                else ["werkzeug_file"],
+                "handlers": ["console", "werkzeug_file"],
                 "propagate": False,
             },
             "app": {

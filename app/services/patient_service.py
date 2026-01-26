@@ -230,8 +230,10 @@ class PatientService:
         logger.debug(f"Fetching related documents for patient id={patient_id}.")
 
         # get the embedding of the patient
-        embedding: Optional[List[float]] = patient_store.get(patient_id)[0].get(
-            "embedding"
+        embedding: Optional[List[float]] = (
+            patient_store.get(patient_id)[0].get("embedding")
+            if patient_store.get(patient_id)
+            else None
         )
 
         if embedding is None:
@@ -279,8 +281,10 @@ class PatientService:
         logger.debug(f"Fetching related patients context for patient id={patient_id}.")
 
         # get the embedding of the patient
-        embedding: Optional[List[float]] = patient_store.get(patient_id)[0].get(
-            "embedding"
+        embedding: Optional[List[float]] = (
+            patient_store.get(patient_id)[0].get("embedding")
+            if patient_store.get(patient_id)
+            else None
         )
 
         if embedding is None:
