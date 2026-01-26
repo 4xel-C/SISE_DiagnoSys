@@ -32,6 +32,9 @@ class LLMMetrics(Base):
         mean_response_time_ms (float): Time taken to get the response in milliseconds. Required.
         total_success (int): Number of successful LLM calls. Required.
         total_denials (int): Number of denied LLM calls. Optional.
+        gco2 (float): Amount of CO2 emissions in grams. Required.
+        water_ml (float): Amount of water used in milliliters. Required.
+        mgSb (float): Amount of antimony used in milligrams. Required.
         usage_date (date): Date of the metrics record. Must be unique per model and date. Required.
     """
 
@@ -46,6 +49,9 @@ class LLMMetrics(Base):
     total_requests: Mapped[int] = mapped_column(Integer, nullable=False)
     total_success: Mapped[int] = mapped_column(Integer, nullable=False)
     total_denials: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    gco2: Mapped[float] = mapped_column(Float, nullable=False)
+    water_ml: Mapped[float] = mapped_column(Float, nullable=False)
+    mgSb: Mapped[float] = mapped_column(Float, nullable=False)
     usage_date: Mapped[date] = mapped_column(
         Date, default=date.today, unique=True, nullable=False
     )

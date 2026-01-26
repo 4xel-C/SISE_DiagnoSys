@@ -35,11 +35,23 @@ class LLMUsage:
     total_tokens: int = 0
     cost_usd: float = 0.0
     latency_ms: float = 0.0
+    gco2: float = 0.0
+    water_ml: float = 0.0
+    mgSb: float = 0.0
     timestamp: datetime = field(default_factory=datetime.now)
 
     def __post_init__(self):
         if self.total_tokens == 0:
             self.total_tokens = self.input_tokens + self.output_tokens
+
+        if self.total_tokens > 0:
+            self.gco2 = self.total_tokens * ECOLOGICAL_IMPACT_PER_TOKEN["gCO2"]
+
+        if self.total_tokens > 0:
+            self.water_ml = self.total_tokens * ECOLOGICAL_IMPACT_PER_TOKEN["water_ml"]
+
+        if self.total_tokens > 0:
+            self.mgSb = self.total_tokens * ECOLOGICAL_IMPACT_PER_TOKEN["mgSb"]
 
 
 @dataclass
@@ -52,7 +64,6 @@ class LLMResponse:
     raw_response: Optional[dict] = None
 
 
-# TODO: check and update costs
 # Pre-configured Mistral models with pricing (USD per 1M tokens)
 MODELS: dict[str, ModelConfig] = {
     "ministral-3b": ModelConfig(
@@ -85,6 +96,12 @@ MODELS: dict[str, ModelConfig] = {
         cost_per_1m_input=0.3,
         cost_per_1m_output=0.9,
     ),
+}
+
+ECOLOGICAL_IMPACT_PER_TOKEN: dict[str, float] = {
+    "gCO2": 2.85e-03,
+    "water_ml": 0.125,
+    "mgSb": 4.0e-04,
 }
 
 
