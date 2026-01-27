@@ -165,6 +165,7 @@ class PatientSchema(BaseModel):
                     first_name=self.prenom,
                     last_name=self.nom,
                     initials=self.initials,
+                    # date=self.created_at,
                     **kwargs,
                 )
             case _:

@@ -5,7 +5,12 @@ from app.rag.guardrail import (
     guardrail_classifier,
 )
 from app.rag.llm import LLMHandler, llm_handler
-from app.rag.llm_options import PromptTemplate, SystemPromptTemplate
+from app.rag.llm_options import (
+    LLMUsage,
+    MistralModel,
+    PromptTemplate,
+    SystemPromptTemplate,
+)
 from app.rag.vector_store import VectorStore, document_store, patient_store
 from app.rag.vectorizer import Vectorizer
 
@@ -22,4 +27,6 @@ __all__ = [
     "VectorStore",
     "document_store",
     "patient_store",
+    "LLMUsage",
+    "MistralModel",
 ]

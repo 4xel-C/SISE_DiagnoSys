@@ -36,7 +36,9 @@ from app.rag.vectorizer import Vectorizer
 logger = logging.getLogger(__name__)
 
 # Path to model artifacts
-MODELS_PATH = pathlib.Path(__file__).resolve().parent.parent.parent / "data" / "ml_models"
+MODELS_PATH = (
+    pathlib.Path(__file__).resolve().parent.parent.parent / "data" / "ml_models"
+)
 
 
 @dataclass
@@ -258,7 +260,9 @@ class GuardrailClassifier:
                 )
                 GuardrailClassifier._feature_extractor = FeatureExtractor()
 
-            GuardrailClassifier._vectorizer = Vectorizer(model_name=self.embedding_model)
+            GuardrailClassifier._vectorizer = Vectorizer(
+                model_name=self.embedding_model
+            )
 
             self._loaded = True
             logger.info("Guardrail model loaded successfully")

@@ -2,18 +2,21 @@
 <html lang="fr">
 
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>DiagnoSys</title>
-   <!-- Custom Style -->
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/_components.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/menu-bar.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
-   <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
-   <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiagnoSys</title>
+    <!-- Quill CSS plugin -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.bubble.css" rel="stylesheet" />
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/_components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/menu-bar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
 </head>
 
 <body>
@@ -34,55 +37,52 @@
         <ul class="patients"></ul>
     </nav>
    <main>
-        <div class="top-bar">
-            <div class="play-icon">
-                <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="16px">
-                <p class="timer">00:00</p>
+        <div class="content">
+            <div class="top-bar">
+                <div class="play-icon">
+                    <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="16px">
+                    <p class="timer">00:00</p>
+                </div>
+                <div class="actions">
+                    <button class="see">Voir</button>
+                </div>
             </div>
-            <div class="actions">
-                <button class="see">Voir</button>
-            </div>
-        </div>
-        <div class="content"></div>
-        <div class="audio-record">
-            <div class="states">
-                <div class="stoped">
-                    <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
-                    <div class="label">
-                        <h3>Appuyez sur</h3>
-                        <div class="tag">
-                            <p>Shift</p>
+            <div class="patient-container"></div>
+            <div class="audio-record">
+                <div class="states">
+                    <div class="stoped">
+                        <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
+                        <div class="label">
+                            <h3>Appuyez sur</h3>
+                            <div class="tag">
+                                <p>Shift</p>
+                            </div>
+                            <p>+</p>
+                            <div class="tag">
+                                <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
+                                <p>Espace</p>
+                            </div>
+                            <h3>pour commencer l'enregistrement</h3>
                         </div>
-                        <p>+</p>
-                        <div class="tag">
-                            <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
-                            <p>Espace</p>
-                        </div>
-                        <h3>pour commencer l'enregistrement</h3>
+                    </div>
+                    <div class="started">
+                        <canvas id="waveform" width="3000" height="400"></canvas>
                     </div>
                 </div>
-                <div class="started">
-                    <canvas id="waveform" width="3000" height="400"></canvas>
-                </div>
+                <div class="circle-overlay animation-1"></div>
+                <div class="circle-overlay animation-2"></div>
             </div>
-            <div class="circle-overlay animation-1"></div>
-            <div class="circle-overlay animation-2"></div>
         </div>
    </main>
 </body>
 
-<!-- Editor.js plugin -->
-<script src="https://cdn.jsdelivr.net/npm/editorjs-md-parser@0.0.3/dist/bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/link@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+<!-- Quill JS plugin -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 <!-- Custom scripts -->
 <script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/audio-record.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/patient.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}" type="module"></script>
 
 </html>

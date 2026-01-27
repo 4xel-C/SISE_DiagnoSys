@@ -69,7 +69,7 @@ document.addEventListener('patientRendered', (e) => {
 document.addEventListener('audioRecordStarted', (e) => {
     const patientId = e.detail.patientId;
     const recordedPatient = patientList.querySelector(`li[data-patient-id="${patientId}"]`);
-    const profileContainer = recordedPatient.querySelector('.profile');
+    const profileContainer = recordedPatient.querySelector('.pp');
     const imgContainer = document.createElement('div');
     imgContainer.classList.add('recording');
     const img = document.createElement('img');
@@ -82,7 +82,7 @@ document.addEventListener('audioRecordStarted', (e) => {
 document.addEventListener('audioRecordStoped', (e) => {
     const patientId = e.detail.patientId;
     const recordedPatient = patientList.querySelector(`li[data-patient-id="${patientId}"]`);
-    const imgContainer = recordedPatient.querySelector('.profile .recording');
+    const imgContainer = recordedPatient.querySelector('.pp .recording');
     imgContainer.remove();
 });
 

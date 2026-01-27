@@ -18,6 +18,7 @@ Example:
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models import Base
 
@@ -44,11 +45,11 @@ class Document(Base):
 
     __tablename__ = "documents"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    titre = Column(String(500), nullable=False)
-    contenu = Column(Text, nullable=False)
-    url = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.now)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    titre: Mapped[str] = mapped_column(String(500), nullable=False)
+    contenu: Mapped[str] = mapped_column(Text, nullable=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     def __repr__(self):
         """Return a string representation of the Document instance."""

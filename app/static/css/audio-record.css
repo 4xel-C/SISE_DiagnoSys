@@ -49,11 +49,11 @@ main .top-bar:hover {
 
 main .audio-record {
     display: none;
-    height: 30%;
+    height: 20rem;
     position: relative;
     overflow: hidden;
     transition: height .3s ease;
-    transition: background-color .125s ease;
+    /* transition: background-color .125s ease; */
 
     * {
         color: white;
@@ -71,6 +71,7 @@ main .audio-record {
         width: 100%;
         height: 100%;
         transition: top .3s ease;
+        transition: background-color .125s ease;
 
         .stoped {
             height: 100%;
@@ -134,7 +135,9 @@ main .audio-record::before {
 	content: ''
 }
 main .audio-record:hover {
-    background-color: var(--accent-second-color) !important;
+    .states {
+        background-color: var(--accent-second-color) !important;
+    }
 
     .circle-overlay.animation-2 {
         background-color: var(--accent-second-color);
@@ -151,7 +154,7 @@ main.streaming {
     }
 
     .audio-record {
-        height: 15%;
+        height: 10rem;
         background-color: var(--bg-selected-color);
 
         .states {

@@ -5,9 +5,12 @@ FROM python:3.13-slim
 WORKDIR /app
 
 # Install system dependencies (if needed)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy project files
 COPY . .

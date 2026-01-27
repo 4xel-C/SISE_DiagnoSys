@@ -1,67 +1,155 @@
-main .patient {
+main .patient-container {
     height: 100%;
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
-    gap: 1rem;
+    max-height: 80%;
+    margin: 1rem;
 
-    .frame {
+    .patient {
+        position: relative;
+        height: 100%;
         display: grid;
-        grid-template-rows: auto 1fr;
-        background-color: var(--bg-second-color);
-        border-radius: var(--border-radius);
-        border: solid 1px var(--border-color);
-        padding: 1rem;
-    }
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: repeat(3, 1fr);
+        gap: 1rem;
 
-    .frame.context {
-        grid-row: 1 / span 2;
+        .frame {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            background-color: var(--bg-second-color);
+            border-radius: var(--border-radius);
+            border: solid 1px var(--border-color);
+            overflow: hidden;
 
-        form#context-editor .actions{
+            .title {
+                padding: 0.6rem 1rem 0;
+            }
+
+            ul.nav {
+                padding: 0.6rem 1rem 0;
+
+                > li {
+                    display: inline-block;
+                    margin-right: 1rem;
+                    padding-bottom: .2rem;
+                    border-bottom: solid 2px var(--bg-second-color);
+
+                    h2 {
+                        color: var(--text-second-color);
+                    }
+                }
+            }
+
+            ul.nav > li.selected {
+                border-bottom: solid 2px var(--accent-color);
+
+                h2 {
+                    color: var(--text-color);
+                }
+            }
+        }
+        .frame.waiting {
+            background-color: var(--bg-second-color);
+            animation: 3s ease-in-out 0s infinite normal none running fadeInOut;
+            border-color: var(--bg-second-color);
+
+            > * {
+                display: none !important;
+            }
+        }
+
+        .frame .tab {
             display: none;
         }
-        form#context-editor.edited .actions{
+        .frame .tab.active {
             display: block;
         }
-    }
-    .frame.diagnostic {
-        grid-row: 3;
-    }
-    .frame.cases {
-        grid-row: 1;
 
-        ul {
-            margin-top: .6rem;
+        .frame.context-profile {
+            grid-row: 1 / span 2;
+            position: relative;
 
-            .patient-result {
-                margin-bottom: .4rem;
+            .tab.context {
+                padding-left: 1rem;
+            }
+            .tab.profile {
+                padding: 1rem;
+            }
+
+            form#context-editor {
+                height: 100%;
+                overflow-y: auto;
+
+                .actions {
+                    position: absolute;
+                    bottom: 1rem;
+                    right: 1rem;
+                    z-index: 10;
+
+                    button:not(:last-child) {
+                        margin-right: .2rem;
+                    }
+                }
+            }
+
+            form#context-editor .actions{
+                display: none;
+            }
+            form#context-editor.edited .actions{
+                display: block;
             }
         }
-    }
-    .frame.documents {
-        grid-row: 2 / span 2;
+        .frame.diagnostic {
+            grid-row: 3;
+            overflow: hidden;
 
-        ul {
-            margin-top: .6rem;
-
-            .document {
-                margin-bottom: .4rem;
+            .editor {
+                padding-left: 1rem;
+                overflow-y: hidden;
             }
         }
-    }
+        .frame.cases {
+            grid-row: 1;
 
-    form#context-editor {
-        position: relative;
+            ul {
+                padding: 1rem;
+                overflow-y: auto;
 
-        .actions {
+                .patient-result {
+                    margin-bottom: .4rem;
+                }
+            }
+        }
+        .frame.documents {
+            grid-row: 2 / span 2;
+
+            ul {
+                padding: 1rem;
+                overflow-y: auto;
+
+                .document {
+                    margin-bottom: .4rem;
+                }
+            }
+        }
+
+        button#start-chat {
             position: absolute;
-            bottom: 0;
-            right: 0;
-            z-index: 10;
-
-            button:not(:last-child) {
-                margin-right: .2rem;
-            }
+            bottom: .6rem;
+            right: .6rem;
         }
     }
+}
+
+main.simulate {
+    button#start-chat {
+        display: none;
+    }
+}
+
+
+
+
+@keyframes fadeInOut {
+  0%   { opacity: .2; }
+  50%  { opacity: 1; }
+  100% { opacity: .2; }
 }

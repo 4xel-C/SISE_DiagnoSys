@@ -40,6 +40,10 @@ class MissingAPIKeyError(Exception):
     pass
 
 
+# Type alias for conversation history
+Message = dict[str, str]  # {"role": "user"|"assistant", "content": "..."}
+
+
 class LLMHandler:
     """
     Handler for Mistral LLM interactions.
@@ -73,8 +77,6 @@ class LLMHandler:
 
         self._client = None
         self.set_model(model)
-        self._total_usage = LLMUsage()
-        self._call_history: list[LLMUsage] = []
 
         logger.info(f"LLMHandler initialized with model: {model}")
 
@@ -152,10 +154,82 @@ class LLMHandler:
             latency_ms=latency_ms,
         )
 
-        self._track_usage(usage)
-
         logger.debug(
             f"Response generated: {usage.total_tokens} tokens, "
+            f"${usage.cost_usd:.6f}, {usage.latency_ms:.0f}ms"
+        )
+
+        return LLMResponse(
+            content=str(response.choices[0].message.content),
+            usage=usage,
+            model=self.config.model.value,
+            raw_response=response.model_dump()
+            if hasattr(response, "model_dump")
+            else None,
+        )
+
+    def chat(
+        self,
+        new_message: str,
+        history: list[Message],
+        system_prompt: Optional[str] = None,
+    ) -> LLMResponse:
+        """
+        Generate a response in a conversation context with history.
+
+        Args:
+            new_message: The new user message.
+            history: List of previous messages [{"role": "user"|"assistant", "content": "..."}].
+            system_prompt: Optional system prompt (e.g., with user name, context).
+
+        Returns:
+            LLMResponse with content and usage stats.
+
+        Example:
+            >>> history = [
+            ...     {"role": "user", "content": "Bonjour, que puis-je faire pour vous?"},
+            ...     {"role": "assistant", "content": "Je ressens des douleurs."},
+            ... ]
+            >>> response = handler.chat("Pouvez vous préciser?", history, "Tu joues le rôle d'un assistant médical.")
+            >>> history.append({"role": "user", "content": "Pouvez vous préciser?"})
+            >>> history.append({"role": "assistant", "content": response.content})
+        """
+        logger.debug(f"Chat generation with {len(history)} messages in history")
+
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+
+        # Add conversation history
+        messages.extend(history)
+
+        # Add new user message
+        messages.append({"role": "user", "content": new_message})
+
+        start_time = time.time()
+        response = self.client.chat.complete(
+            model=self.config.model.value,
+            messages=messages,
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+        )
+        latency_ms = (time.time() - start_time) * 1000
+
+        if not response.choices or not response.usage:
+            raise ValueError("Invalid response from Mistral API")
+
+        input_tokens = response.usage.prompt_tokens
+        output_tokens = response.usage.completion_tokens
+
+        usage = LLMUsage(
+            input_tokens=input_tokens or 0,
+            output_tokens=output_tokens or 0,
+            cost_usd=self._calculate_cost(input_tokens or 0, output_tokens or 0),
+            latency_ms=latency_ms,
+        )
+
+        logger.debug(
+            f"Chat response generated: {usage.total_tokens} tokens, "
             f"${usage.cost_usd:.6f}, {usage.latency_ms:.0f}ms"
         )
 
@@ -196,36 +270,6 @@ class LLMHandler:
 
         prompt = PROMPT_TEMPLATES[template].format(**kwargs)
         return self.generate(prompt, SYSTEM_PROMPT[system_prompt])
-
-    def _track_usage(self, usage: LLMUsage) -> None:
-        """Track cumulative usage statistics."""
-        self._call_history.append(usage)
-        self._total_usage.input_tokens += usage.input_tokens
-        self._total_usage.output_tokens += usage.output_tokens
-        self._total_usage.total_tokens += usage.total_tokens
-        self._total_usage.cost_usd += usage.cost_usd
-
-    def get_total_usage(self) -> LLMUsage:
-        """Get cumulative usage statistics."""
-        return self._total_usage
-
-    def get_session_stats(self) -> dict:
-        """Get detailed session statistics."""
-        return {
-            "total_calls": len(self._call_history),
-            "total_input_tokens": self._total_usage.input_tokens,
-            "total_output_tokens": self._total_usage.output_tokens,
-            "total_tokens": self._total_usage.total_tokens,
-            "total_cost_usd": self._total_usage.cost_usd,
-            "current_model": self.model_name,
-            "model_id": self.config.model.value,
-        }
-
-    def reset_stats(self) -> None:
-        """Reset usage statistics."""
-        self._total_usage = LLMUsage()
-        self._call_history.clear()
-        logger.info("Usage statistics reset")
 
     @staticmethod
     def list_models() -> list[str]:

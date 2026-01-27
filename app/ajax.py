@@ -7,8 +7,8 @@ front end. No complex logic.
 
 from typing import cast
 
-from flask import Blueprint, abort, jsonify, render_template, request, current_app
-from flask_sock import ConnectionClosed, Sock
+from flask import Blueprint, abort, current_app, jsonify, render_template, request
+from flask_sock import Sock
 
 from .init import AppContext
 
@@ -26,29 +26,65 @@ sock = Sock()
 
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
-
     patient_id = request.args.get("patient_id", type=int)
-    total = None
+    total = ""
 
+    # validate patient_id
     if patient_id is None:
         ws.close(code=1008, reason="Missing patient_id")
         return
 
-    try:
-        while True:
-            # TODO: Call stt_service with audio chunk
-            # and send transcribed string back to JS:
-            data = ws.receive()
-            # transcript, total = app.stt_service.transcribe_chunk(data)
-            # ws.send(transcript)
-    except ConnectionClosed:
-        print("Audio stream ended")
+    model = getattr(app.rag_service, "asr_model", None)
 
-        if total is not None:
-            context = app.rag_service.update_context_after_audio(patient_id, total)
-            app.patient_service.update_context(patient_id, context)
-        else:
-            print("No transcription total available to update context.")
+    # start per-websocket session if supported
+    if model and hasattr(model, "start_session"):
+        try:
+            model.start_session()
+        except Exception as e:
+            ws.close(code=1008, reason=f"Error loading asr session: {e}")
+            return
+
+    while True:
+        # receive audio chunk
+        data = ws.receive()
+        if data == "stop":
+            break
+
+        # transcribe chunk
+        answer = app.rag_service.transcribe_stream(data)
+
+        # if final, send full text, else send partial
+        ws.send(answer["text"])
+        if answer["final"]:
+            total += " " + answer["text"]
+        # print("ASR answer: %s", answer)
+
+    # End session and get final result
+    if model and hasattr(model, "end_session"):
+        try:
+            final = model.end_session()
+            if final and final.get("text"):
+                total += " " + final.get("text")
+                ws.send(final.get("text"))
+        except Exception:
+            pass
+    # Update context with complete transcription
+    if len(total.strip()) > 0:
+        # print("Final ASR transcription:", total)
+        app.rag_service.update_context_after_audio(patient_id, total)
+
+    ws.send("done")
+
+
+# ---------------
+# RENDER POPUP
+
+
+@ajax.route("custom_popup", methods=["GET"])
+def custom_popup():
+    params = request.args.to_dict()
+    print(params)
+    return render_template("elements/custom_popup.html", **params)
 
 
 # ---------------
@@ -61,7 +97,6 @@ def search_patients():
     Search patient by name with a query.
     Returns all patients if no query provided
     """
-
     query = request.args.get("query")
 
     if query:
@@ -77,6 +112,10 @@ def search_patients():
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
+@ajax.route("render_chat", methods=["GET"])
+def render_chat() -> str:
+    return render_template("chat.html")
+
 
 # ---------------
 # RAG
@@ -85,28 +124,11 @@ def render_patient(patient_id: int) -> str:
 @ajax.route("process_rag/<int:patient_id>", methods=["POST"])
 def process_rag(patient_id: int):
     try:
-        rag_result = app.rag_service.compute_rag_diagnosys(patient_id)
+        app.rag_service.compute_rag_diagnosys(patient_id)
+        return "", 200
     except ValueError as e:
         # Patient not found
         abort(404, e)
-
-    document_htmls: list[str] = []
-    for document_id in rag_result.get("document_ids", []):
-        document = app.document_service.get_by_id(document_id)
-        document_htmls.append(document.render())
-
-    case_htmls: list[str] = []
-    for patient_id in rag_result.get("related_patients_ids", []):
-        patient = app.patient_service.get_by_id(patient_id)
-        case_htmls.append(patient.render(style="case", score=0))
-
-    return jsonify(
-        {
-            "diagnostics": rag_result.get("diagnosys"),
-            "documents": document_htmls,
-            "cases": case_htmls,
-        }
-    )
 
 
 # ---------------
@@ -115,42 +137,50 @@ def process_rag(patient_id: int):
 
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):
-    patient = app.patient_service.get_by_id(patient_id)
-    return jsonify({"context": patient.contexte})
+    context = app.patient_service.get_context(patient_id)
+    return jsonify({"context": context})
 
 
-@ajax.route("get_results/<int:patient_id>", methods=["GET"])
-def get_results(patient_id: int):
-    patient = app.patient_service.get_by_id(patient_id)
+@ajax.route("get_diagnostic/<int:patient_id>", methods=["GET"])
+def get_diagnostic(patient_id: int):
+    diagnostic = app.patient_service.get_diagnostic(patient_id)
+    return jsonify({"diagnostic": diagnostic})
 
-    case_htmls: list[str] = []
-    # TEMP: fake related patient
-    patient = app.patient_service.get_by_id(2)
-    case_htmls.append(patient.render(style="case", score=55))
-    # for related_p in patient.patients_proches:
-    #     patient = app.patient_service.get_by_id(related_p.patient_id)
-    #     case_htmls.append(patient.render(style='case', score=related_p.similarity_score))
 
+@ajax.route("get_related_documents/<int:patient_id>", methods=["GET"])
+def get_related_documents(patient_id: int):
     document_htmls: list[str] = []
-    # TEMP: fake related patient
-    document = app.document_service.get_by_id(2)
-    document_htmls.append(document.render(score=71))
-    # for related_d in patient.documents_proches:
-    #     document = app.document_service.get_by_id(related_d.document_id)
-    #     document_htmls.append(document.render(score=related_d.similarity_score))
+    r_documents = app.patient_service.get_documents_proches(patient_id)
+    if not r_documents:
+        return jsonify({"documents": []})
 
-    return jsonify(
-        {
-            "diagnostics": patient.diagnostic,
-            "cases": case_htmls,
-            "documents": document_htmls,
-        }
-    )
+    for id, score in r_documents:
+        document = app.document_service.get_by_id(id)
+        document_htmls.append(document.render(score=round(score * 100)))
+
+    return jsonify({"documents": document_htmls})
+
+
+@ajax.route("get_related_cases/<int:patient_id>", methods=["GET"])
+def get_related_cases(patient_id: int):
+    case_htmls: list[str] = []
+    r_patients = app.patient_service.get_patients_proches(patient_id)
+
+    if not r_patients:
+        return jsonify({"cases": []})
+
+    for id, score in r_patients:
+        patient = app.patient_service.get_by_id(id)  # type: ignore
+        case_htmls.append(patient.render(style="case", score=round(score * 100)))
+
+    return jsonify({"cases": case_htmls})
 
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):
+    print("updating", patient_id)
     data = request.get_json()
     context = data.get("context")
+    print("context", context)
     app.patient_service.update_context(patient_id, context)
     return "", 200

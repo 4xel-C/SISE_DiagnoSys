@@ -11,7 +11,7 @@ Example:
 """
 
 import logging
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from sqlalchemy import and_, or_
 
@@ -182,9 +182,36 @@ class PatientService:
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
             logger.debug(f"Retrieved context for patient id={patient_id}.")
-            return patient.contexte if patient.contexte else ""  # type: ignore
+            return patient.contexte if patient.contexte else ""
 
-    def get_documents_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
+    def get_diagnostic(self, patient_id: int) -> str:
+        """
+        Retrieve the diagnostic field of a patient.
+
+        Args:
+            patient_id (int): The patient's unique identifier.
+
+        Returns:
+            str: The diagnostic of the patient.
+
+        Example:
+            >>> diagnostic = service.get_diagnostic(1)
+        """
+        logger.debug(f"Fetching diagnostic for patient id={patient_id}.")
+        with self.db_manager.session() as session:
+            patient = session.query(Patient).filter_by(id=patient_id).first()
+            if not patient:
+                logger.error(
+                    f"Patient with id={patient_id} not found for diagnostic retrieval."
+                )
+                raise ValueError(f"Patient with id={patient_id} not found.")
+
+            logger.debug(f"Retrieved diagnostic for patient id={patient_id}.")
+            return patient.diagnostic if patient.diagnostic else ""
+
+    def get_documents_proches(
+        self, patient_id: int, n=5
+    ) -> Optional[List[Tuple[int, float]]]:
         """
         Retrieve related documents for a patient, sorted by similarity score.
         The proximity from the documents are directly calculated from the Chromadb.
@@ -194,7 +221,7 @@ class PatientService:
             n (int): Number of document chunks to retrieve (default = 5).
 
         Returns:
-            List[Tuple[int, float]]: A list of the closest document with their similarity scores.
+            Optional[List[Tuple[int, float]]]: A list of the closest document IDs with their similarity scores.
 
         Raises:
             ValueError: If the patient is not found.
@@ -204,18 +231,20 @@ class PatientService:
         """
         logger.debug(f"Fetching related documents for patient id={patient_id}.")
 
-        # Get the patient to retrive the context.
-        with self.db_manager.session() as session:
-            patient = session.query(Patient).filter_by(id=patient_id).first()
+        # get the embedding of the patient
+        embedding: Optional[List[float]] = (
+            patient_store.get(patient_id)[0].get("embedding")
+            if patient_store.get(patient_id)
+            else None
+        )
 
-            if not patient:
-                raise ValueError(f"Patient with id={patient_id} not found.")
-
-            patient_content = patient.content_for_embedding
+        if embedding is None:
+            return None
 
         document_chunks = document_store.search(
-            patient_content,
-            n_results=5,
+            embedding,
+            n_results=n,
+            embed=True,
         )
 
         # seens document id:
@@ -233,7 +262,9 @@ class PatientService:
 
         return list(zip(document_ids, similarity_scores))
 
-    def get_patients_proches(self, patient_id: int, n=5) -> List[Tuple[int, float]]:
+    def get_patients_proches(
+        self, patient_id: int, n=5
+    ) -> Optional[List[Tuple[int, float]]]:
         """
         Retrieve a set of patient having a similar medical context with their similarity score.
         The proximity from the documents are directly calculated from the Chromadb.
@@ -253,17 +284,21 @@ class PatientService:
         """
         logger.debug(f"Fetching related patients context for patient id={patient_id}.")
 
-        # get the patient context
-        with self.db_manager.session() as session:
-            patient = session.query(Patient).filter_by(id=patient_id).first()
+        # get the embedding of the patient
+        embedding: Optional[List[float]] = (
+            patient_store.get(patient_id)[0].get("embedding")
+            if patient_store.get(patient_id)
+            else None
+        )
 
-            if not patient:
-                raise ValueError(f"Patient with id={patient_id} not found.")
-
-            patient_content = patient.content_for_embedding
+        if embedding is None:
+            return None
 
         patient_results = patient_store.search(
-            patient_content, n_results=n, where={"patient_id": {"$ne": patient_id}}
+            embedding,
+            n_results=n,
+            where={"patient_id": {"$ne": patient_id}},
+            embed=True,
         )
 
         patient_ids = [
@@ -379,7 +414,7 @@ class PatientService:
                 )
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient.contexte = new_context  # type: ignore
+            patient.contexte = new_context
             session.commit()
             logger.info(f"Updated context for patient id={patient_id}.")
             patient = PatientSchema.model_validate(patient)
@@ -420,7 +455,7 @@ class PatientService:
                 )
                 raise ValueError(f"Patient with id={patient_id} not found.")
 
-            patient.diagnostic = new_diagnosys  # type: ignore
+            patient.diagnostic = new_diagnosys
             session.commit()
             logger.info(f"Updated diagnosys for patient id={patient_id}.")
             patient = PatientSchema.model_validate(patient)

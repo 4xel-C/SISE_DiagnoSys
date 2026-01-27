@@ -19,12 +19,14 @@ nav#menu-bar {
 
 main {
     width: 100%;
+    height: 100vh;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
 }
 
 main .content {
     height: 100%;
-    margin: 1rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    transition: max-height .3s ease;
 }

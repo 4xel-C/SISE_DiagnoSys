@@ -3,7 +3,8 @@
         <img src="{{ url_for('static', filename='images/profile.svg') }}" alt="" height="16px">
     </div>
     <p class="label">{{ first_name }} {{ last_name }}</p>
-    {% if score %}
+    <div class="info">
+        <p class="date">{{ date }}</p>
         <p class="score">{{ score }}</p>
-    {% endif %}
+    </div>
 </li>

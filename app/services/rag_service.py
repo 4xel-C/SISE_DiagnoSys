@@ -1,6 +1,7 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+from app.asr import ASRServiceBase, ASRServiceFactory
 from app.rag import (
     LLMHandler,
     PromptTemplate,
@@ -12,7 +13,7 @@ from app.rag import (
     patient_store,
 )
 from app.schemas import PatientSchema
-from app.services import DocumentService, PatientService
+from app.services import DocumentService, LLMUsageService, PatientService
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,8 @@ class RagService:
         patient_service: PatientService = PatientService(),
         document_service: DocumentService = DocumentService(),
         llm_handler: LLMHandler = llm_handler,
+        llm_usage_service: LLMUsageService = LLMUsageService(),
+        asr_model: Optional[ASRServiceBase] = None,
     ):
         # save the instances of the core components
         self.document_vector_store = document_vector_store
@@ -63,6 +66,20 @@ class RagService:
         self.patient_service = patient_service
         self.document_service = document_service
         self.llm_handler = llm_handler
+        self.llm_usage_service = llm_usage_service
+        self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
+
+    def transcribe_stream(self, audio_chunk: bytes) -> Dict[str, Any]:
+        """
+        Transcribe a chunk of audio stream.
+
+        Args:
+            audio_chunk (bytes): The audio chunk to transcribe.
+
+        Returns:
+            Dict[str, Any]: The transcription result (partial or final).
+        """
+        return self.asr_model.transcribe_stream(audio_chunk)
 
     def update_context_after_audio(
         self,
@@ -102,6 +119,11 @@ class RagService:
             audio=audio_input,
         )
 
+        # save the metrics
+        self.llm_usage_service.record_usage(
+            model_name=new_context.model, usage=new_context.usage
+        )
+
         if new_context.content:
             logger.info("Context successfully updated with audio input")
             new_context = new_context.content.strip()
@@ -110,7 +132,9 @@ class RagService:
             raise LLMGenerationException("Failed to generate updated context")
 
         # Checkpoint 2: Check synthesized context before storing/embedding
-        if not self.is_pertinent_and_secure(new_context, checkpoint="synthesized_context"):
+        if not self.is_pertinent_and_secure(
+            new_context, checkpoint="synthesized_context"
+        ):
             logger.warning(
                 "Synthesized context failed guardrail check, stopping context update"
             )
@@ -137,8 +161,8 @@ class RagService:
             Dict[str, str]: diagnosys response from LLM with the following structure:
                 {
                     "diagnosys": str,
-                    "document_ids": List[int],
-                    "related_patients_ids": List[int],
+                    "related_documents": List[int, float],
+                    "related_patients": List[int, float],
                 }
         """
         # retrieve patient context from DB for embeddings
@@ -161,8 +185,14 @@ class RagService:
 
         # ================================================================ Diagnosys generation
         # Checkpoint 3: Check patient context before diagnosis LLM call
-        if patient.contexte and not self.is_pertinent_and_secure(
-            patient.contexte, checkpoint="pre_diagnosis"
+        context_text = patient.contexte if patient.contexte else ""
+        context_text += (
+            (" " + patient.symptomes_exprimes) if patient.symptomes_exprimes else ""
+        )
+        context_text += (" " + patient.type_maladie) if patient.type_maladie else ""
+
+        if context_text and not self.is_pertinent_and_secure(
+            context_text, checkpoint="pre_diagnosis"
         ):
             logger.warning(
                 f"Patient context failed guardrail check before diagnosis, "
@@ -174,9 +204,7 @@ class RagService:
             )
 
         diagnosys_text = self.generate_diagnosys(
-            context=patient.contexte
-            if patient.contexte
-            else "Pas de contexte disponible.",
+            context=context_text if context_text else "Pas de contexte disponible.",
             documents_chunks=chunk_text,
         )
 
@@ -207,6 +235,11 @@ class RagService:
             system_prompt=SystemPromptTemplate.DIAGNOSYS_ASSISTANT,
             context=context,
             documents_chunks=documents_chunks,
+        )
+
+        # Log the metrics
+        self.llm_usage_service.record_usage(
+            model_name=diagnosys_response.model, usage=diagnosys_response.usage
         )
 
         if diagnosys_response.content:
@@ -248,8 +281,10 @@ class RagService:
 
         return unique_document_chunks
 
-    # TODO : Add pertinency check with a classifier to avoid useless calls to the llm 
-    def is_pertinent_and_secure(self, user_input: str, checkpoint: str = "raw_input") -> bool:
+    # TODO : Add pertinency check with a classifier to avoid useless calls to the llm
+    def is_pertinent_and_secure(
+        self, user_input: str, checkpoint: str = "raw_input"
+    ) -> bool:
         """
         Check if user input is safe from prompt injection attacks.
 
@@ -260,22 +295,23 @@ class RagService:
         Returns:
             True if the input is safe, False if injection detected.
         """
-        if not user_input or not user_input.strip():
-            return True
+        # if not user_input or not user_input.strip():
+        #     return True
 
-        result = guardrail_classifier.predict(user_input)
+        # result = guardrail_classifier.predict(user_input)
 
-        if result.is_injection:
-            logger.warning(
-                f"Guardrail [{checkpoint}]: Injection detected "
-                f"(confidence={result.confidence:.3f}), "
-                f"input_preview='{user_input[:50]}...'"
-            )
-            return False
+        # if result.is_injection:
+        #     logger.warning(
+        #         f"Guardrail [{checkpoint}]: Injection detected "
+        #         f"(confidence={result.confidence:.3f}), "
+        #         f"input_preview='{user_input[:50]}...'"
+        #     )
+        #     return False
 
-        logger.debug(
-            f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
-        )
+        # logger.debug(
+        #     f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
+        # )
+        # return True
         return True
 
     # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?

@@ -35,11 +35,23 @@ class LLMUsage:
     total_tokens: int = 0
     cost_usd: float = 0.0
     latency_ms: float = 0.0
+    gco2: float = 0.0
+    water_ml: float = 0.0
+    mgSb: float = 0.0
     timestamp: datetime = field(default_factory=datetime.now)
 
     def __post_init__(self):
         if self.total_tokens == 0:
             self.total_tokens = self.input_tokens + self.output_tokens
+
+        if self.total_tokens > 0:
+            self.gco2 = self.total_tokens * ECOLOGICAL_IMPACT_PER_TOKEN["gCO2"]
+
+        if self.total_tokens > 0:
+            self.water_ml = self.total_tokens * ECOLOGICAL_IMPACT_PER_TOKEN["water_ml"]
+
+        if self.total_tokens > 0:
+            self.mgSb = self.total_tokens * ECOLOGICAL_IMPACT_PER_TOKEN["mgSb"]
 
 
 @dataclass
@@ -52,7 +64,6 @@ class LLMResponse:
     raw_response: Optional[dict] = None
 
 
-# TODO: check and update costs
 # Pre-configured Mistral models with pricing (USD per 1M tokens)
 MODELS: dict[str, ModelConfig] = {
     "ministral-3b": ModelConfig(
@@ -87,12 +98,19 @@ MODELS: dict[str, ModelConfig] = {
     ),
 }
 
+ECOLOGICAL_IMPACT_PER_TOKEN: dict[str, float] = {
+    "gCO2": 2.85e-03,
+    "water_ml": 0.125,
+    "mgSb": 4.0e-04,
+}
+
 
 class PromptTemplate(Enum):
     """Available prompt templates."""
 
     DIAGNOSTIC = "diagnostic"
     SUMMARY = "summary"
+    CONVERSATION = "conversation"
 
 
 class SystemPromptTemplate(Enum):
@@ -100,6 +118,7 @@ class SystemPromptTemplate(Enum):
 
     DIAGNOSYS_ASSISTANT = "diagnosys_assistant"
     CONTEXT_UPDATER = "context_updater"
+    CONVERSATION = "conversation"
 
 
 # ===================================================  PROMPTS  ===================================================
@@ -124,6 +143,12 @@ Conversation avec le patient:
 Résume de manière concise les informations clés du patient et les points importants à retenir.
 Réponse en français:
 """,
+    PromptTemplate.CONVERSATION: """
+    historique de la conversation:
+{conversation_history}
+    Nouveau message du patient:
+{new_message}
+""",
 }
 
 
@@ -139,5 +164,20 @@ Tu es un assistant médical nommé DiagnoSys, spécialisé dans la mise à jour 
 échange entre le médecin et son patient. Tu as à ta disposition les notes du médecin et la transcription audio de l'échange avec le patient. Je veux que tu 
 génères un contexte médical condensé et pertinent à ajouter au dossier médical du patient. Ne mentionne pas que tu es un assistant médical afin de
 fournir une réponse utilisable directement. Ne fait pas d'hypothèse de diagnostic, met à jour le contexte avec le diagnostic du médecin si fourni.
+""",
+    SystemPromptTemplate.CONVERSATION: """
+Tu joues le rôle d'un patient qui vient consulter un médecin. Tu dois rester dans ton personnage tout au long de la conversation.
+
+Informations sur ton personnage:
+- Nom: {nom}
+- Prénom: {prenom}
+- Symptômes: {symptomes}
+
+Instructions:
+- Réponds aux questions du médecin de manière naturelle et réaliste
+- Ne révèle pas tous tes symptômes d'un coup, laisse le médecin poser des questions
+- Exprime tes inquiétudes et émotions comme un vrai patient
+- Si le médecin pose une question sur un symptôme que tu n'as pas, dis-le clairement
+- Utilise un langage courant, pas de jargon médical
 """,
 }
