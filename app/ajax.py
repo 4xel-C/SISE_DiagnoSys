@@ -8,7 +8,7 @@ front end. No complex logic.
 from typing import cast
 
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
-from flask_sock import ConnectionClosed, Sock
+from flask_sock import Sock
 
 from .init import AppContext
 
@@ -111,6 +111,10 @@ def search_patients():
 @ajax.route("render_patient/<int:patient_id>", methods=["GET"])
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
+
+@ajax.route("render_chat", methods=["GET"])
+def render_chat() -> str:
+    return render_template("chat.html")
 
 
 # ---------------
