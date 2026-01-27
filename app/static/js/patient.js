@@ -54,7 +54,6 @@ async function renderContext(patientId) {
     // Convert markdown to quill delta
     const mdContent = toDelta(content.context);
     // Overwrite editor
-    console.log('finished');
     frames.context.classList.remove('waiting');
     contextEditor.setContents(mdContent);
 }
@@ -206,7 +205,7 @@ document.addEventListener('patientRendered', (e) => {
 });
 
 // On audio process compleded (and chatbot simulation)
-['audioProcessCompleted', 'assistantResponded'].forEach(eventName => {
+['audioProcessCompleted', 'assistantConversationProcessed'].forEach(eventName => {
     document.addEventListener(eventName, (e) => {
         const patientId = e.detail.patientId;
         // Update context
