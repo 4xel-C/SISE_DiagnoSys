@@ -1,4 +1,5 @@
 main .patient {
+    position: relative;
     height: 100%;
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -14,21 +15,17 @@ main .patient {
         overflow: hidden;
 
         .title {
-            padding: 0.4rem 1rem;
-            border-bottom: solid 1px var(--border-color);
-            background-color: var(--bg-frame-color);
+            padding: 0.6rem 1rem 0;
         }
 
         ul.nav {
-            padding: 0.4rem 1rem 0;
-            border-bottom: solid 1px var(--border-color);
-            background-color: var(--bg-frame-color);
+            padding: 0.6rem 1rem 0;
 
             > li {
                 display: inline-block;
                 margin-right: 1rem;
-                padding-bottom: calc(.4rem - 2px);
-                border-bottom: solid 2px var(--bg-frame-color);
+                padding-bottom: .2rem;
+                border-bottom: solid 2px var(--bg-second-color);
 
                 h2 {
                     color: var(--text-second-color);
@@ -126,6 +123,18 @@ main .patient {
                 margin-bottom: .4rem;
             }
         }
+    }
+
+    button#start-chat {
+        position: absolute;
+        bottom: .6rem;
+        right: .6rem;
+    }
+}
+
+main.simulate {
+    button#start-chat {
+        display: none;
     }
 }
 

@@ -75,3 +75,10 @@ export async function renderPatient(patientId, force=false) {
         })
     );
 }
+
+export async function openChat(patientId) {
+    const response = await fetch(`ajax/render_chat/${patientId}`);
+    const html = await response.text();
+    main.insertAdjacentHTML('beforeend', html);
+    main.classList.add('simulate');
+}

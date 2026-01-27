@@ -1,5 +1,5 @@
 import { fromDelta, toDelta } from 'https://cdn.jsdelivr.net/npm/@slite/quill-delta-markdown@0.0.8/+esm';
-import { renderPatient } from './modules/loader.js';
+import { renderPatient, openChat } from './modules/loader.js';
 
 
 const main = document.querySelector('main');
@@ -119,11 +119,11 @@ function renderAll(patientId) {
 
 
 
-
 // On diagnostics loaded
 document.addEventListener('patientRendered', (e) => {
     const patientId = e.detail.patientId;
     const patientContainer = main.querySelector('.patient');
+    const chatButton = patientContainer.querySelector('button#start-chat');
     const contextForm = patientContainer.querySelector('form#context-editor');
     frames = {
         context: patientContainer.querySelector('.frame.context-profile'),
@@ -188,6 +188,11 @@ document.addEventListener('patientRendered', (e) => {
         renderDocuments(patientId);
         renderCases(patientId);
     });
+
+    // On start-chat button clicked
+    chatButton.addEventListener('click', () => {
+        openChat(patientId);
+    })
 
     // Load and render patient content
     renderAll(patientId);

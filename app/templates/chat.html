@@ -1,0 +1,11 @@
+<form id="chatbot">
+    <button class="second-icon-button close" type="reset">
+        <img src="{{ url_for('static', filename='images/close.svg') }}" alt="" height="22px">
+    </button>
+    <ul class="messages">
+        <li class="user">Bonjour, c’est le docteur Martin. Vous m’aviez laissé un message ce matin concernant vos symptômes. Pouvez‑vous m’expliquer plus en détail ce que vous ressentez depuis quelques jours ? J’aimerais avoir une idée plus précise de l’évolution de votre état pour comprendre ce qui pourrait être à l’origine de votre malaise.</li>
+        <li class="bot">Bonjour docteur. Oui, bien sûr. Depuis environ quatre jours, j’ai développé une toux assez persistante, d’abord légère, mais qui a augmenté progressivement. La nuit, elle m’empêche parfois de dormir. J’ai aussi ressenti une fatigue importante, comme si j’avais couru un marathon, alors que je n’ai rien fait de particulier. Depuis hier, j’ai une sensation de chaleur, et ma température tourne autour de 38°C. Rien de dramatique, mais ça commence à m’inquiéter.</li>
+        <li class="user">Merci pour ces précisions. La combinaison de toux, fatigue et fièvre légère peut correspondre à plusieurs choses. Pour mieux comprendre, j’aurais besoin de savoir si vous avez eu récemment des contacts avec des personnes malades, ou si vous avez voyagé. Avez‑vous remarqué d’autres symptômes, même s’ils vous paraissent mineurs ? Par exemple, un mal de gorge, une perte d’appétit, des courbatures, un nez bouché, ou une gêne particulière au niveau de la poitrine ?</li>
+    </ul>
+    <input type="text" name="query" placeholder="Envoyer un message" autocomplete="off">
+</div>

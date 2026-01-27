@@ -14,6 +14,7 @@ input[type="text"] {
 
 input:focus {
     border-color: var(--accent-color);
+    outline: solid 1px var(--accent-color);
 }
 
 .main-button {
@@ -28,6 +29,21 @@ input:focus {
     background-color: var(--accent-second-color);
 }
 
+.icon-button {
+    border: none;
+    background-color: var(--accent-color);
+    border-radius: 100%;
+    transition: background-color .125s ease;
+
+    img {
+        filter: invert(1);
+        margin: 20px;
+    }
+}
+.icon-button:hover {
+    background-color: var(--accent-second-color);
+}
+
 .second-button {
     color: black;
     padding: .3rem 1.1rem;
@@ -38,6 +54,24 @@ input:focus {
 }
 .second-button:hover:not(:disabled) {
     background-color: var(--border-color);
+}
+
+.second-icon-button {
+    border: none;
+    background-color: inherit;
+    border-radius: var(--border-radius);
+    transition: background-color .125s ease;
+
+    img {
+        filter: invert(30%);
+    }
+}
+.second-icon-button:hover {
+    background-color: var(--bg-frame-color);
+
+    img {
+        filter: invert(8%);
+    }
 }
 
 button:disabled {

@@ -1,0 +1,36 @@
+main #chatbot {
+    height: 100%;
+    background-color: var(--bg-second-color);
+    border-left: solid 1px var(--border-color);
+    padding: .6rem;
+    display: flex;
+    flex-direction: column;
+
+    button.close {
+        position: absolute;
+    }
+
+    ul.messages {
+        height: 100%;
+
+        li {
+            padding: .6rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+
+        li.user {
+            background-color: var(--accent-second-color);
+            color: white;
+            margin-left: 60px;
+        }
+        li.bot {
+            background-color: var(--bg-frame-color);
+            margin-right: 60px;
+        }
+    }
+
+    input[name="query"] {
+        padding: 1rem .6rem;
+    }
+}
