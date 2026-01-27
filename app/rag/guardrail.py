@@ -120,7 +120,6 @@ class FeatureExtractor:
 
         # Character type ratios
         text_len = max(len(text), 1)
-        features["uppercase_ratio"] = sum(1 for c in text if c.isupper()) / text_len
         features["special_char_ratio"] = (
             sum(1 for c in text if not c.isalnum() and not c.isspace()) / text_len
         )

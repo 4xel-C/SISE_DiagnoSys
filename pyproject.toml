@@ -18,13 +18,10 @@ dependencies = [
     "mistralai>=1.10.1",
     "gunicorn>=21.2.0",
     "gevent-websocket>=0.10.1",
-<<<<<<< Updated upstream
-=======
     "pandas>=3.0.0",
     "sherpa-onnx>=1.12.23",
     "datasets>=4.5.0",
     "langchain-huggingface>=1.2.0",
     "matplotlib>=3.10.8",
     "seaborn>=0.13.2",
->>>>>>> Stashed changes
 ]
