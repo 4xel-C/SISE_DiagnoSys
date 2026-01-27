@@ -47,31 +47,30 @@ export async function stopAudioStream() {
     // Stop audio tracks
     stream.getTracks().forEach(track => track.stop());
 
-    // Send complete audio via POST if we have data
+    // Send complete audio via POST in background (don't await)
     if (audioChunks.length > 0) {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' });
 
-        try {
-            const response = await fetch(`/ajax/audio_stt/${patientId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'audio/webm'
-                },
-                body: audioBlob
-            });
-
+        fetch(`/ajax/audio_stt/${patientId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'audio/webm'
+            },
+            body: audioBlob
+        })
+        .then(response => {
             if (!response.ok) {
                 console.error('Failed to transcribe audio:', response.status);
             }
-        } catch (error) {
-            console.error('Error sending audio:', error);
-        }
-    }
-
-    // Dispatch completion event
-    document.dispatchEvent(
-        new CustomEvent('audioProcessCompleted', {
-            detail: { patientId }
+            // Dispatch completion event when server responds
+            document.dispatchEvent(
+                new CustomEvent('audioProcessCompleted', {
+                    detail: { patientId }
+                })
+            );
         })
-    );
+        .catch(error => {
+            console.error('Error sending audio:', error);
+        });
+    }
 }

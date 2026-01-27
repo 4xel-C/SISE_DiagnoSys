@@ -194,9 +194,8 @@ document.addEventListener('patientRendered', (e) => {
 });
 
 document.addEventListener('audioRecordStoped', () => {
-    Object.values(frames).forEach(frame => {
-        frame.classList.add('waiting');
-    });
+    // Keep content visible while processing
+    // Content will be updated when audioProcessCompleted fires
 });
 
 document.addEventListener('audioProcessCompleted', (e) => {
