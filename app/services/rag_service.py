@@ -69,17 +69,17 @@ class RagService:
         self.llm_usage_service = llm_usage_service
         self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
 
-    def transcribe_stream(self, audio_chunk: bytes) -> Dict[str, Any]:
+    def transcribe(self, audio_data: bytes) -> str:
         """
-        Transcribe a chunk of audio stream.
+        Transcribe complete audio data.
 
         Args:
-            audio_chunk (bytes): The audio chunk to transcribe.
+            audio_data (bytes): The complete audio data to transcribe.
 
         Returns:
-            Dict[str, Any]: The transcription result (partial or final).
+            str: The transcription text.
         """
-        return self.asr_model.transcribe_stream(audio_chunk)
+        return self.asr_model.transcribe(audio_data)
 
     def update_context_after_audio(
         self,
