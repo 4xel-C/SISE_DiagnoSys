@@ -116,10 +116,7 @@ class ChatService:
             f"ChatService initialized for patient: {patient.prenom} {patient.nom}"
         )
 
-        # Generate initial greeting from the patient
-        self._send_initial_greeting()
-
-    def _send_initial_greeting(self) -> None:
+    def send_initial_greeting(self) -> str:
         """Generate the patient's initial greeting message."""
         greeting_prompt = "Présente-toi brièvement au médecin et explique pourquoi tu viens consulter."
 
@@ -137,6 +134,7 @@ class ChatService:
         )
 
         logger.debug(f"Initial greeting generated: {response.content[:50]}...")
+        return response.content
 
     def send_message(self, message: str) -> str:
         """
