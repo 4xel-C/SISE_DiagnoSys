@@ -27,6 +27,7 @@ def audio_stt(patient_id: int):
     Transcribe complete audio and update patient context.
     Expects audio/webm binary data in request body.
     """
+    app.plot_manager.hello()
     # Get audio data from request body
     audio_data = request.get_data()
 

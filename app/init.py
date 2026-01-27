@@ -14,7 +14,7 @@ from flask import Flask
 
 from app.config.database import db
 from app.config.logging_config import get_logging_config
-from app.services import DocumentService, PatientService, RagService
+from app.services import DocumentService, PatientService, RagService, PlotManager
 
 
 class AppContext(Flask):
@@ -26,6 +26,7 @@ class AppContext(Flask):
     patient_service: PatientService
     rag_service: RagService
     document_service: DocumentService
+    plot_manager: PlotManager
 
 
 def create_app() -> Flask:
@@ -52,6 +53,7 @@ def create_app() -> Flask:
         app.patient_service = PatientService()  # type: ignore
         app.rag_service = RagService()  # type: ignore
         app.document_service = DocumentService()  # type: ignore
+        app.plot_manager = PlotManager()  # type: ignore
 
     # Init pages routes
     from .routes import main as main_blueprint

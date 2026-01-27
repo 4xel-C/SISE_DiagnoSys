@@ -22,4 +22,5 @@ dependencies = [
     "sherpa-onnx>=1.12.23",
     "tiktoken>=0.12.0",
     "sherpa-onnx-core>=1.12.23",
+    "plotly>=6.5.2",
 ]
