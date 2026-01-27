@@ -112,7 +112,7 @@ async function stop(patientId) {
 }
 
 function toggleMic() {
-    if (isRecording) {
+    if (isRecording()) {
         const patientId = main.dataset.recordPatientId;
         stop(patientId);
     } else {

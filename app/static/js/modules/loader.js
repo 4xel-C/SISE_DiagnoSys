@@ -60,7 +60,7 @@ export async function renderPatient(patientId, force=false) {
     content.innerHTML = html;
     // Audio record activation logic
     audioRecord.classList.remove('active');
-    if (isRecording) {
+    if (isRecording()) {
         if (main.dataset.recordPatientId === patientId) {
             audioRecord.classList.add('active');
         }

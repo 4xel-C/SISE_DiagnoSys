@@ -2,14 +2,18 @@ let stream;
 let mediaRecorder;
 let audioChunks = [];
 let currentPatientId = null;
-export let isRecording = false;
+let _isRecording = false;
+
+export function isRecording() {
+    return _isRecording;
+}
 
 
 export async function startAudioStream(patientId) {
     // Reset state
     audioChunks = [];
     currentPatientId = patientId;
-    isRecording = true;
+    _isRecording = true;
 
     // Start stream
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -29,9 +33,9 @@ export async function startAudioStream(patientId) {
 
 
 export async function stopAudioStream() {
-    if (!isRecording) return;
+    if (!_isRecording) return;
 
-    isRecording = false;
+    _isRecording = false;
     const patientId = currentPatientId;
 
     // Stop recording and wait for final data
