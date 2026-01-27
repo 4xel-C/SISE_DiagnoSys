@@ -37,39 +37,41 @@
         <ul class="patients"></ul>
     </nav>
    <main>
-        <div class="top-bar">
-            <div class="play-icon">
-                <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="16px">
-                <p class="timer">00:00</p>
+        <div class="content">
+            <div class="top-bar">
+                <div class="play-icon">
+                    <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="16px">
+                    <p class="timer">00:00</p>
+                </div>
+                <div class="actions">
+                    <button class="see">Voir</button>
+                </div>
             </div>
-            <div class="actions">
-                <button class="see">Voir</button>
-            </div>
-        </div>
-        <div class="content"></div>
-        <div class="audio-record">
-            <div class="states">
-                <div class="stoped">
-                    <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
-                    <div class="label">
-                        <h3>Appuyez sur</h3>
-                        <div class="tag">
-                            <p>Shift</p>
+            <div class="patient-container"></div>
+            <div class="audio-record">
+                <div class="states">
+                    <div class="stoped">
+                        <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
+                        <div class="label">
+                            <h3>Appuyez sur</h3>
+                            <div class="tag">
+                                <p>Shift</p>
+                            </div>
+                            <p>+</p>
+                            <div class="tag">
+                                <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
+                                <p>Espace</p>
+                            </div>
+                            <h3>pour commencer l'enregistrement</h3>
                         </div>
-                        <p>+</p>
-                        <div class="tag">
-                            <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
-                            <p>Espace</p>
-                        </div>
-                        <h3>pour commencer l'enregistrement</h3>
+                    </div>
+                    <div class="started">
+                        <canvas id="waveform" width="3000" height="400"></canvas>
                     </div>
                 </div>
-                <div class="started">
-                    <canvas id="waveform" width="3000" height="400"></canvas>
-                </div>
+                <div class="circle-overlay animation-1"></div>
+                <div class="circle-overlay animation-2"></div>
             </div>
-            <div class="circle-overlay animation-1"></div>
-            <div class="circle-overlay animation-2"></div>
         </div>
    </main>
 </body>
@@ -81,5 +83,6 @@
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/audio-record.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/patient.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}" type="module"></script>
 
 </html>

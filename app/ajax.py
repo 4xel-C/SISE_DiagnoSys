@@ -112,9 +112,9 @@ def search_patients():
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
-@ajax.route("render_chat/<int:patient_id>", methods=["GET"])
-def render_chat(patient_id: int) -> str:
-    return render_template("chat.html", patient_id=patient_id)
+@ajax.route("render_chat", methods=["GET"])
+def render_chat() -> str:
+    return render_template("chat.html")
 
 
 # ---------------

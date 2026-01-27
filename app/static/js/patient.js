@@ -108,13 +108,6 @@ async function renderCases(patientId) {
     });
 }
 
-function renderAll(patientId) {
-    renderContext(patientId);
-    renderDiagnostics(patientId);
-    renderCases(patientId);
-    renderDocuments(patientId);
-}
-
 
 
 
@@ -182,11 +175,12 @@ document.addEventListener('patientRendered', (e) => {
         main.classList.remove('unsaved');
         // Request context processing
         frames.documents.classList.add('waiting');
-        await processRAG();
-        // Update results
-        renderDiagnostics(patientId);
-        renderDocuments(patientId);
-        renderCases(patientId);
+        processRAG(patientId).then(() => {
+            // Update results
+            renderDiagnostics(patientId);
+            renderDocuments(patientId);
+            renderCases(patientId);
+        })
     });
 
     // On start-chat button clicked
@@ -195,7 +189,10 @@ document.addEventListener('patientRendered', (e) => {
     })
 
     // Load and render patient content
-    renderAll(patientId);
+    renderContext(patientId);
+    renderDiagnostics(patientId);
+    renderCases(patientId);
+    renderDocuments(patientId);
 });
 
 document.addEventListener('audioRecordStoped', () => {
@@ -205,5 +202,16 @@ document.addEventListener('audioRecordStoped', () => {
 });
 
 document.addEventListener('audioProcessCompleted', (e) => {
-    renderAll(e.detail.patientId);
+    const patientId = e.detail.patientId;
+    // Update context
+    console.log('render context');
+    renderContext(patientId);
+    // Process RAG
+    processRAG(patientId).then(() => {
+        // Then update results
+        console.log('processed RAG');
+        renderDiagnostics(patientId);
+        renderDocuments(patientId);
+        renderCases(patientId);
+    })
 })

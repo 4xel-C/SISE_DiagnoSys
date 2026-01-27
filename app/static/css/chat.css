@@ -1,5 +1,6 @@
 main #chatbot {
     height: 100%;
+    width: 40rem;
     background-color: var(--bg-second-color);
     border-left: solid 1px var(--border-color);
     padding: .6rem;
@@ -12,6 +13,11 @@ main #chatbot {
 
     ul.messages {
         height: 100%;
+        margin-right: -.6rem;
+        margin-top: -.6rem;
+        padding-right: .6rem;
+        padding-top: .6rem;
+        overflow-y: auto;
 
         li {
             padding: .6rem;
@@ -32,5 +38,6 @@ main #chatbot {
 
     input[name="query"] {
         padding: 1rem .6rem;
+        margin-right: .6rem;
     }
 }
