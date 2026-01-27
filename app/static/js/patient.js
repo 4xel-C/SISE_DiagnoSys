@@ -1,5 +1,5 @@
 import { fromDelta, toDelta } from 'https://cdn.jsdelivr.net/npm/@slite/quill-delta-markdown@0.0.8/+esm';
-import { renderPatient } from './modules/loader.js';
+import { renderPatient, openChat } from './modules/loader.js';
 
 
 const main = document.querySelector('main');
@@ -108,14 +108,6 @@ async function renderCases(patientId) {
     });
 }
 
-function renderAll(patientId) {
-    renderContext(patientId);
-    renderDiagnostics(patientId);
-    renderCases(patientId);
-    renderDocuments(patientId);
-}
-
-
 
 
 
@@ -124,6 +116,7 @@ function renderAll(patientId) {
 document.addEventListener('patientRendered', (e) => {
     const patientId = e.detail.patientId;
     const patientContainer = main.querySelector('.patient');
+    const chatButton = patientContainer.querySelector('button#start-chat');
     const contextForm = patientContainer.querySelector('form#context-editor');
     frames = {
         context: patientContainer.querySelector('.frame.context-profile'),
@@ -182,15 +175,24 @@ document.addEventListener('patientRendered', (e) => {
         main.classList.remove('unsaved');
         // Request context processing
         frames.documents.classList.add('waiting');
-        await processRAG();
-        // Update results
-        renderDiagnostics(patientId);
-        renderDocuments(patientId);
-        renderCases(patientId);
+        processRAG(patientId).then(() => {
+            // Update results
+            renderDiagnostics(patientId);
+            renderDocuments(patientId);
+            renderCases(patientId);
+        })
     });
 
+    // On start-chat button clicked
+    chatButton.addEventListener('click', () => {
+        openChat(patientId);
+    })
+
     // Load and render patient content
-    renderAll(patientId);
+    renderContext(patientId);
+    renderDiagnostics(patientId);
+    renderCases(patientId);
+    renderDocuments(patientId);
 });
 
 document.addEventListener('audioRecordStoped', () => {
@@ -199,5 +201,16 @@ document.addEventListener('audioRecordStoped', () => {
 });
 
 document.addEventListener('audioProcessCompleted', (e) => {
-    renderAll(e.detail.patientId);
+    const patientId = e.detail.patientId;
+    // Update context
+    console.log('render context');
+    renderContext(patientId);
+    // Process RAG
+    processRAG(patientId).then(() => {
+        // Then update results
+        console.log('processed RAG');
+        renderDiagnostics(patientId);
+        renderDocuments(patientId);
+        renderCases(patientId);
+    })
 })

@@ -39,6 +39,7 @@ async function createUnsavedPopup(patientId, contextForm) {
 
 
 export async function renderPatient(patientId, force=false) {
+    const patientContainer = content.querySelector('.patient-container');
     const audioRecord = main.querySelector('.audio-record');
 
     // Check for unsaved data
@@ -57,7 +58,7 @@ export async function renderPatient(patientId, force=false) {
     const html = await response.text();
 
     // Display diagnostics
-    content.innerHTML = html;
+    patientContainer.innerHTML = html;
     // Audio record activation logic
     audioRecord.classList.remove('active');
     if (isRecording()) {
@@ -71,6 +72,21 @@ export async function renderPatient(patientId, force=false) {
     // Dispatch event
     document.dispatchEvent(
         new CustomEvent('patientRendered', {
+            detail: { patientId }
+        })
+    );
+}
+
+export async function openChat(patientId) {
+    // Request chatbot HTML
+    const response = await fetch('ajax/render_chat');
+    const html = await response.text();
+    // Render chatbot
+    main.insertAdjacentHTML('beforeend', html);
+    main.classList.add('simulate');
+    // Dispatch event
+    document.dispatchEvent(
+        new CustomEvent('chatbotOpened', {
             detail: { patientId }
         })
     );
