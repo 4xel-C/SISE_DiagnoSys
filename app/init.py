@@ -58,11 +58,9 @@ def create_app() -> Flask:
 
     app.register_blueprint(main_blueprint)
 
-    # Init ajax endpoints + websocket
+    # Init ajax endpoints
     from .ajax import ajax as ajax_blueprint
-    from .ajax import sock
 
-    sock.init_app(app)
     app.register_blueprint(ajax_blueprint, url_prefix="/ajax")
 
     return app
