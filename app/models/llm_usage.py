@@ -52,7 +52,5 @@ class LLMMetrics(Base):
     gco2: Mapped[float] = mapped_column(Float, nullable=False)
     water_ml: Mapped[float] = mapped_column(Float, nullable=False)
     mgSb: Mapped[float] = mapped_column(Float, nullable=False)
-    usage_date: Mapped[date] = mapped_column(
-        Date, default=date.today, unique=True, nullable=False
-    )
+    usage_date: Mapped[date] = mapped_column(Date, default=date.today, nullable=False)
     __table_args__ = (UniqueConstraint("usage_date", "nom_modele"),)
