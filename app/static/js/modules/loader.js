@@ -1,4 +1,4 @@
-import { socket } from './streamer.js';
+import { isRecording } from './streamer.js';
 
 const main = document.querySelector('main');
 const content = main.querySelector('.content');
@@ -61,7 +61,7 @@ export async function renderPatient(patientId, force=false) {
     patientContainer.innerHTML = html;
     // Audio record activation logic
     audioRecord.classList.remove('active');
-    if (socket && socket.readyState === WebSocket.OPEN) {
+    if (isRecording()) {
         if (main.dataset.recordPatientId === patientId) {
             audioRecord.classList.add('active');
         }

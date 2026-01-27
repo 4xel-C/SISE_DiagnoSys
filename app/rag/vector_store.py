@@ -162,8 +162,6 @@ class VectorStore:
             >>> results = store.search("chest pain", n_results=3)
             >>> results = store.search("diabetes", where={"type": "protocol"})
         """
-        logger.debug(f"Searching: '{query}' (n_results={n_results})")
-
         query_embedding = query if embed else self.vectorizer.embed_single(query)
 
         search_params = {

@@ -8,7 +8,6 @@ front end. No complex logic.
 from typing import cast
 
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
-from flask_sock import Sock
 
 from .init import AppContext
 
@@ -16,64 +15,33 @@ from .init import AppContext
 app = cast(AppContext, current_app)
 # Create blueprint
 ajax = Blueprint("ajax", __name__)
-# Create websocket
-sock = Sock()
 
 
 # ----------------
-# WEB SOCKETS
+# AUDIO TRANSCRIPTION
 
 
-@sock.route("/audio_stt")
-def audio_stt(ws) -> None:
-    patient_id = request.args.get("patient_id", type=int)
-    total = ""
+@ajax.route("audio_stt/<int:patient_id>", methods=["POST"])
+def audio_stt(patient_id: int):
+    """
+    Transcribe complete audio and update patient context.
+    Expects audio/webm binary data in request body.
+    """
+    # Get audio data from request body
+    audio_data = request.get_data()
 
-    # validate patient_id
-    if patient_id is None:
-        ws.close(code=1008, reason="Missing patient_id")
-        return
+    if not audio_data:
+        return jsonify({"error": "No audio data received"}), 400
 
-    model = getattr(app.rag_service, "asr_model", None)
+    # Transcribe audio
+    transcription = app.rag_service.transcribe(audio_data)
 
-    # start per-websocket session if supported
-    if model and hasattr(model, "start_session"):
-        try:
-            model.start_session()
-        except Exception as e:
-            ws.close(code=1008, reason=f"Error loading asr session: {e}")
-            return
+    # Update context with transcription if not empty
+    if transcription and len(transcription.strip()) > 0:
+        app.rag_service.update_context_after_audio(patient_id, transcription)
+        return jsonify({"transcription": transcription}), 200
 
-    while True:
-        # receive audio chunk
-        data = ws.receive()
-        if data == "stop":
-            break
-
-        # transcribe chunk
-        answer = app.rag_service.transcribe_stream(data)
-
-        # if final, send full text, else send partial
-        ws.send(answer["text"])
-        if answer["final"]:
-            total += " " + answer["text"]
-        # print("ASR answer: %s", answer)
-
-    # End session and get final result
-    if model and hasattr(model, "end_session"):
-        try:
-            final = model.end_session()
-            if final and final.get("text"):
-                total += " " + final.get("text")
-                ws.send(final.get("text"))
-        except Exception:
-            pass
-    # Update context with complete transcription
-    if len(total.strip()) > 0:
-        # print("Final ASR transcription:", total)
-        app.rag_service.update_context_after_audio(patient_id, total)
-
-    ws.send("done")
+    return jsonify({"transcription": ""}), 200
 
 
 # ---------------
@@ -111,6 +79,7 @@ def search_patients():
 @ajax.route("render_patient/<int:patient_id>", methods=["GET"])
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
+
 
 @ajax.route("render_chat", methods=["GET"])
 def render_chat() -> str:
