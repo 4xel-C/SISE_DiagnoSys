@@ -27,7 +27,7 @@ sock = Sock()
 @sock.route("/audio_stt")
 def audio_stt(ws) -> None:
     patient_id = request.args.get("patient_id", type=int)
-    total = ""
+    total = list()
 
     # validate patient_id
     if patient_id is None:
@@ -56,7 +56,7 @@ def audio_stt(ws) -> None:
         # if final, send full text, else send partial
         ws.send(answer["text"])
         if answer["final"]:
-            total += " " + answer["text"]
+            total.append(answer["text"])
         # print("ASR answer: %s", answer)
 
     # End session and get final result
@@ -64,14 +64,19 @@ def audio_stt(ws) -> None:
         try:
             final = model.end_session()
             if final and final.get("text"):
-                total += " " + final.get("text")
+                total.append(final.get("text"))
                 ws.send(final.get("text"))
         except Exception:
             pass
+
+    total = [t for t in total if t.strip() != ""]
+
+    total = " ".join(total)
+
     # Update context with complete transcription
-    if len(total.strip()) > 0:
+    if len(total) > 0:
         # print("Final ASR transcription:", total)
-        app.rag_service.update_context_after_audio(patient_id, total)
+        app.rag_service.update_context_after_audio(id=patient_id, audio_input=total)
 
     ws.send("done")
 
@@ -111,6 +116,7 @@ def search_patients():
 @ajax.route("render_patient/<int:patient_id>", methods=["GET"])
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
+
 
 @ajax.route("render_chat", methods=["GET"])
 def render_chat() -> str:
