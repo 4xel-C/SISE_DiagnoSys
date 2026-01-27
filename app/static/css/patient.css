@@ -52,7 +52,7 @@ main .patient-container {
             border-color: var(--bg-second-color);
 
             > * {
-                display: none !important;
+                opacity: .3;
             }
         }
 
@@ -149,7 +149,7 @@ main.simulate {
 
 
 @keyframes fadeInOut {
-  0%   { opacity: .2; }
+  0%   { opacity: .3; }
   50%  { opacity: 1; }
-  100% { opacity: .2; }
+  100% { opacity: .3; }
 }

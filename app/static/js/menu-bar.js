@@ -2,6 +2,7 @@ import { renderPatient } from './modules/loader.js';
 
 const menu = document.querySelector('#menu-bar');
 const main = document.querySelector('main');
+const searchForm = menu.querySelector('form.search');
 const internalList = menu.querySelector('ul.internal');
 const patientList = menu.querySelector('ul.patients');
 const topbar = main.querySelector('.top-bar');
@@ -50,7 +51,11 @@ function selectElement(element) {
 
 
 
-
+// On patient searched
+searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    searchPatients(searchForm.elements.query.value);
+});
 
 // On internal clicked => select it
 internalList.querySelectorAll('li').forEach(internal => {

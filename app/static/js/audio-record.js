@@ -103,6 +103,8 @@ async function stop(patientId) {
     main.dataset.recordPatientId = null;
     // Update UI
     main.classList.remove('streaming');
+    const timerElement = document.querySelector('main .top-bar .timer');
+    timerElement.textContent = '00:00';
     // Dispatch event
     document.dispatchEvent(
         new CustomEvent('audioRecordStoped', {
