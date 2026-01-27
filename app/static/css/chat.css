@@ -23,16 +23,18 @@ main #chatbot {
             padding: .6rem;
             border-radius: var(--border-radius);
             margin-bottom: 1rem;
+            width: fit-content;
+            max-width: 80%;
         }
 
         li.user {
             background-color: var(--accent-second-color);
             color: white;
-            margin-left: 60px;
+            margin-left: auto;
         }
-        li.bot {
+        li.agent {
             background-color: var(--bg-frame-color);
-            margin-right: 60px;
+            margin-right: auto;
         }
     }
 

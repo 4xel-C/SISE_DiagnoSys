@@ -17,6 +17,7 @@ app = cast(AppContext, current_app)
 ajax = Blueprint("ajax", __name__)
 
 
+
 # ----------------
 # AUDIO TRANSCRIPTION
 
@@ -44,6 +45,7 @@ def audio_stt(patient_id: int):
     return jsonify({"transcription": ""}), 200
 
 
+
 # ---------------
 # RENDER POPUP
 
@@ -51,8 +53,8 @@ def audio_stt(patient_id: int):
 @ajax.route("custom_popup", methods=["GET"])
 def custom_popup():
     params = request.args.to_dict()
-    print(params)
     return render_template("elements/custom_popup.html", **params)
+
 
 
 # ---------------
@@ -85,6 +87,11 @@ def render_patient(patient_id: int) -> str:
 def render_chat() -> str:
     return render_template("chat.html")
 
+@ajax.route("render_typing_bubbles", methods=["GET"])
+def render_typing_bubbles():
+    return render_template("elements/typing_bubbles.html")
+
+
 
 # ---------------
 # RAG
@@ -100,9 +107,22 @@ def process_rag(patient_id: int):
         abort(404, e)
 
 
+
+# ---------------
+# AGENT
+
+
+@ajax.route("query_agent", methods=["POST"])
+def query_agent():
+    message: str = request.json.get('query')
+    patient_id = int(request.json.get('patient_id'))
+    response = app.chat_service.send_message(message)
+    return jsonify({'message': response})
+
+
+
 # ---------------
 # DATABASE
-
 
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):
