@@ -28,7 +28,6 @@ class AppContext(Flask):
     document_service: DocumentService
     chat_service: ChatService
 
-
 def create_app() -> Flask:
     """
     Create and configure the Flask application instance.

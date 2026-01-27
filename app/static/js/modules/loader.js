@@ -84,10 +84,18 @@ export async function openChat(patientId) {
     // Render chatbot
     main.insertAdjacentHTML('beforeend', html);
     main.classList.add('simulate');
+    // Get patient name
+    const chatName = main.querySelector('form#chatbot h2')
+    fetch(`ajax/get_profile/${patientId}`).then(async (response) => {
+        const content = await response.json();
+        chatName.textContent = content['prenom'] + ' ' + content['nom'];
+    })
     // Dispatch event
     document.dispatchEvent(
         new CustomEvent('chatbotOpened', {
-            detail: { patientId }
+            detail: { 
+                patientId            
+            }
         })
     );
 }

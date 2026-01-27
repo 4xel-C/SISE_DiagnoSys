@@ -10,6 +10,8 @@ function addMessage(chatFrom, message, user) {
     messageElement.textContent = message;
     // Render element
     messageList.appendChild(messageElement);
+    // Scroll down to new message
+    messageList.scrollTop = messageList.scrollHeight;
 }
 
 async function addTypingBubbles(chatFrom) {
@@ -19,27 +21,47 @@ async function addTypingBubbles(chatFrom) {
     const html = await response.text();
     // Render HTML
     const bubblesElement = document.createElement('li');
-    bubblesElement.classList.add('agent');
+    bubblesElement.classList.add('assistant');
     bubblesElement.innerHTML = html;
     messageList.appendChild(bubblesElement);
     return bubblesElement
 }
 
 async function queryAgent(chatFrom, query, patientId) {
-    // Create empty message
+    // Create typing bubbles
     const typingBubbles = await addTypingBubbles(chatFrom);
     // Request LLM agent
-    const response = await fetch('ajax/query_agent', {
+    const response = await fetch(`ajax/query_agent/${patientId}`, {
         method: 'POST',
-        body: JSON.stringify({
-            patient_id: patientId,
-            query: query
-        })
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({query})
     })
     const content = await response.json();
     // Update message
     typingBubbles.remove();
-    addMessage(chatFrom, content['message'], 'agent');
+    addMessage(chatFrom, content['message'], 'assistant');
+}
+
+async function loadAgent(chatFrom, patientId) {
+    // Create empty message
+    const typingBubbles = await addTypingBubbles(chatFrom);
+    // Request LLM agent
+    const response = await fetch(`ajax/load_agent/${patientId}`, {
+        method: 'POST'
+    })
+    const content = await response.json();
+    // Update message
+    typingBubbles.remove();
+    // Render history
+    content['history'].forEach(message => {
+        addMessage(chatFrom, message['content'], message['role']);
+    })
+    // Display response if not empty
+    if (content['message'] !== '') {
+        addMessage(chatFrom, content['message'], 'assistant');
+    }
 }
 
 
@@ -49,16 +71,25 @@ document.addEventListener('chatbotOpened', (e) => {
     const chatFrom = main.querySelector('form#chatbot');
     const patientId = e.detail.patientId;
 
+    // Request greeting message
+    loadAgent(chatFrom, patientId);
+
     // On message send
     chatFrom.addEventListener('submit', (e) => {
         e.preventDefault();
         const message = chatFrom.elements.query.value;
+        chatFrom.elements.query.value = '';
         addMessage(chatFrom, message, 'user');
         queryAgent(chatFrom, message, patientId);
     });
 
     // On chatbot close
     chatFrom.addEventListener('reset', () => {
+        chatFrom.remove();
+        main.classList.remove('simulate');
+    })
+    // On switch patient
+    document.addEventListener('patientRendered', () => {
         chatFrom.remove();
         main.classList.remove('simulate');
     })

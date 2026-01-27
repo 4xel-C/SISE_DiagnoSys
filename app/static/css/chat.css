@@ -11,6 +11,11 @@ main #chatbot {
         position: absolute;
     }
 
+    h2 {
+        text-align: center;
+        margin: 1rem 0;
+    }
+
     ul.messages {
         height: 100%;
         margin-right: -.6rem;
@@ -18,6 +23,7 @@ main #chatbot {
         padding-right: .6rem;
         padding-top: .6rem;
         overflow-y: auto;
+        scroll-behavior: smooth;
 
         li {
             padding: .6rem;
@@ -32,7 +38,7 @@ main #chatbot {
             color: white;
             margin-left: auto;
         }
-        li.agent {
+        li.assistant {
             background-color: var(--bg-frame-color);
             margin-right: auto;
         }
