@@ -24,6 +24,8 @@ async function addTypingBubbles(chatFrom) {
     bubblesElement.classList.add('assistant');
     bubblesElement.innerHTML = html;
     messageList.appendChild(bubblesElement);
+    // Scroll down to new message
+    messageList.scrollTop = messageList.scrollHeight;
     return bubblesElement
 }
 
@@ -42,6 +44,7 @@ async function queryAgent(chatFrom, query, patientId) {
     // Update message
     typingBubbles.remove();
     addMessage(chatFrom, content['message'], 'assistant');
+    return content['message'];
 }
 
 async function loadAgent(chatFrom, patientId) {
@@ -64,6 +67,25 @@ async function loadAgent(chatFrom, patientId) {
     }
 }
 
+async function processConversation(patientId, message, response) {
+    // Request context update from conversation
+    await fetch(`ajax/process_conversation/${patientId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message,
+            response
+        })
+    })
+    // Dispatch completion event when server responds
+    document.dispatchEvent(
+        new CustomEvent('assistantConversationProcessed', {
+            detail: { patientId }
+        })
+    );
+}
 
 
 //On chatboat opened
@@ -80,7 +102,15 @@ document.addEventListener('chatbotOpened', (e) => {
         const message = chatFrom.elements.query.value;
         chatFrom.elements.query.value = '';
         addMessage(chatFrom, message, 'user');
-        queryAgent(chatFrom, message, patientId);
+        queryAgent(chatFrom, message, patientId).then((response) => {
+            // Dispatch completion event when server responds
+            document.dispatchEvent(
+                new CustomEvent('assistantResponded', {
+                    detail: { patientId }
+                })
+            );
+            processConversation(patientId, message, response);
+        })
     });
 
     // On chatbot close

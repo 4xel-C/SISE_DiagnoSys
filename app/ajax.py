@@ -46,6 +46,29 @@ def audio_stt(patient_id: int):
 
 
 
+# ----------------
+# SIMULATION (CHAT)
+
+@ajax.route('process_conversation/<int:patient_id>', methods=["POST"])
+def process_conversation(patient_id: int):
+    """
+    Simulate audio stt processing with chatbot conversation. 
+    Creating a fake transcription from a message and its chatbot response and update context.
+    """
+    print('hello from process', flush=True)
+    # Get message and its response
+    message: str = request.json.get('message')
+    response: str = request.json.get('response')
+    print('got variables', flush=True)
+
+    simulated_transcription = message + '\n\n' + response
+    print('created transcript', flush=True)
+    app.rag_service.update_context_after_audio(patient_id, simulated_transcription)
+    print('by from process', flush=True)
+
+    return "", 200
+
+
 # ---------------
 # RENDER POPUP
 
@@ -184,9 +207,7 @@ def get_related_cases(patient_id: int):
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):
-    print("updating", patient_id)
     data = request.get_json()
     context = data.get("context")
-    print("context", context)
     app.patient_service.update_context(patient_id, context)
     return "", 200

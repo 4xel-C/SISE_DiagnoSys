@@ -54,6 +54,7 @@ async function renderContext(patientId) {
     // Convert markdown to quill delta
     const mdContent = toDelta(content.context);
     // Overwrite editor
+    console.log('finished');
     frames.context.classList.remove('waiting');
     contextEditor.setContents(mdContent);
 }
@@ -107,7 +108,6 @@ async function renderCases(patientId) {
         })
     });
 }
-
 
 
 
@@ -195,23 +195,28 @@ document.addEventListener('patientRendered', (e) => {
     renderDocuments(patientId);
 });
 
-document.addEventListener('audioRecordStoped', () => {
-    Object.values(frames).forEach(frame => {
-        frame.classList.add('waiting');
+
+// On recording stopped (and chatbot responded)
+['audioRecordStoped', 'assistantResponded'].forEach(eventName => {
+    document.addEventListener(eventName, () => {
+        Object.values(frames).forEach(frame => {
+            frame.classList.add('waiting');
+        });
     });
 });
 
-document.addEventListener('audioProcessCompleted', (e) => {
-    const patientId = e.detail.patientId;
-    // Update context
-    console.log('render context');
-    renderContext(patientId);
-    // Process RAG
-    processRAG(patientId).then(() => {
-        // Then update results
-        console.log('processed RAG');
-        renderDiagnostics(patientId);
-        renderDocuments(patientId);
-        renderCases(patientId);
+// On audio process compleded (and chatbot simulation)
+['audioProcessCompleted', 'assistantResponded'].forEach(eventName => {
+    document.addEventListener(eventName, (e) => {
+        const patientId = e.detail.patientId;
+        // Update context
+        renderContext(patientId);
+        // Process RAG
+        processRAG(patientId).then(() => {
+            // Then update results
+            renderDiagnostics(patientId);
+            renderDocuments(patientId);
+            renderCases(patientId);
+        })
     })
-})
+});
