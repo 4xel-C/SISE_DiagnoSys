@@ -22,8 +22,6 @@ dependencies = [
     "sherpa-onnx>=1.12.23",
     "datasets>=4.5.0",
     "langchain-huggingface>=1.2.0",
-    "matplotlib>=3.10.8",
-    "seaborn>=0.13.2",
     "tiktoken>=0.12.0",
     "sherpa-onnx-core>=1.12.23",
 ]
