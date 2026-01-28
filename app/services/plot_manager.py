@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import date
 
 from plotly import graph_objects as go
+import numpy as np
 
 from app.schemas.llm_metrics_schema import LLMMetricsSchema
 from app.services.llm_usage_service import LLMUsageService
@@ -96,50 +97,109 @@ class PlotManager:
             usage_service (LLMUsageService): LLM usage service instance.
         """
         self.llm_usage = llm_usage
-
-        # cache variables
-        self._today_metrics: LLMMetricsSchema | None = (
-            None  # cache for a single DB call
-        )
-        self._last_n_days_metrics: dict[int, list[LLMMetricsSchema]] = {}
+        
+        # dict[number of days, list of models or all] = list of schemas
+        self._cache: dict[tuple[str, list[str] | str], list[LLMMetricsSchema]] = {}
 
     ################################################################
     # HELPER METHODS : DATA RETRIEVAL
     ################################################################
 
-    def _get_today_metrics_for_all(self, force_refresh: bool = False):
-        """Retrieve today's metrics once and cache them for reuse."""
-        if self._today_metrics is None or force_refresh:
-            today_metrics = self.llm_usage.get_today()
-            # adding every metrics together
-            if today_metrics:
-                combined_metrics: dict[str, float | int | str | date] = {
-                    "id": 0,
-                    "nom_modele": "combined",
-                    "total_input_tokens": sum(
-                        m.total_input_tokens for m in today_metrics
-                    ),
-                    "total_completion_tokens": sum(
-                        m.total_completion_tokens for m in today_metrics
-                    ),
-                    "total_tokens": sum(m.total_tokens for m in today_metrics),
-                    "mean_response_time_ms": sum(
-                        m.mean_response_time_ms for m in today_metrics
-                    )
-                    / len(today_metrics),
-                    "total_requests": sum(m.total_requests or 0 for m in today_metrics),
-                    "total_success": sum(m.total_success for m in today_metrics),
-                    "total_denials": sum(m.total_denials or 0 for m in today_metrics),
-                    "gco2": sum(m.gco2 for m in today_metrics),
-                    "water_ml": sum(m.water_ml for m in today_metrics),
-                    "mgSb": sum(m.mgSb for m in today_metrics),
-                    "usage_date": today_metrics[0].usage_date,
-                }
-                self._today_metrics = LLMMetricsSchema.model_validate(combined_metrics)
-            else:
-                self._today_metrics = None
+    def _get_data_for(self, number_of_days: int, list_of_models: list[str] | str) -> list[LLMMetricsSchema]:
+        # to not overload the database : we cache the data retrieved.
+        already_cached = self._cache[(number_of_days, list_of_models)]
+        if already_cached:
+            return already_cached
+        # else
 
-        return self._today_metrics
+        #TODO: implement the retrieval of all data for number_of_days days and list_of_models models
+
+        data_to_return: list[LLMMetricsSchema] | None = None
+    
+        return data_to_return
+
+    ################################################################
+    # KPI GETTERS
+    ################################################################
+    
+    def get_kpi_statistic(self, which: str, add_a_comparison: bool = False):
+        
+        if which not in ["CO2", "water", "antimony", "total_requests"]:
+            raise ValueError("") #TODO: implement the error and stuff
+
+    # ...
+
+
+    # dummy
+    def plot_dummy(self):
+        fig = go.Figure()
+        x = np.linspace(0, 10, 100)
+        y = x  # y = x
+        fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name='y = x'))
+
+        # Ajouter des titres
+        fig.update_layout(
+            title="Graphique de y = x",
+            xaxis_title="x",
+            yaxis_title="y",
+            template="plotly_white"
+        )
+
+        # Afficher le graphique
+        return fig.to_json()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _get_today_metrics_for_model_x(
+        self, model_x: str = "all", force_refresh: bool = False
+    ):
+        """_summary_
+
+        Args:
+            model_x (str, optional): _description_. Defaults to "all".
+            force_refresh (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
+        if _today_metrics_for_x
 
     def _get_last_n_days(self, n: int) -> list[LLMMetricsSchema]:
         """Retrieve LLM metrics for the last n days.
@@ -218,6 +278,10 @@ class PlotManager:
     ################################################################
     # PLOTTING METHODS
     ################################################################
+
+    def plot_x_by_y(self, x, y, group_by_x=None, group_by_y=None) -> go.Figure:
+        """Generic plotting method (to be implemented as needed)."""
+        fig = go.Figure()
 
     def plot_total_request_per_day(
         self, days: int = 7, to_json: bool = False

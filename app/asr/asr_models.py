@@ -93,7 +93,9 @@ class SherpaOnnxASRService(ASRServiceBase):
         Returns:
             str: The transcription text.
         """
-        print(f"[ASR] transcribe() called with {len(audio_data) if audio_data else 0} bytes")
+        print(
+            f"[ASR] transcribe() called with {len(audio_data) if audio_data else 0} bytes"
+        )
 
         if not self._available or self._recognizer is None:
             print("[ASR] Service not available!")
@@ -133,7 +135,9 @@ class SherpaOnnxASRService(ASRServiceBase):
             print("[ASR] Empty audio after conversion")
             return ""
 
-        print(f"[ASR] Audio: {audio_float.size} samples, {audio_float.size / self.SAMPLE_RATE:.2f}s")
+        print(
+            f"[ASR] Audio: {audio_float.size} samples, {audio_float.size / self.SAMPLE_RATE:.2f}s"
+        )
 
         # Create stream and feed complete audio
         try:
@@ -155,7 +159,11 @@ class SherpaOnnxASRService(ASRServiceBase):
             print(f"[ASR] Decoded {decode_count} times")
 
             result = self._recognizer.get_result(stream)
-            text = result.strip() if isinstance(result, str) else getattr(result, "text", str(result)).strip()
+            text = (
+                result.strip()
+                if isinstance(result, str)
+                else getattr(result, "text", str(result)).strip()
+            )
             text = text.lower()
             print(f"[ASR] Transcription result: '{text}'")
             return text
