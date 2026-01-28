@@ -240,6 +240,7 @@ class LLMUsageService:
                 .first()
             )
 
+            # Update if a record exists (update daily metrics)
             if record:
                 # Update existing record
                 record.total_input_tokens += input_tokens
@@ -265,6 +266,8 @@ class LLMUsageService:
                     record.total_denials = (record.total_denials or 0) + 1
 
                 logger.info(f"Updated LLM usage for {model_name} on {today}.")
+
+            # If no record exists for the day, create a new one.
             else:
                 # Create new record
                 record = LLMMetrics(
