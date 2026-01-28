@@ -127,7 +127,7 @@ class PlotManager:
     ################################################################
 
     def get_kpi_statistic(self, which: str, add_a_comparison: bool = False):
-        if which not in ["CO2", "water", "antimony", "total_requests"]:
+        if which not in ["CO2", "water", "antimony", "total_requests", "all"]:
             raise ValueError("")  # TODO: implement the error and stuff
         pass
 
@@ -157,7 +157,16 @@ class PlotManager:
         # now that we have data, we dispatch the data to the different plot methods
         plots: dict[str, str] | None = None
         # plots:  {name_of_plot: __json_string__}
+        # -> dict of plots
+
         return plots
 
-    def kpis_all(self, **kwargs):
-        pass
+    def kpis_all(self, temporal_axis: str, model_name: str | None = None):
+        data = self._get_data_for(temporal_axis=temporal_axis, model=model_name)
+
+        # now that we have data, we dispatch the data to the different kpis methods
+        kpis: dict[str, dict[float, str]] | None = None
+        # kpis : {name_of_kpi: {kpi_value : __value__, kpi_commentary: __commentary__}, ...}
+        # -> dict of kpis with their values and their commentary
+
+        return kpis
