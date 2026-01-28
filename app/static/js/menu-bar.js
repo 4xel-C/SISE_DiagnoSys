@@ -1,4 +1,4 @@
-import { renderPatient } from './modules/loader.js';
+import { renderPage, renderPatient } from './modules/loader.js';
 
 const menu = document.querySelector('#menu-bar');
 const main = document.querySelector('main');
@@ -75,8 +75,9 @@ searchForm.addEventListener('submit', (e) => {
 
 // On internal clicked => select it
 internalList.querySelectorAll('li').forEach(internal => {
-    internal.addEventListener('click', () => {
+    internal.addEventListener('click', (e) => {
         selectElement(internal);
+        renderPage(internal.dataset.pageName);
     })
 });
 

@@ -7,7 +7,7 @@ const content = main.querySelector('.content');
 
 
 
-async function createUnsavedPopup(patientId, contextForm) {
+async function createUnsavedPopup(contextForm, continueFunction) {
     // Request popup HTML
     const params = new URLSearchParams({
         title: "Modifications non sauvegardées",
@@ -20,6 +20,7 @@ async function createUnsavedPopup(patientId, contextForm) {
     // Render popup
     const popup = renderPopup(html);
     const popupForm = popup.querySelector('form');
+    // On save
     popupForm.addEventListener('submit', (e) => {
         e.preventDefault();
         contextForm.dispatchEvent(new Event('submit', {
@@ -27,38 +28,72 @@ async function createUnsavedPopup(patientId, contextForm) {
             cancelable: true
         }))
         popup.remove();
-        renderPatient(patientId, true);
+        continueFunction();
     })
+    // On delete
     popupForm.addEventListener('reset', () => {
         popup.remove();
-        renderPatient(patientId, true);
+        continueFunction();
     })
 }
 
 
 
+export async function renderPage(pageName, force=false) {
+    const pageContainer = content.querySelector('.page-container');
+
+    // Check for unsaved data
+    if (main.classList.contains('unsaved') && !force) {
+        const contextForm = main.querySelector('form#context-editor');
+        if (contextForm) {
+            createUnsavedPopup(contextForm, () => renderPage(pageName, true));
+            return;
+        }
+    }
+    // Reset saved class
+    main.classList.remove('unsaved');
+    // Patient class
+    content.classList.remove('patient-content');
+    content.classList.add('internal-content');
+
+    // Request page HTML
+    const response = await fetch(`ajax/render_page/${pageName}`);
+    const html = await response.text();
+
+    pageContainer.innerHTML = html;
+
+    // Dispatch event
+    document.dispatchEvent(
+        new CustomEvent('internalRendered', {
+            detail: { pageName }
+        })
+    );
+}
 
 export async function renderPatient(patientId, force=false) {
-    const patientContainer = content.querySelector('.patient-container');
+    const pageContainer = content.querySelector('.page-container');
     const audioRecord = main.querySelector('.audio-record');
 
     // Check for unsaved data
     if (main.classList.contains('unsaved') && !force) {
         const contextForm = main.querySelector('form#context-editor');
         if (contextForm) {
-            createUnsavedPopup(patientId, contextForm);
+            createUnsavedPopup(contextForm, () => renderPatient(patientId, true));
             return;
         }
     }
     // Reset saved class
     main.classList.remove('unsaved');
+    // Patient class
+    content.classList.remove('internal-content');
+    content.classList.add('patient-content');
 
-    // Request diagnostic HTML
+    // Request patient HTML
     const response = await fetch(`ajax/render_patient/${patientId}`);
     const html = await response.text();
 
-    // Display diagnostics
-    patientContainer.innerHTML = html;
+    // Display patient
+    pageContainer.innerHTML = html;
     // Audio record activation logic
     audioRecord.classList.remove('active');
     if (isRecording()) {
