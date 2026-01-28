@@ -5,11 +5,15 @@ Only design here function designed to be called from
 front end. No complex logic.
 """
 
+import logging
 from typing import cast
 
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
 
 from .init import AppContext
+from .services.rag_service import UnsafeRequestException
+
+logger = logging.getLogger(__name__)
 
 # Cast app_context typing
 app = cast(AppContext, current_app)
@@ -39,8 +43,18 @@ def audio_stt(patient_id: int):
 
     # Update context with transcription if not empty
     if transcription and len(transcription.strip()) > 0:
-        app.rag_service.update_context_after_audio(patient_id, transcription)
-        return jsonify({"transcription": transcription}), 200
+        try:
+            app.rag_service.update_context_after_audio(patient_id, transcription)
+            return jsonify({"transcription": transcription}), 200
+        except UnsafeRequestException as e:
+            logger.warning(
+                f"Guardrail blocked transcription for patient {patient_id}: "
+                f"checkpoint={e.checkpoint}, confidence={e.confidence:.3f}"
+            )
+            return jsonify({
+                "error": "Input blocked by security filter",
+                "transcription": transcription,
+            }), 400
 
     return jsonify({"transcription": ""}), 200
 
