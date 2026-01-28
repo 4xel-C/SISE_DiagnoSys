@@ -19,7 +19,7 @@ from typing import Optional
 from app.rag.llm import Message, llm_handler
 from app.rag.llm_options import SYSTEM_PROMPT, SystemPromptTemplate
 from app.schemas import PatientSchema
-from app.services import LLMUsageService, PatientService
+## Delayed imports to avoid circular import
 
 logger = logging.getLogger(__name__)
 
@@ -96,10 +96,12 @@ class ChatService:
         Args:
             patient_id: The ID of the patient to simulate.
         """
+        from app.services import PatientService  # Local import to avoid circular import
         patient_service = PatientService()
         patient: Optional[PatientSchema] = patient_service.get_by_id(patient_id)
 
         self.patient = patient
+        from app.services import LLMUsageService  # Local import to avoid circular import
         self.llm_usage_service = LLMUsageService()
 
         # Prepare the system prompt with patient details
