@@ -2,8 +2,8 @@ import logging
 from collections import defaultdict
 from datetime import date
 
-from plotly import graph_objects as go
 import numpy as np
+from plotly import graph_objects as go
 
 from app.schemas.llm_metrics_schema import LLMMetricsSchema
 from app.services.llm_usage_service import LLMUsageService
@@ -97,7 +97,7 @@ class PlotManager:
             usage_service (LLMUsageService): LLM usage service instance.
         """
         self.llm_usage = llm_usage
-        
+
         # dict[number of days, list of models or all] = list of schemas
         self._cache: dict[tuple[str, list[str] | str], list[LLMMetricsSchema]] = {}
 
@@ -105,406 +105,59 @@ class PlotManager:
     # HELPER METHODS : DATA RETRIEVAL
     ################################################################
 
-    def _get_data_for(self, number_of_days: int, list_of_models: list[str] | str) -> list[LLMMetricsSchema]:
+    def _get_data_for(
+        self, temporal_axis: str, model: str | None
+    ) -> list[LLMMetricsSchema]:
+        if model is None:
+            model = "all"
         # to not overload the database : we cache the data retrieved.
-        already_cached = self._cache[(number_of_days, list_of_models)]
+        already_cached = self._cache[(temporal_axis, model)]
         if already_cached:
             return already_cached
-        # else
+        # if not, we get the data with the llm_usage_service
 
-        #TODO: implement the retrieval of all data for number_of_days days and list_of_models models
+        # TODO: implement the retrieval of all data for number_of_days days and list_of_models models
 
         data_to_return: list[LLMMetricsSchema] | None = None
-    
+
         return data_to_return
 
     ################################################################
     # KPI GETTERS
     ################################################################
-    
+
     def get_kpi_statistic(self, which: str, add_a_comparison: bool = False):
-        
         if which not in ["CO2", "water", "antimony", "total_requests"]:
-            raise ValueError("") #TODO: implement the error and stuff
+            raise ValueError("")  # TODO: implement the error and stuff
+        pass
 
     # ...
-
 
     # dummy
     def plot_dummy(self):
         fig = go.Figure()
         x = np.linspace(0, 10, 100)
         y = x  # y = x
-        fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name='y = x'))
+        fig.add_trace(go.Scatter(x=x, y=y, mode="lines", name="y = x"))
 
         # Ajouter des titres
         fig.update_layout(
             title="Graphique de y = x",
             xaxis_title="x",
             yaxis_title="y",
-            template="plotly_white"
+            template="plotly_white",
         )
 
         # Afficher le graphique
         return fig.to_json()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def _get_today_metrics_for_model_x(
-        self, model_x: str = "all", force_refresh: bool = False
-    ):
-        """_summary_
-
-        Args:
-            model_x (str, optional): _description_. Defaults to "all".
-            force_refresh (bool, optional): _description_. Defaults to False.
-
-        Returns:
-            _type_: _description_
-        """
-        if _today_metrics_for_x
-
-    def _get_last_n_days(self, n: int) -> list[LLMMetricsSchema]:
-        """Retrieve LLM metrics for the last n days.
-
-        Args:
-            n (int): Number of days to retrieve metrics for.
-
-        Returns:
-            list[LLMMetricsSchema]: List of metrics for the last n days.
-        """
-        if n not in self._last_n_days_metrics:
-            metrics = self.llm_usage.get_last_n_days(n)
-            self._last_n_days_metrics[n] = metrics
-        return self._last_n_days_metrics[n]
-
-    ################################################################
-    # KPI METHODS
-    ################################################################
-
-    def request_kpi_today(
-        self, kpi: str, comparisons: bool = False
-    ) -> tuple[float, str, str]:
-        """Retrieve specific KPI for today's LLM requests.
-
-        Args:
-            kpi (str): KPI to retrieve from: CO2, water, antimony, total_requests.
-            comparisons (bool, optional): Whether to include comparison phrasing. Defaults to False.
-
-        Returns:
-            tuple[float, str, str]: KPI value, unit, and comparison phrasing if requested.
-        """
-        metrics = self._get_today_metrics_for_all()
-        if not metrics:
-            return 0.0, "", ""
-        kpi_map: dict[str, tuple[float, str]] = {
-            "CO2": (metrics.gco2, "gCO2"),
-            "water": (metrics.water_ml, "ml"),
-            "antimony": (metrics.mgSb, "mg"),
-            "total_requests": (metrics.total_requests or 0, "requests"),
-        }
-
-        if kpi not in kpi_map:
-            raise ValueError(f"Invalid KPI requested: {kpi}")
-
-        value, unit = kpi_map[kpi]
-        comparison_text = ""
-        if comparisons:
-            # Placeholder for actual comparison logic
-            # TODO: implement comparison logic
-            pass
-
-        return value, unit, comparison_text
-
-    def make_a_comparison(self, kpi: str) -> str:
-        """Create a comparison string for a given KPI over a specified period.
-
-        Args:
-            kpi (str): KPI to compare: CO2, water, antimony, total_requests.
-
-        Returns:
-            str: Comparison string.
-        """
-        match kpi:
-            case "CO2":
-                ...
-            case "water":
-                ...
-            case "antimony":
-                ...
-            case "total_requests":
-                ...
-            case _:
-                raise ValueError(f"Invalid KPI for comparison: {kpi}")
-        return ""
-
-    ################################################################
-    # PLOTTING METHODS
-    ################################################################
-
-    def plot_x_by_y(self, x, y, group_by_x=None, group_by_y=None) -> go.Figure:
-        """Generic plotting method (to be implemented as needed)."""
-        fig = go.Figure()
-
-    def plot_total_request_per_day(
-        self, days: int = 7, to_json: bool = False
-    ) -> go.Figure:
-        """Generate a plot of total LLM requests per day over the last n days.
-
-        Args:
-            days (int, optional): Number of days to include in the plot. Defaults to 7.
-
-        Returns:
-            go.Figure: Plotly figure object representing the plot.
-        """
-        metrics = self._get_last_n_days(days)
-        if not metrics:
-            logger.warning("No metrics available for plotting.")
-            return go.Figure()
-
-        # Aggregate total requests per day
-        requests_per_day = defaultdict(int)
-        for metric in metrics:
-            requests_per_day[metric.usage_date] += metric.total_requests or 0
-
-        # Prepare data for plotting
-        dates = sorted(requests_per_day.keys())
-        total_requests = [requests_per_day[date] for date in dates]
-
-        # Create Plotly figure
-        fig = go.Figure(data=go.Bar(x=dates, y=total_requests))
-        fig.update_layout(
-            title=f"Total LLM Requests per Day (Last {days} Days)",
-            xaxis_title="Date",
-            yaxis_title="Total Requests",
-        )
-
-        if to_json:
-            return fig.to_json()
-        return fig
-
-    def plot_tokens_per_day(self, days: int = 7, to_json: bool = False) -> go.Figure:
-        """Generate a plot of total tokens used per day over the last n days.
-
-        Args:
-            days (int, optional): Number of days to include in the plot. Defaults to 7.
-
-        Returns:
-            go.Figure: Plotly figure object representing the plot.
-        """
-        metrics = self._get_last_n_days(days)
-        if not metrics:
-            logger.warning("No metrics available for plotting.")
-            return go.Figure()
-
-        # Aggregate total tokens per day
-        tokens_per_day = defaultdict(int)
-        for metric in metrics:
-            tokens_per_day[metric.usage_date] += metric.total_tokens
-
-        # Prepare data for plotting
-        dates = sorted(tokens_per_day.keys())
-        total_tokens = [tokens_per_day[date] for date in dates]
-
-        # Create Plotly figure
-        fig = go.Figure(data=go.Scatter(x=dates, y=total_tokens, mode="lines+markers"))
-        fig.update_layout(
-            title=f"Total Tokens Used per Day (Last {days} Days)",
-            xaxis_title="Date",
-            yaxis_title="Total Tokens",
-        )
-        if to_json:
-            return fig.to_json()
-        return fig
-
-    def plot_success_rate_per_day(
-        self, days: int = 7, to_json: bool = False
-    ) -> go.Figure:
-        """Generate a plot of success rate per day over the last n days.
-
-        Args:
-            days (int, optional): Number of days to include in the plot. Defaults to 7.
-
-        Returns:
-            go.Figure: Plotly figure object representing the plot.
-        """
-        metrics = self._get_last_n_days(days)
-        if not metrics:
-            logger.warning("No metrics available for plotting.")
-            return go.Figure()
-
-        # Aggregate success rate per day
-        success_rate_per_day = defaultdict(list)
-        for metric in metrics:
-            success_rate_per_day[metric.usage_date].append(metric.success_rate)
-
-        # Calculate average success rate per day
-        avg_success_rate_per_day = {
-            date: sum(rates) / len(rates)
-            for date, rates in success_rate_per_day.items()
-        }
-
-        # Prepare data for plotting
-        dates = sorted(avg_success_rate_per_day.keys())
-        success_rates = [avg_success_rate_per_day[date] for date in dates]
-
-        # Create Plotly figure
-        fig = go.Figure(data=go.Scatter(x=dates, y=success_rates, mode="lines+markers"))
-        fig.update_layout(
-            title=f"Average Success Rate per Day (Last {days} Days)",
-            xaxis_title="Date",
-            yaxis_title="Success Rate (%)",
-        )
-        if to_json:
-            return fig.to_json()
-        return fig
-
-    def plot_co2_emissions_per_day(
-        self, days: int = 7, to_json: bool = False
-    ) -> go.Figure:
-        """Generate a plot of CO2 emissions per day over the last n days.
-
-        Args:
-            days (int, optional): Number of days to include in the plot. Defaults to 7.
-
-        Returns:
-            go.Figure: Plotly figure object representing the plot.
-        """
-        metrics = self._get_last_n_days(days)
-        if not metrics:
-            logger.warning("No metrics available for plotting.")
-            return go.Figure()
-
-        # Aggregate CO2 emissions per day
-        co2_per_day = defaultdict(float)
-        for metric in metrics:
-            co2_per_day[metric.usage_date] += metric.gco2
-
-        # Prepare data for plotting
-        dates = sorted(co2_per_day.keys())
-        total_co2 = [co2_per_day[date] for date in dates]
-
-        # Create Plotly figure
-        fig = go.Figure(data=go.Bar(x=dates, y=total_co2))
-        fig.update_layout(
-            title=f"CO2 Emissions per Day (Last {days} Days)",
-            xaxis_title="Date",
-            yaxis_title="CO2 Emissions (gCO2)",
-        )
-        if to_json:
-            return fig.to_json()
-        return fig
-
-    def plot_reponse_time_per_request(
-        self, days: int = 7, to_json: bool = False
-    ) -> go.Figure:
-        """Generate a plot of average response time per request over the last n days.
-
-        Args:
-            days (int, optional): Number of days to include in the plot. Defaults to 7.
-
-        Returns:
-            go.Figure: Plotly figure object representing the plot.
-        """
-        metrics = self._get_last_n_days(days)
-        if not metrics:
-            logger.warning("No metrics available for plotting.")
-            return go.Figure()
-
-        # Aggregate response time per day
-        response_time_per_day = defaultdict(list)
-        for metric in metrics:
-            response_time_per_day[metric.usage_date].append(
-                metric.mean_response_time_ms
-            )
-
-        # Calculate average response time per day
-        avg_response_time_per_day = {
-            date: sum(times) / len(times)
-            for date, times in response_time_per_day.items()
-        }
-
-        # Prepare data for plotting
-        dates = sorted(avg_response_time_per_day.keys())
-        response_times = [avg_response_time_per_day[date] for date in dates]
-
-        # Create Plotly figure
-        fig = go.Figure(
-            data=go.Scatter(x=dates, y=response_times, mode="lines+markers")
-        )
-        fig.update_layout(title=f"Average Response Time per Request (Last {days} Days)")
-        # axis:
-        fig.update_layout(
-            xaxis_title="Date",
-            yaxis_title="Response Time (ms)",
-        )
-        if to_json:
-            return fig.to_json()
-        return fig
-
-
-if __name__ == "__main__":
-    # to start : python -m app.services.plot_manager
-
-    # --- Fake service pour tests locaux ---
-    class FakeLLMUsageService:
-        def get_last_n_days(self, n: int):
-            return sample_metrics
-
-        def get_today(self):
-            today = max(m.usage_date for m in sample_metrics)
-            return [m for m in sample_metrics if m.usage_date == today]
-
-    # --- Instantiate PlotManager with fake service ---
-    fake_service = FakeLLMUsageService()
-    plot_manager = PlotManager(llm_usage=fake_service)
-
-    # --- Generate and show plots ---
-    fig_requests = plot_manager.plot_total_request_per_day(days=7)
-    fig_requests.show()
-
-    fig_tokens = plot_manager.plot_tokens_per_day(days=7)
-    fig_tokens.show()
-
-    fig_success = plot_manager.plot_success_rate_per_day(days=7)
-    fig_success.show()
-
-    fig_co2 = plot_manager.plot_co2_emissions_per_day(days=7)
-    fig_co2.show()
+    def plot_all(self, temporal_axis: str, model_name: str | None = None):
+        data = self._get_data_for(temporal_axis=temporal_axis, model=model_name)
+
+        # now that we have data, we dispatch the data to the different plot methods
+        plots: dict[str, str] | None = None
+        # plots:  {name_of_plot: __json_string__}
+        return plots
+
+    def kpis_all(self, **kwargs):
+        pass

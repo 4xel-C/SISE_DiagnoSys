@@ -121,10 +121,12 @@ def search_patients():
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
+
 @ajax.route("render_page/<page_name>", methods=["GET"])
 def render_page(page_name: str) -> str:
-    print(f'pages/{page_name}.html')
+    print(f"pages/{page_name}.html")
     return render_template(f"pages/{page_name}.html")
+
 
 @ajax.route("render_chat", methods=["GET"])
 def render_chat() -> str:
@@ -139,15 +141,20 @@ def render_typing_bubbles():
 # ---------------
 # PLOTS
 
+
 @ajax.route("stat_plots", methods=["GET"])
 def stat_plots():
-    date = request.args.get('date')
-    
-    test_plot = "" # json string
-    
-    return jsonify({
-        'test': test_plot
-    })
+    # treating args
+    new_args = {}
+
+    # sending the args to the plot_manager interface function
+    plots = app.plot_manager.plot_all(new_args)
+    # plots : {name_of_plot: __json_string__, ...}
+    # -> dict of plots
+    kpis = app.plot_manager.kpis_all(new_args)
+    # kpis : {name_of_kpi: {kpi_value : __value__, kpi_commentary: __commentary__}, ...}
+    # -> dict of kpis with their values and their commentary
+    return jsonify({"plots": plots, "kpis": kpis})
 
 
 # ---------------

@@ -7,8 +7,8 @@ import subprocess
 import numpy as np
 import sherpa_onnx
 
-from .base_asr import ASRServiceBase
-from .factory import ASRServiceFactory
+from app.asr.base_asr import ASRServiceBase
+from app.asr.factory import ASRServiceFactory
 
 logger = logging.getLogger(__name__)
 

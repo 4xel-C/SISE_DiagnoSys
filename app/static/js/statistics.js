@@ -8,10 +8,11 @@ document.addEventListener('internalRendered', (e) => {
     if (e.detail.pageName != 'statistics') return;
 
     const page = main.querySelector('.page-container');
+    form
     const plotGrid = page.querySelector('.plot-grid');
     const testPlotContainer = plotGrid.querySelector('#test-plot');
 
-    async function loadStatPlots(ids=[]) {
+    async function loadStatPlots() {
         // Update UI
         plotGrid.classList.add('waiting');
         // Build request params (filters?)
@@ -30,6 +31,10 @@ document.addEventListener('internalRendered', (e) => {
         const testFig = JSON.parse(content.test);
         await Plotly.react(testPlotContainer, testFig.data, testFig.layout, { responsive: true });
     }
+
+    form.addEventListener('submit', (e) => {
+
+    })
 
 
     function relayoutPlots() {
