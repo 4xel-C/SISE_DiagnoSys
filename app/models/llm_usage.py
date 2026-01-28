@@ -18,7 +18,7 @@ from app.models import Base
 
 class LLMMetrics(Base):
     """
-    SQLAlchemy model representing metrics for LLM usage.
+    SQLAlchemy model representing metrics for LLM usage for one day.
 
     This model stores various metrics related to the usage of large language models (LLMs),
     including token counts, response times, and success indicators.
@@ -30,11 +30,14 @@ class LLMMetrics(Base):
         total_completion_tokens (int): Number of tokens in the completion/response. Required.
         total_tokens (int): Total number of tokens (prompt + completion). Required.
         mean_response_time_ms (float): Time taken to get the response in milliseconds. Required.
+        total_requests (int): Number of LLM requests. Required.
         total_success (int): Number of successful LLM calls. Required.
         total_denials (int): Number of denied LLM calls. Optional.
-        gco2 (float): Amount of CO2 emissions in grams. Required.
-        water_ml (float): Amount of water used in milliliters. Required.
-        mgSb (float): Amount of antimony used in milligrams. Required.
+        energy_kwh (float): Energy consumption in kWh. Optional.
+        gwp_kgCO2eq (float): Global Warming Potential in kg CO2 equivalent. Optional.
+        adpe_mgSbEq (float): Abiotic Depletion Potential (elements) in mg Sb equivalent. Optional.
+        pd_mj (float): Primary energy demand in MJ. Optional.
+        wcf_liters (float): Water consumption footprint in liters. Optional.
         usage_date (date): Date of the metrics record. Must be unique per model and date. Required.
     """
 
@@ -49,8 +52,13 @@ class LLMMetrics(Base):
     total_requests: Mapped[int] = mapped_column(Integer, nullable=False)
     total_success: Mapped[int] = mapped_column(Integer, nullable=False)
     total_denials: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    gco2: Mapped[float] = mapped_column(Float, nullable=False)
-    water_ml: Mapped[float] = mapped_column(Float, nullable=False)
-    mgSb: Mapped[float] = mapped_column(Float, nullable=False)
+
+    # ---- Ecological impact metrics ----
+    energy_kwh: Mapped[float | None] = mapped_column(Float, nullable=True)
+    gwp_kgCO2eq: Mapped[float | None] = mapped_column(Float, nullable=True)
+    adpe_mgSbEq: Mapped[float | None] = mapped_column(Float, nullable=True)
+    pd_mj: Mapped[float | None] = mapped_column(Float, nullable=True)
+    wcf_liters: Mapped[float | None] = mapped_column(Float, nullable=True)
+
     usage_date: Mapped[date] = mapped_column(Date, default=date.today, nullable=False)
     __table_args__ = (UniqueConstraint("usage_date", "nom_modele"),)

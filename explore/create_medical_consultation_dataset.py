@@ -523,7 +523,7 @@ def create_dataset():
     benign_count = sum(1 for _, label in all_samples if label == 0)
     injection_count = sum(1 for _, label in all_samples if label == 1)
 
-    print(f"\nDataset created successfully!")
+    print("\nDataset created successfully!")
     print(f"  Total samples: {len(all_samples)}")
     print(f"  Benign (label=0): {benign_count}")
     print(f"  Injection (label=1): {injection_count}")

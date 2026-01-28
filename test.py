@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from ecologits import EcoLogits
 from mistralai import Mistral
 
-from app.rag.llm_options import MistralModel
 
 load_dotenv()
 

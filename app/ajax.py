@@ -21,7 +21,6 @@ app = cast(AppContext, current_app)
 ajax = Blueprint("ajax", __name__)
 
 
-
 # ----------------
 # AUDIO TRANSCRIPTION
 
@@ -51,34 +50,36 @@ def audio_stt(patient_id: int):
                 f"Guardrail blocked transcription for patient {patient_id}: "
                 f"checkpoint={e.checkpoint}, confidence={e.confidence:.3f}"
             )
-            return jsonify({
-                "error": "Input blocked by security filter",
-                "transcription": transcription,
-            }), 400
+            return jsonify(
+                {
+                    "error": "Input blocked by security filter",
+                    "transcription": transcription,
+                }
+            ), 400
 
     return jsonify({"transcription": ""}), 200
-
 
 
 # ----------------
 # SIMULATION (CHAT)
 
-@ajax.route('process_conversation/<int:patient_id>', methods=["POST"])
+
+@ajax.route("process_conversation/<int:patient_id>", methods=["POST"])
 def process_conversation(patient_id: int):
     """
-    Simulate audio stt processing with chatbot conversation. 
+    Simulate audio stt processing with chatbot conversation.
     Creating a fake transcription from a message and its chatbot response and update context.
     """
-    print('hello from process', flush=True)
+    print("hello from process", flush=True)
     # Get message and its response
-    message: str = request.json.get('message')
-    response: str = request.json.get('response')
-    print('got variables', flush=True)
+    message: str = request.json.get("message")
+    response: str = request.json.get("response")
+    print("got variables", flush=True)
 
-    simulated_transcription = message + '\n\n' + response
-    print('created transcript', flush=True)
+    simulated_transcription = message + "\n\n" + response
+    print("created transcript", flush=True)
     app.rag_service.update_context_after_audio(patient_id, simulated_transcription)
-    print('by from process', flush=True)
+    print("by from process", flush=True)
 
     return "", 200
 
@@ -91,7 +92,6 @@ def process_conversation(patient_id: int):
 def custom_popup():
     params = request.args.to_dict()
     return render_template("elements/custom_popup.html", **params)
-
 
 
 # ---------------
@@ -119,33 +119,34 @@ def search_patients():
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
+
 @ajax.route("render_page/<page_name>", methods=["GET"])
 def render_page(page_name: str) -> str:
-    print(f'pages/{page_name}.html')
+    print(f"pages/{page_name}.html")
     return render_template(f"pages/{page_name}.html")
+
 
 @ajax.route("render_chat", methods=["GET"])
 def render_chat() -> str:
     return render_template("chat.html")
+
 
 @ajax.route("render_typing_bubbles", methods=["GET"])
 def render_typing_bubbles():
     return render_template("elements/typing_bubbles.html")
 
 
-
 # ---------------
 # PLOTS
 
+
 @ajax.route("stat_plots", methods=["GET"])
 def stat_plots():
-    date = request.args.get('date')
-    
-    test_plot = "" # json string
-    
-    return jsonify({
-        'test': test_plot
-    })
+    request.args.get("date")
+
+    test_plot = ""  # json string
+
+    return jsonify({"test": test_plot})
 
 
 # ---------------
@@ -162,7 +163,6 @@ def process_rag(patient_id: int):
         abort(404, e)
 
 
-
 # ---------------
 # AGENT
 
@@ -170,33 +170,32 @@ def process_rag(patient_id: int):
 @ajax.route("load_agent/<int:patient_id>", methods=["POST"])
 def load_agent(patient_id: int):
     response = ""
-    
+
     chat_session = app.chat_service.get_or_create_chat(patient_id)
     history = chat_session.get_history()
     if len(history) == 0:
         response = chat_session.send_initial_greeting()
 
-    return jsonify({
-        'message': response,
-        'history': history
-        })
+    return jsonify({"message": response, "history": history})
+
 
 @ajax.route("query_agent/<int:patient_id>", methods=["POST"])
 def query_agent(patient_id: int):
-    message: str = request.json.get('query')
+    message: str = request.json.get("query")
     chat_session = app.chat_service.get_or_create_chat(patient_id)
     response = chat_session.send_message(message)
-    return jsonify({'message': response})
-
+    return jsonify({"message": response})
 
 
 # ---------------
 # DATABASE
 
+
 @ajax.route("get_profile/<int:patient_id>", methods=["GET"])
 def get_profile(patient_id: int):
     profile = app.patient_service.get_by_id(patient_id)
     return jsonify(profile.to_metadata())
+
 
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):
@@ -223,6 +222,7 @@ def get_related_documents(patient_id: int):
 
     return jsonify({"documents": document_htmls})
 
+
 @ajax.route("get_related_cases/<int:patient_id>", methods=["GET"])
 def get_related_cases(patient_id: int):
     case_htmls: list[str] = []
@@ -236,6 +236,7 @@ def get_related_cases(patient_id: int):
         case_htmls.append(patient.render(style="case", score=round(score * 100)))
 
     return jsonify({"cases": case_htmls})
+
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):

@@ -223,10 +223,11 @@ class LLMUsageService:
         input_tokens = usage.input_tokens
         output_tokens = usage.output_tokens
         response_time_ms = usage.latency_ms
-        gco2 = usage.gco2
-        water_ml = usage.water_ml
-        mgSb = usage.mgSb
-        success = success
+        energy_kwh = usage.energy_kwh
+        gwp_kgCO2eq = usage.gwp_kgCO2eq
+        adpe_mgSbEq = usage.adpe_mgSbEq
+        pd_mj = usage.pd_mj
+        wcf_liters = usage.wcf_liters
 
         # Connect to the db and record usage
         with self.db_manager.session() as session:
@@ -245,9 +246,11 @@ class LLMUsageService:
                 record.total_completion_tokens += output_tokens
                 record.total_tokens += input_tokens + output_tokens
                 record.total_requests += 1
-                record.gco2 += gco2
-                record.water_ml += water_ml
-                record.mgSb += mgSb
+                record.energy_kwh = (record.energy_kwh or 0) + (energy_kwh or 0)
+                record.gwp_kgCO2eq = (record.gwp_kgCO2eq or 0) + (gwp_kgCO2eq or 0)
+                record.adpe_mgSbEq = (record.adpe_mgSbEq or 0) + (adpe_mgSbEq or 0)
+                record.pd_mj = (record.pd_mj or 0) + (pd_mj or 0)
+                record.wcf_liters = (record.wcf_liters or 0) + (wcf_liters or 0)
 
                 # Update mean response time (running average)
                 total_requests = record.total_requests
@@ -273,9 +276,11 @@ class LLMUsageService:
                     total_requests=1,
                     total_success=1 if success else 0,
                     total_denials=0 if success else 1,
-                    gco2=gco2,
-                    water_ml=water_ml,
-                    mgSb=mgSb,
+                    energy_kwh=energy_kwh,
+                    gwp_kgCO2eq=gwp_kgCO2eq,
+                    adpe_mgSbEq=adpe_mgSbEq,
+                    pd_mj=pd_mj,
+                    wcf_liters=wcf_liters,
                     usage_date=today,
                 )
                 session.add(record)

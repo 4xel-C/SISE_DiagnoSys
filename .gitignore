@@ -30,6 +30,7 @@ scripts/test.py
 data/*
 chroma/
 
+test.py
 !data/ml_models/
 !data/ml_models/**
 !data/benchmark_embeddings_en.json
