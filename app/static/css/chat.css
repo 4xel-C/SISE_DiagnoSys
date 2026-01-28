@@ -11,6 +11,11 @@ main #chatbot {
         position: absolute;
     }
 
+    h2 {
+        text-align: center;
+        margin: 1rem 0;
+    }
+
     ul.messages {
         height: 100%;
         margin-right: -.6rem;
@@ -18,21 +23,24 @@ main #chatbot {
         padding-right: .6rem;
         padding-top: .6rem;
         overflow-y: auto;
+        scroll-behavior: smooth;
 
         li {
             padding: .6rem;
             border-radius: var(--border-radius);
             margin-bottom: 1rem;
+            width: fit-content;
+            max-width: 80%;
         }
 
         li.user {
             background-color: var(--accent-second-color);
             color: white;
-            margin-left: 60px;
+            margin-left: auto;
         }
-        li.bot {
+        li.assistant {
             background-color: var(--bg-frame-color);
-            margin-right: 60px;
+            margin-right: auto;
         }
     }
 

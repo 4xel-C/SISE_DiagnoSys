@@ -23,54 +23,8 @@ from app.services import LLMUsageService, PatientService
 
 logger = logging.getLogger(__name__)
 
-# Registry to store ChatService instances by patient_id
-_chat_instances: dict[int, "ChatService"] = {}
 
-
-def get_or_create_chat(patient_id: int) -> "ChatService":
-    """
-    Get an existing ChatService instance or create a new one.
-
-    Args:
-        patient_id: The ID of the patient.
-
-    Returns:
-        The ChatService instance for the given patient.
-    """
-    if patient_id not in _chat_instances:
-        _chat_instances[patient_id] = ChatService(patient_id)
-        logger.info(f"Created new ChatService instance for patient_id={patient_id}")
-    else:
-        logger.debug(
-            f"Retrieved existing ChatService instance for patient_id={patient_id}"
-        )
-    return _chat_instances[patient_id]
-
-
-def remove_chat(patient_id: int) -> bool:
-    """
-    Remove a ChatService instance from the registry.
-
-    Args:
-        patient_id: The ID of the patient.
-
-    Returns:
-        True if an instance was removed, False if none existed.
-    """
-    if patient_id in _chat_instances:
-        del _chat_instances[patient_id]
-        logger.info(f"Removed ChatService instance for patient_id={patient_id}")
-        return True
-    return False
-
-
-def clear_all_chats() -> None:
-    """Remove all ChatService instances from the registry."""
-    _chat_instances.clear()
-    logger.info("Cleared all ChatService instances")
-
-
-class ChatService:
+class ChatSession:
     """
     Service for managing patient simulation conversations.
 
@@ -188,3 +142,53 @@ class ChatService:
             Number of messages (user + assistant).
         """
         return len(self.history)
+
+
+
+class ChatService:
+
+    # Registry to store ChatService instances by patient_id
+    _chat_instances: dict[int, "ChatSession"] = {}
+
+
+    def get_or_create_chat(self, patient_id: int) -> "ChatSession":
+        """
+        Get an existing ChatService instance or create a new one.
+
+        Args:
+            patient_id: The ID of the patient.
+
+        Returns:
+            The ChatService instance for the given patient.
+        """
+        if patient_id not in self._chat_instances:
+            self._chat_instances[patient_id] = ChatSession(patient_id)
+            logger.info(f"Created new ChatService instance for patient_id={patient_id}")
+        else:
+            logger.debug(
+                f"Retrieved existing ChatService instance for patient_id={patient_id}"
+            )
+        return self._chat_instances[patient_id]
+
+
+    def remove_chat(self, patient_id: int) -> bool:
+        """
+        Remove a ChatService instance from the registry.
+
+        Args:
+            patient_id: The ID of the patient.
+
+        Returns:
+            True if an instance was removed, False if none existed.
+        """
+        if patient_id in self._chat_instances:
+            del self._chat_instances[patient_id]
+            logger.info(f"Removed ChatService instance for patient_id={patient_id}")
+            return True
+        return False
+
+
+    def clear_all_chats(self) -> None:
+        """Remove all ChatService instances from the registry."""
+        self._chat_instances.clear()
+        logger.info("Cleared all ChatService instances")

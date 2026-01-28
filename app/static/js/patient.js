@@ -111,7 +111,6 @@ async function renderCases(patientId) {
 
 
 
-
 // On diagnostics loaded
 document.addEventListener('patientRendered', (e) => {
     const patientId = e.detail.patientId;
@@ -195,22 +194,28 @@ document.addEventListener('patientRendered', (e) => {
     renderDocuments(patientId);
 });
 
-document.addEventListener('audioRecordStoped', () => {
-    // Keep content visible while processing
-    // Content will be updated when audioProcessCompleted fires
+
+// On recording stopped (and chatbot responded)
+['audioRecordStoped', 'assistantResponded'].forEach(eventName => {
+    document.addEventListener(eventName, () => {
+        Object.values(frames).forEach(frame => {
+            frame.classList.add('waiting');
+        });
+    });
 });
 
-document.addEventListener('audioProcessCompleted', (e) => {
-    const patientId = e.detail.patientId;
-    // Update context
-    console.log('render context');
-    renderContext(patientId);
-    // Process RAG
-    processRAG(patientId).then(() => {
-        // Then update results
-        console.log('processed RAG');
-        renderDiagnostics(patientId);
-        renderDocuments(patientId);
-        renderCases(patientId);
+// On audio process compleded (and chatbot simulation)
+['audioProcessCompleted', 'assistantConversationProcessed'].forEach(eventName => {
+    document.addEventListener(eventName, (e) => {
+        const patientId = e.detail.patientId;
+        // Update context
+        renderContext(patientId);
+        // Process RAG
+        processRAG(patientId).then(() => {
+            // Then update results
+            renderDiagnostics(patientId);
+            renderDocuments(patientId);
+            renderCases(patientId);
+        })
     })
-})
+});

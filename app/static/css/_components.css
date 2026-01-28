@@ -230,6 +230,36 @@ button:disabled {
 }
 
 
+/* TYPING BUBBLES */
+
+.typing-bubbles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .circle {
+        display: block;
+        height: 6px;
+        width: 6px;
+        border-radius: 50%;
+        background-color: var(--text-second-color);
+        margin: 2px;
+        animation: typing 1000ms ease-in-out infinite
+    }
+
+    .circle:nth-child(1) {
+        animation-delay: 0ms;
+    }
+
+    .circle:nth-child(2) {
+        animation-delay: 333ms
+    }
+        
+    .circle:nth-child(3) {
+        animation-delay: 666ms
+    }
+}
+
 
 
 
@@ -253,5 +283,20 @@ button:disabled {
     }
     to {
         opacity: 1;
+    }
+}
+
+@keyframes typing {
+    0% {
+        transform: scale(1);
+    }
+    33% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.4);
+    }
+    100% {
+        transform: scale(1);
     }
 }
