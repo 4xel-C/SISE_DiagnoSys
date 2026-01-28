@@ -97,16 +97,7 @@ class RagService:
         """
 
         # Checkpoint 1: Check raw transcript before LLM summarization
-        if not self.is_pertinent_and_secure(audio_input, checkpoint="raw_transcript"):
-            logger.warning(
-                "Raw transcript failed guardrail check, stopping context update: "
-                + audio_input[: min(50, len(audio_input))]
-                + "..."
-            )
-            raise UnsafeRequestException(
-                "Raw transcript failed security check",
-                checkpoint="raw_transcript",
-            )
+        self.is_pertinent_and_secure(audio_input, checkpoint="raw_transcript")
 
         # retrieve the patient context from db
         patient = self.patient_service.get_by_id(patient_id=id)
@@ -132,16 +123,7 @@ class RagService:
             raise LLMGenerationException("Failed to generate updated context")
 
         # Checkpoint 2: Check synthesized context before storing/embedding
-        if not self.is_pertinent_and_secure(
-            new_context, checkpoint="synthesized_context"
-        ):
-            logger.warning(
-                "Synthesized context failed guardrail check, stopping context update"
-            )
-            raise UnsafeRequestException(
-                "Synthesized context failed security check",
-                checkpoint="synthesized_context",
-            )
+        self.is_pertinent_and_secure(new_context, checkpoint="synthesized_context")
 
         # update the patient context in the database
         updated_patient = self.patient_service.update_context(
@@ -191,17 +173,8 @@ class RagService:
         )
         context_text += (" " + patient.type_maladie) if patient.type_maladie else ""
 
-        if context_text and not self.is_pertinent_and_secure(
-            context_text, checkpoint="pre_diagnosis"
-        ):
-            logger.warning(
-                f"Patient context failed guardrail check before diagnosis, "
-                f"patient_id={patient_id}"
-            )
-            raise UnsafeRequestException(
-                "Patient context failed security check before diagnosis generation",
-                checkpoint="pre_diagnosis",
-            )
+        if context_text:
+            self.is_pertinent_and_secure(context_text, checkpoint="pre_diagnosis")
 
         diagnosys_text = self.generate_diagnosys(
             context=context_text if context_text else "Pas de contexte disponible.",
@@ -284,7 +257,7 @@ class RagService:
     # TODO : Add pertinency check with a classifier to avoid useless calls to the llm
     def is_pertinent_and_secure(
         self, user_input: str, checkpoint: str = "raw_input"
-    ) -> bool:
+    ) -> None:
         """
         Check if user input is safe from prompt injection attacks.
 
@@ -292,27 +265,34 @@ class RagService:
             user_input: The text to validate.
             checkpoint: Identifier for where the check is performed (for logging).
 
-        Returns:
-            True if the input is safe, False if injection detected.
+        Raises:
+            UnsafeRequestException: If injection is detected.
         """
-        # if not user_input or not user_input.strip():
-        #     return True
+        if not user_input or not user_input.strip():
+            return
 
-        # result = guardrail_classifier.predict(user_input)
+        result = guardrail_classifier.predict(user_input)
 
-        # if result.is_injection:
-        #     logger.warning(
-        #         f"Guardrail [{checkpoint}]: Injection detected "
-        #         f"(confidence={result.confidence:.3f}), "
-        #         f"input_preview='{user_input[:50]}...'"
-        #     )
-        #     return False
+        print(
+            f"[Guardrail] checkpoint={checkpoint}, "
+            f"label={result.label}, confidence={result.confidence:.3f}"
+        )
 
-        # logger.debug(
-        #     f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
-        # )
-        # return True
-        return True
+        if result.is_injection:
+            logger.warning(
+                f"Guardrail [{checkpoint}]: Injection detected "
+                f"(confidence={result.confidence:.3f}), "
+                f"input_preview='{user_input[:50]}...'"
+            )
+            raise UnsafeRequestException(
+                f"Input failed security check at {checkpoint}",
+                confidence=result.confidence,
+                checkpoint=checkpoint,
+            )
+
+        logger.debug(
+            f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
+        )
 
     # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?
     def translate_text(self, text: str) -> str:

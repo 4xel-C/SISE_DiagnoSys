@@ -129,7 +129,7 @@ function toggleMic() {
 
 
 
-
+// On Shift + Space -> start recording
 window.addEventListener('keydown', (event) => {
     const combo = normalizeCombo(event);
     const handler = shortcuts.get(combo);
@@ -139,6 +139,7 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
+// On audio record clicked -> start recording
 audioRecord.addEventListener('click', () => {
     toggleMic();
 })

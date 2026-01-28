@@ -156,6 +156,7 @@ class SherpaOnnxASRService(ASRServiceBase):
 
             result = self._recognizer.get_result(stream)
             text = result.strip() if isinstance(result, str) else getattr(result, "text", str(result)).strip()
+            text = text.lower()
             print(f"[ASR] Transcription result: '{text}'")
             return text
         except Exception as e:

@@ -65,7 +65,6 @@ class GuardrailResult:
         }
 
 
-# TODO : Move to separate file as a shared module to be used in training and inference
 class FeatureExtractor:
     """
     Extract handcrafted features for prompt injection detection.
@@ -121,7 +120,6 @@ class FeatureExtractor:
 
         # Character type ratios
         text_len = max(len(text), 1)
-        features["uppercase_ratio"] = sum(1 for c in text if c.isupper()) / text_len
         features["special_char_ratio"] = (
             sum(1 for c in text if not c.isalnum() and not c.isspace()) / text_len
         )
@@ -153,17 +151,30 @@ class FeatureExtractor:
 
         return features
 
-    def extract_batch(self, texts: list[str]) -> pd.DataFrame:
+    def extract_batch(
+        self, texts: list[str], show_progress: bool = False
+    ) -> pd.DataFrame:
         """
         Extract features for a batch of texts.
 
         Args:
             texts: List of input texts.
+            show_progress: If True, display a tqdm progress bar (for training).
 
         Returns:
             DataFrame with one row per text and feature columns.
         """
-        all_features = [self.extract_features(t) for t in texts]
+        if show_progress:
+            try:
+                from tqdm import tqdm
+
+                all_features = [
+                    self.extract_features(t) for t in tqdm(texts, desc="Features")
+                ]
+            except ImportError:
+                all_features = [self.extract_features(t) for t in texts]
+        else:
+            all_features = [self.extract_features(t) for t in texts]
         return pd.DataFrame(all_features)
 
 

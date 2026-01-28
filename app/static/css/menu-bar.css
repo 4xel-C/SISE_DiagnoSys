@@ -4,9 +4,29 @@ nav#menu-bar {
         padding: .6rem;
         position: relative;
 
-        .tag {
+        .shortcut {
             position: absolute;
-            right: .6rem;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+
+            > * {
+                display: inline-block;
+            }
+
+            p {
+                color: var(--text-second-color);
+            }
+
+            .tag {
+                background-color: #fbfbfb;
+                border-color: #e6e6e6;
+            }
+        }
+    }
+    form.search:hover, form.search:focus-within {
+        .shortcut {
+            display: none;
         }
     }
 

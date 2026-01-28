@@ -12,6 +12,7 @@ function addMessage(chatFrom, message, user) {
     messageList.appendChild(messageElement);
     // Scroll down to new message
     messageList.scrollTop = messageList.scrollHeight;
+    return messageElement;
 }
 
 async function addTypingBubbles(chatFrom) {
@@ -59,7 +60,8 @@ async function loadAgent(chatFrom, patientId) {
     typingBubbles.remove();
     // Render history
     content['history'].forEach(message => {
-        addMessage(chatFrom, message['content'], message['role']);
+        const messageElement = addMessage(chatFrom, message['content'], message['role']);
+        messageElement.classList.add('history');
     })
     // Display response if not empty
     if (content['message'] !== '') {
@@ -87,11 +89,23 @@ async function processConversation(patientId, message, response) {
     );
 }
 
+// Key shortcut handler
+function focusInput(chatFrom) {
+    chatFrom.querySelector('input[name="query"]').focus();
+}
+
+
+
+
 
 //On chatboat opened
 document.addEventListener('chatbotOpened', (e) => {
     const chatFrom = main.querySelector('form#chatbot');
     const patientId = e.detail.patientId;
+
+    const shortcuts = new Map([
+        ['Ctrl+KeyM', () => focusInput(chatFrom)]
+    ]);
 
     // Request greeting message
     loadAgent(chatFrom, patientId);
@@ -124,5 +138,15 @@ document.addEventListener('chatbotOpened', (e) => {
         main.classList.remove('simulate');
     })
 
-    chatFrom.querySelector('input[name="query"]').focus();
+    // On Ctrl+m focus search bar
+    window.addEventListener('keydown', (event) => {
+        const combo = normalizeCombo(event);
+        const handler = shortcuts.get(combo);
+        if (handler) {
+            event.preventDefault();
+            handler(event);
+        }
+    });
+
+    focusInput(chatFrom);
 })
