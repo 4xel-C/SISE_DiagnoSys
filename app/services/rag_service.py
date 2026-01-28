@@ -257,7 +257,7 @@ class RagService:
     # TODO : Add pertinency check with a classifier to avoid useless calls to the llm
     def is_pertinent_and_secure(
         self, user_input: str, checkpoint: str = "raw_input"
-    ) -> None:
+    ) -> bool:
         """
         Check if user input is safe from prompt injection attacks.
 
@@ -269,7 +269,7 @@ class RagService:
             UnsafeRequestException: If injection is detected.
         """
         if not user_input or not user_input.strip():
-            return
+            raise ValueError("Wrong input")
 
         result = guardrail_classifier.predict(user_input)
 
