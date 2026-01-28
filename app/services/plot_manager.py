@@ -1,91 +1,94 @@
 import logging
-from datetime import date
 from collections import defaultdict
+from datetime import date
+
 from plotly import graph_objects as go
 
-from app.services.llm_usage_service import LLMUsageService
 from app.schemas.llm_metrics_schema import LLMMetricsSchema
+from app.services.llm_usage_service import LLMUsageService
+
 logger = logging.getLogger(__name__)
 
 sample_metrics: list[LLMMetricsSchema] = [
     LLMMetricsSchema(
-    id=1,
-    nom_modele="mistral-small",
-    total_input_tokens=120_000,
-    total_completion_tokens=45_000,
-    total_tokens=165_000,
-    mean_response_time_ms=210.5,
-    total_requests=320,
-    total_success=310,
-    total_denials=10,
-    gco2=185.4,
-    water_ml=920.0,
-    mgSb=0.82,
-    usage_date=date(2024, 11, 1),
-),
+        id=1,
+        nom_modele="mistral-small",
+        total_input_tokens=120_000,
+        total_completion_tokens=45_000,
+        total_tokens=165_000,
+        mean_response_time_ms=210.5,
+        total_requests=320,
+        total_success=310,
+        total_denials=10,
+        gco2=185.4,
+        water_ml=920.0,
+        mgSb=0.82,
+        usage_date=date(2024, 11, 1),
+    ),
     LLMMetricsSchema(
-    id=2,
-    nom_modele="mistral-medium",
-    total_input_tokens=95_000,
-    total_completion_tokens=60_000,
-    total_tokens=155_000,
-    mean_response_time_ms=340.2,
-    total_requests=280,
-    total_success=275,
-    total_denials=5,
-    gco2=240.1,
-    water_ml=1_150.0,
-    mgSb=1.10,
-    usage_date=date(2024, 11, 1),
-),
+        id=2,
+        nom_modele="mistral-medium",
+        total_input_tokens=95_000,
+        total_completion_tokens=60_000,
+        total_tokens=155_000,
+        mean_response_time_ms=340.2,
+        total_requests=280,
+        total_success=275,
+        total_denials=5,
+        gco2=240.1,
+        water_ml=1_150.0,
+        mgSb=1.10,
+        usage_date=date(2024, 11, 1),
+    ),
     LLMMetricsSchema(
-    id=3,
-    nom_modele="mistral-small",
-    total_input_tokens=140_000,
-    total_completion_tokens=52_000,
-    total_tokens=192_000,
-    mean_response_time_ms=205.8,
-    total_requests=360,
-    total_success=355,
-    total_denials=5,
-    gco2=210.6,
-    water_ml=1_030.0,
-    mgSb=0.91,
-    usage_date=date(2024, 11, 2),
-),
+        id=3,
+        nom_modele="mistral-small",
+        total_input_tokens=140_000,
+        total_completion_tokens=52_000,
+        total_tokens=192_000,
+        mean_response_time_ms=205.8,
+        total_requests=360,
+        total_success=355,
+        total_denials=5,
+        gco2=210.6,
+        water_ml=1_030.0,
+        mgSb=0.91,
+        usage_date=date(2024, 11, 2),
+    ),
     LLMMetricsSchema(
-    id=4,
-    nom_modele="mistral-medium",
-    total_input_tokens=110_000,
-    total_completion_tokens=72_000,
-    total_tokens=182_000,
-    mean_response_time_ms=355.4,
-    total_requests=300,
-    total_success=290,
-    total_denials=10,
-    gco2=265.9,
-    water_ml=1_280.0,
-    mgSb=1.22,
-    usage_date=date(2024, 11, 2),
-),
+        id=4,
+        nom_modele="mistral-medium",
+        total_input_tokens=110_000,
+        total_completion_tokens=72_000,
+        total_tokens=182_000,
+        mean_response_time_ms=355.4,
+        total_requests=300,
+        total_success=290,
+        total_denials=10,
+        gco2=265.9,
+        water_ml=1_280.0,
+        mgSb=1.22,
+        usage_date=date(2024, 11, 2),
+    ),
     LLMMetricsSchema(
-    id=5,
-    nom_modele="mistral-large",
-    total_input_tokens=80_000,
-    total_completion_tokens=95_000,
-    total_tokens=175_000,
-    mean_response_time_ms=510.7,
-    total_requests=150,
-    total_success=145,
-    total_denials=5,
-    gco2=390.3,
-    water_ml=1_900.0,
-    mgSb=2.05,
-    usage_date=date(2024, 11, 2),
+        id=5,
+        nom_modele="mistral-large",
+        total_input_tokens=80_000,
+        total_completion_tokens=95_000,
+        total_tokens=175_000,
+        mean_response_time_ms=510.7,
+        total_requests=150,
+        total_success=145,
+        total_denials=5,
+        gco2=390.3,
+        water_ml=1_900.0,
+        mgSb=2.05,
+        usage_date=date(2024, 11, 2),
     ),
 ]
 
-class PlotManager():
+
+class PlotManager:
     def __init__(self, llm_usage: LLMUsageService = LLMUsageService()) -> None:
         """Initialize the PlotManager..
 
@@ -93,9 +96,11 @@ class PlotManager():
             usage_service (LLMUsageService): LLM usage service instance.
         """
         self.llm_usage = llm_usage
-        
+
         # cache variables
-        self._today_metrics: LLMMetricsSchema | None = None  # cache for a single DB call
+        self._today_metrics: LLMMetricsSchema | None = (
+            None  # cache for a single DB call
+        )
         self._last_n_days_metrics: dict[int, list[LLMMetricsSchema]] = {}
 
     ################################################################
@@ -111,10 +116,17 @@ class PlotManager():
                 combined_metrics: dict[str, float | int | str | date] = {
                     "id": 0,
                     "nom_modele": "combined",
-                    "total_input_tokens": sum(m.total_input_tokens for m in today_metrics),
-                    "total_completion_tokens": sum(m.total_completion_tokens for m in today_metrics),
+                    "total_input_tokens": sum(
+                        m.total_input_tokens for m in today_metrics
+                    ),
+                    "total_completion_tokens": sum(
+                        m.total_completion_tokens for m in today_metrics
+                    ),
                     "total_tokens": sum(m.total_tokens for m in today_metrics),
-                    "mean_response_time_ms": sum(m.mean_response_time_ms for m in today_metrics) / len(today_metrics),
+                    "mean_response_time_ms": sum(
+                        m.mean_response_time_ms for m in today_metrics
+                    )
+                    / len(today_metrics),
                     "total_requests": sum(m.total_requests or 0 for m in today_metrics),
                     "total_success": sum(m.total_success for m in today_metrics),
                     "total_denials": sum(m.total_denials or 0 for m in today_metrics),
@@ -143,12 +155,13 @@ class PlotManager():
             self._last_n_days_metrics[n] = metrics
         return self._last_n_days_metrics[n]
 
-
     ################################################################
     # KPI METHODS
     ################################################################
 
-    def request_kpi_today(self, kpi: str, comparisons: bool = False) -> tuple[float, str, str]:
+    def request_kpi_today(
+        self, kpi: str, comparisons: bool = False
+    ) -> tuple[float, str, str]:
         """Retrieve specific KPI for today's LLM requests.
 
         Args:
@@ -175,7 +188,7 @@ class PlotManager():
         comparison_text = ""
         if comparisons:
             # Placeholder for actual comparison logic
-            #TODO: implement comparison logic
+            # TODO: implement comparison logic
             pass
 
         return value, unit, comparison_text
@@ -206,7 +219,9 @@ class PlotManager():
     # PLOTTING METHODS
     ################################################################
 
-    def plot_total_request_per_day(self, days: int = 7, to_json: bool = False) -> go.Figure:
+    def plot_total_request_per_day(
+        self, days: int = 7, to_json: bool = False
+    ) -> go.Figure:
         """Generate a plot of total LLM requests per day over the last n days.
 
         Args:
@@ -265,7 +280,7 @@ class PlotManager():
         total_tokens = [tokens_per_day[date] for date in dates]
 
         # Create Plotly figure
-        fig = go.Figure(data=go.Scatter(x=dates, y=total_tokens, mode='lines+markers'))
+        fig = go.Figure(data=go.Scatter(x=dates, y=total_tokens, mode="lines+markers"))
         fig.update_layout(
             title=f"Total Tokens Used per Day (Last {days} Days)",
             xaxis_title="Date",
@@ -275,7 +290,9 @@ class PlotManager():
             return fig.to_json()
         return fig
 
-    def plot_success_rate_per_day(self, days: int = 7, to_json: bool = False) -> go.Figure:
+    def plot_success_rate_per_day(
+        self, days: int = 7, to_json: bool = False
+    ) -> go.Figure:
         """Generate a plot of success rate per day over the last n days.
 
         Args:
@@ -296,7 +313,8 @@ class PlotManager():
 
         # Calculate average success rate per day
         avg_success_rate_per_day = {
-            date: sum(rates) / len(rates) for date, rates in success_rate_per_day.items()
+            date: sum(rates) / len(rates)
+            for date, rates in success_rate_per_day.items()
         }
 
         # Prepare data for plotting
@@ -304,7 +322,7 @@ class PlotManager():
         success_rates = [avg_success_rate_per_day[date] for date in dates]
 
         # Create Plotly figure
-        fig = go.Figure(data=go.Scatter(x=dates, y=success_rates, mode='lines+markers'))
+        fig = go.Figure(data=go.Scatter(x=dates, y=success_rates, mode="lines+markers"))
         fig.update_layout(
             title=f"Average Success Rate per Day (Last {days} Days)",
             xaxis_title="Date",
@@ -314,7 +332,9 @@ class PlotManager():
             return fig.to_json()
         return fig
 
-    def plot_co2_emissions_per_day(self, days: int = 7, to_json: bool = False) -> go.Figure:
+    def plot_co2_emissions_per_day(
+        self, days: int = 7, to_json: bool = False
+    ) -> go.Figure:
         """Generate a plot of CO2 emissions per day over the last n days.
 
         Args:
@@ -348,7 +368,9 @@ class PlotManager():
             return fig.to_json()
         return fig
 
-    def plot_reponse_time_per_request(self, days: int = 7, to_json: bool = False) -> go.Figure:
+    def plot_reponse_time_per_request(
+        self, days: int = 7, to_json: bool = False
+    ) -> go.Figure:
         """Generate a plot of average response time per request over the last n days.
 
         Args:
@@ -365,11 +387,14 @@ class PlotManager():
         # Aggregate response time per day
         response_time_per_day = defaultdict(list)
         for metric in metrics:
-            response_time_per_day[metric.usage_date].append(metric.mean_response_time_ms)
+            response_time_per_day[metric.usage_date].append(
+                metric.mean_response_time_ms
+            )
 
         # Calculate average response time per day
         avg_response_time_per_day = {
-            date: sum(times) / len(times) for date, times in response_time_per_day.items()
+            date: sum(times) / len(times)
+            for date, times in response_time_per_day.items()
         }
 
         # Prepare data for plotting
@@ -377,10 +402,10 @@ class PlotManager():
         response_times = [avg_response_time_per_day[date] for date in dates]
 
         # Create Plotly figure
-        fig = go.Figure(data=go.Scatter(x=dates, y=response_times, mode='lines+markers'))
-        fig.update_layout(
-            title=f"Average Response Time per Request (Last {days} Days)"
-            )
+        fig = go.Figure(
+            data=go.Scatter(x=dates, y=response_times, mode="lines+markers")
+        )
+        fig.update_layout(title=f"Average Response Time per Request (Last {days} Days)")
         # axis:
         fig.update_layout(
             xaxis_title="Date",
