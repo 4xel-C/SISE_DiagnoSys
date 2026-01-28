@@ -6,6 +6,7 @@ main #chatbot {
     padding: .6rem;
     display: flex;
     flex-direction: column;
+    animation: slideInt .125s ease-out;
 
     button.close {
         position: absolute;
@@ -31,21 +32,74 @@ main #chatbot {
             margin-bottom: 1rem;
             width: fit-content;
             max-width: 80%;
+            animation: popIn .125s ease;
         }
 
         li.user {
             background-color: var(--accent-second-color);
             color: white;
             margin-left: auto;
+            transform-origin: bottom right;
         }
         li.assistant {
             background-color: var(--bg-frame-color);
             margin-right: auto;
+            transform-origin: bottom left;
+        }
+
+        li.history {
+            animation: none;
         }
     }
 
-    input[name="query"] {
+    .input {
         padding: 1rem .6rem;
         margin-right: .6rem;
+        position: relative;
+
+        .shortcut {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+
+            > * {
+                display: inline-block;
+            }
+
+            p {
+                color: var(--text-second-color);
+            }
+
+            .tag {
+                background-color: #fbfbfb;
+                border-color: #e6e6e6;
+            }
+        }
+    }
+    .input:focus-within, .input:hover {
+        .shortcut {
+            display: none;
+        }
+    }
+}
+
+
+
+@keyframes slideInt {
+    from {
+        width: 10rem;
+    }
+    to {
+        width: 40rem;
+    }
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(.3);
+    }
+    to {
+        transform: scale(1);
     }
 }

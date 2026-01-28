@@ -81,6 +81,19 @@ class PatientSchema(BaseModel):
             str: Initials.
         """
         return f"{self.nom[0].upper()}{self.prenom[0].lower()}"
+    
+    @computed_field
+    @property
+    def formatted_date(self) -> str:
+        """
+        Format created_at date to dd-mm-yy
+
+        Returns
+         str: formated date
+        """
+        if not self.created_at:
+            return ""
+        return self.created_at.strftime('%d-%m-%y')
 
     @computed_field
     @property
@@ -165,7 +178,7 @@ class PatientSchema(BaseModel):
                     first_name=self.prenom,
                     last_name=self.nom,
                     initials=self.initials,
-                    # date=self.created_at,
+                    date=self.formatted_date,
                     **kwargs,
                 )
             case _:

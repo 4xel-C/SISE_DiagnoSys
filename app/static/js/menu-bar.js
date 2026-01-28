@@ -7,6 +7,11 @@ const internalList = menu.querySelector('ul.internal');
 const patientList = menu.querySelector('ul.patients');
 const topbar = main.querySelector('.top-bar');
 
+const shortcuts = new Map([
+    ['Ctrl+Slash', focusSearch],
+    ['Escape', unFocus]
+]);
+
 
 
 
@@ -47,6 +52,17 @@ function selectElement(element) {
     }
     // Select new
     element.classList.add('selected');
+}
+
+
+// Key shortcut handler
+function focusSearch() {
+    searchForm.elements.query.focus();
+}
+
+function unFocus() {
+    document.activeElement?.blur();
+
 }
 
 
@@ -97,6 +113,17 @@ topbar.addEventListener('click', () => {
     const patient = patientList.querySelector(`li[data-patient-id="${patientId}"]`);
     selectElement(patient);
     renderPatient(patientId);
+});
+
+
+// On Ctrl+/ focus search bar
+window.addEventListener('keydown', (event) => {
+    const combo = normalizeCombo(event);
+    const handler = shortcuts.get(combo);
+    if (handler) {
+        event.preventDefault();
+        handler(event);
+    }
 });
 
 

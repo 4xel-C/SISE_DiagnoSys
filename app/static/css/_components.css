@@ -139,16 +139,19 @@ button:disabled {
         right: .6rem;
     }
 
-    .date {
-        background-color: var(--bg-frame-color);
+    .score, .date {
+        display: inline-block;
         padding: 0rem .4rem;
         border-radius: 100px;
     }
 
+    .date {
+        color: var(--text-second-color);
+        background-color: var(--border-color);
+    }
+
     .score {
         background-color: var(--bg-selected-color);
-        padding: 0rem .4rem;
-        border-radius: 100px;
         color: var(--accent-color);
     }
 }
