@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/statistics.css') }}">
     <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
 </head>
 
@@ -34,9 +35,8 @@
             </div>
         </form>
         <ul class="internal">
-            <li>
-                <!-- #TODO: change the image -->
-                <img src="{{ url_for('static', filename='images/settings.svg') }}" alt="" height="16px">
+            <li data-page-name="statistics">
+                <img src="{{ url_for('static', filename='images/statistics.svg') }}" alt="" height="16px">
                 <p class="label">Statistiques</p>
             </li>
             <li>
@@ -57,7 +57,7 @@
                     <button class="see">Voir</button>
                 </div>
             </div>
-            <div class="patient-container"></div>
+            <div class="page-container"></div>
             <div class="audio-record">
                 <div class="states">
                     <div class="stoped">
@@ -88,11 +88,14 @@
 
 <!-- Quill JS plugin -->
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<!-- Plotly JS plugin -->
+<script src="https://cdn.plot.ly/plotly-3.1.0.min.js"></script>
 <!-- Custom scripts -->
 <script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/audio-record.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/patient.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/chat.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/statistics.js') }}" type="module"></script>
 
 </html>

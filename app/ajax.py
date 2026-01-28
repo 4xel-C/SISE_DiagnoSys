@@ -121,6 +121,10 @@ def search_patients():
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
 
+@ajax.route("render_page/<page_name>", methods=["GET"])
+def render_page(page_name: str) -> str:
+    print(f'pages/{page_name}.html')
+    return render_template(f"pages/{page_name}.html")
 
 @ajax.route("render_chat", methods=["GET"])
 def render_chat() -> str:
@@ -130,6 +134,20 @@ def render_chat() -> str:
 @ajax.route("render_typing_bubbles", methods=["GET"])
 def render_typing_bubbles():
     return render_template("elements/typing_bubbles.html")
+
+
+# ---------------
+# PLOTS
+
+@ajax.route("stat_plots", methods=["GET"])
+def stat_plots():
+    date = request.args.get('date')
+    
+    test_plot = "" # json string
+    
+    return jsonify({
+        'test': test_plot
+    })
 
 
 # ---------------
