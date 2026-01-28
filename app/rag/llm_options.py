@@ -162,6 +162,7 @@ Informations sur ton personnage:
 - Nom: {nom}
 - Prénom: {prenom}
 - Symptômes: {symptomes}
+- Contexte médical: {context}
 
 Instructions:
 - Réponds aux questions du médecin de manière naturelle et réaliste
