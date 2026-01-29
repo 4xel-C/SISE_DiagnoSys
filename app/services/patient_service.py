@@ -379,6 +379,7 @@ class PatientService:
 
             session.add(patient)
             session.commit()
+            session.flush()
             logger.info(f"Created patient: {patient}")
             patient_schema = PatientSchema.model_validate(patient)
 
