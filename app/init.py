@@ -28,6 +28,7 @@ class AppContext(Flask):
     document_service: DocumentService
     chat_service: ChatService
 
+
 def create_app() -> Flask:
     """
     Create and configure the Flask application instance.
@@ -52,7 +53,7 @@ def create_app() -> Flask:
         app.patient_service = PatientService()  # type: ignore
         app.rag_service = RagService()  # type: ignore
         app.document_service = DocumentService()  # type: ignore
-        app.chat_service = ChatService() # type: ignore
+        app.chat_service = ChatService()  # type: ignore
 
     # Init pages routes
     from .routes import main as main_blueprint

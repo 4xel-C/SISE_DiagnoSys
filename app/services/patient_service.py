@@ -18,7 +18,7 @@ from sqlalchemy import and_, or_
 from app.config import Database, db
 from app.models import Patient
 from app.rag import document_store, patient_store
-from app.schemas import PatientSchema
+from app.schemas import Gravite, PatientSchema
 
 logger = logging.getLogger(__name__)
 
@@ -312,13 +312,36 @@ class PatientService:
     # CREATE METHODS
     ################################################################
 
-    def create(self, **kwargs) -> PatientSchema:
+    def create(
+        self,
+        nom: str,
+        prenom: str,
+        gravite: Optional[str] = None,
+        type_maladie: Optional[str] = None,
+        symptomes_exprimes: Optional[str] = None,
+        fc: Optional[int] = None,
+        fr: Optional[int] = None,
+        spo2: Optional[float] = None,
+        ta_systolique: Optional[int] = None,
+        ta_diastolique: Optional[int] = None,
+        temperature: Optional[float] = None,
+    ) -> PatientSchema:
         """
         Create a new patient record.
         With respect to the Patient model fields.
 
         Args:
-            **kwargs: Patient attributes (nom, gravite, type_maladie, etc.)
+            nom (str): Patient's last name.
+            prenom (str): Patient's first name.
+            gravite (Optional[Gravite], optional): Triage severity level. Defaults to None.
+            type_maladie (Optional[str], optional): Disease type/category. Defaults to None.
+            symptomes_exprimes (Optional[str], optional): Expressed symptoms description. Defaults to None.
+            fc (Optional[int], optional): Heart rate (bpm). Defaults to None.
+            fr (Optional[int], optional): Respiratory rate. Defaults to None.
+            spo2 (Optional[float], optional): Oxygen saturation (%). Defaults to None.
+            ta_systolique (Optional[int], optional): Systolic blood pressure (mmHg). Defaults to None.
+            ta_diastolique (Optional[int], optional): Diastolic blood pressure (mmHg). Defaults to None.
+            temperature (Optional[float], optional): Body temperature (°C). Defaults to None.
 
         Returns:
             PatientSchema: The newly created Patient record.
@@ -334,10 +357,26 @@ class PatientService:
             ...     temperature=37.5
             ... )
         """
-        logger.debug(f"Creating new patient with data: {kwargs}.")
+        logger.debug(f"Creating new patient with data: {nom}, {prenom}.")
         patient_schema: PatientSchema
+
+        gravite_enum = Gravite(gravite) if gravite else None
+
         with self.db_manager.session() as session:
-            patient = Patient(**kwargs)
+            patient = Patient(
+                nom=nom,
+                prenom=prenom,
+                gravite=gravite_enum.value if gravite_enum else None,
+                type_maladie=type_maladie,
+                symptomes_exprimes=symptomes_exprimes,
+                fc=fc,
+                fr=fr,
+                spo2=spo2,
+                ta_systolique=ta_systolique,
+                ta_diastolique=ta_diastolique,
+                temperature=temperature,
+            )
+
             session.add(patient)
             session.commit()
             logger.info(f"Created patient: {patient}")
