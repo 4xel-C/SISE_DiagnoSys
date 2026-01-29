@@ -26,10 +26,17 @@ class PlotManager:
         """
         self.llm_usage = llm_usage
 
+        # cache of the date when the cache was last updated
+        self._date_cache: date = date.today()
         # cache of requests
         self._cache: dict[tuple[str, str | None], list[dict]] = {}
         # ie. dict[temporal_axis, specific model or all] = list of dicts of data
-        self._date_cache: date = date.today()
+
+        # cache of the date when the kpi cache was last updated
+        self._date_kpi_cache: date = date.today()
+        # cache of kpi requests
+        self._kpi_cache: dict[tuple[str, str | None], list[dict]] = {}
+        # ie. dict[temporal_axis, specific model or all] = list of dicts of data
 
         self._kpi_units_dict: dict[str, str] = {
             "gwp_kgCO2eq": "kgCO2eq",
@@ -41,19 +48,19 @@ class PlotManager:
 
         # # comparison_dict import logic
         # _fp: str = "data/comparison_dict.json"
-        # self._comparion_dict_path: str = (
+        # self._comparison_dict_path: str = (
         #     comparison_dict_path if comparison_dict_path else _fp
         # )
         # try:
-        #     with open(self._comparion_dict_path, "r", encoding="UTF-8") as file:
+        #     with open(self._comparison_dict_path, "r", encoding="UTF-8") as file:
         #         self._comparison_dict: dict[str, dict[float, str]] = json.load(file)
         #         # example :
         #         # {water: {1000: "un litre d'eau", 72000: "une douche de 6 minutes", ...}}
         # except FileNotFoundError as e:
         #     raise FileNotFoundError(
-        #         f"Comparison dict file '{self._comparion_dict_path}' not found"
+        #         f"Comparison dict file '{self._comparison_dict_path}' not found"
         #     ) from e
-        self.comparison_dict = {
+        self._comparison_dict = {
             "water": {
                 1000: "un litre d'eau",
                 72000: "une douche de 6 minutes",
@@ -79,7 +86,7 @@ class PlotManager:
     ################################################################
 
     def _get_data_grouped_by(
-        self, temporal_axis: str, models: list[str] | None = None
+        self, temporal_axis: str, models: str | None = None
     ) -> dict[tuple[str, str | None], list[dict]]:
         # we check if the cache is still valid (ie. same day)
         # otherwise we clear it
@@ -95,10 +102,35 @@ class PlotManager:
 
         # else we fetch the data
         results = self.llm_usage.get_all_group_by(
-            {"temporal_axis": temporal_axis, "model": models}
+            data_grouped_by={"temporal_axis": temporal_axis, "model": models}
         )
+
         # we cache the result
         self._cache[cache_key] = results
+        # we return it
+        return results
+
+    def _get_kpi_data_grouped_by(
+        self, temporal_axis: str, models: str | None = None
+    ) -> dict[tuple[str, str | None], dict]:
+        # we check if the kpi cache is still valid (ie. same day)
+        # otherwise we clear it
+        if self._date_kpi_cache != date.today():
+            self._kpi_cache = {}
+            self._date_kpi_cache = date.today()
+
+        # now we check if the request is already cached
+        cache_key = (temporal_axis, models if models else "all")
+        if cache_key in self._kpi_cache:
+            return self._kpi_cache[cache_key]
+
+        # else we fetch the data
+        results = self.llm_usage.get_aggregated_kpi(
+            data_grouped_by={"temporal_axis": temporal_axis, "model": models}
+        )
+
+        # we cache the result
+        self._kpi_cache[cache_key] = results
         # we return it
         return results
 
@@ -188,7 +220,7 @@ class PlotManager:
         }
 
     ################################################################
-    # PLOT METHODS
+    # PLOT HELPER METHODS
     ################################################################
 
     def _get_model_palette(self, models: list[str]) -> dict[str, str]:
@@ -213,6 +245,51 @@ class PlotManager:
         for i, model in enumerate(sorted(models)):
             palette[model] = base_colors[i % len(base_colors)]
         return palette
+
+    ################################################################
+    # PLOT METHODS
+    ################################################################
+
+    def plot_kpis_over_time(
+        self, temporal_axis: str, model_name: str | None = None, to_json: bool = True
+    ) -> str | go.Figure:
+        """Plot KPIs over time.
+
+        Args:
+            to_json (bool, optional): Whether to return the plot as a JSON string. Defaults to True.
+
+        Returns:
+            str | go.Figure: Plotly figure or its JSON representation.
+        """
+        # Placeholder implementation
+        fig = go.Figure()
+        fig.update_layout(
+            title="KPIs Over Time", xaxis_title="Time", yaxis_title="KPI Value"
+        )
+        data = self._get_data_grouped_by(
+            temporal_axis=temporal_axis,
+            models=[model_name] if model_name else None,
+        )[(temporal_axis, model_name)]
+
+        # add traces to the figure based on data
+        for kpi in self._kpi_units_dict:
+            fig.add_trace(
+                go.Scatter(
+                    x=[entry["time"] for entry in data],
+                    y=[entry[kpi] for entry in data],
+                    mode="lines+markers",
+                    name=kpi,
+                )
+            )
+
+        # add legend, grid, etc.
+        fig.update_layout(legend_title="KPIs", template="plotly_white")
+        fig.update_xaxes(showgrid=True)
+        fig.update_yaxes(showgrid=True)
+
+        if to_json:
+            return fig.to_json()
+        return fig
 
     ################################################################
     # FACADE PATTERN METHODS

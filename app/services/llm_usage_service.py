@@ -478,7 +478,19 @@ class LLMUsageService:
             if result[(temporal_axis, model)]
             else "No data",
         )
+        print(
+            "first grouped result :",
+            result[(temporal_axis, model)][0]
+            if result[(temporal_axis, model)]
+            else "No data",
+        )
         return result
+
+    def get_aggregated_kpi(
+        self, data_grouped_by: dict[str, str] | None = None
+    ) -> dict[tuple[str, str | None], dict]:
+        print("hello from get_aggregated_kpi")
+        return
 
     ################################################################
     # DELETE METHODS
