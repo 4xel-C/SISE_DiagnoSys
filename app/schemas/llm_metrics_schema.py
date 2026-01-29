@@ -30,10 +30,12 @@ class LLMMetricsSchema(BaseModel):
         total_requests (int): Total number of requests.
         total_success (int): Number of successful requests.
         total_denials (int): Number of denied requests.
-        date (date): Date of the record.
-        gco2 (float): Amount of CO2 emissions in grams.
-        water_ml (float): Amount of water used in milliliters.
-        mgSb (float): Amount of antimony used in milligrams.
+        usage_date (date): Date of the record.
+        energy_kwh (float): Energy consumption in kWh.
+        gwp_kgCO2eq (float): Global Warming Potential in kg CO2 equivalent.
+        adpe_mgSbEq (float): Abiotic Depletion Potential (elements) in mg Sb equivalent.
+        pd_mj (float): Primary energy demand in MJ.
+        wcf_liters (float): Water consumption footprint in liters.
     """
 
     id: int
@@ -45,9 +47,11 @@ class LLMMetricsSchema(BaseModel):
     total_requests: Optional[int] = None
     total_success: int
     total_denials: Optional[int] = None
-    gco2: float
-    water_ml: float
-    mgSb: float
+    energy_kwh: Optional[float] = None
+    gwp_kgCO2eq: Optional[float] = None
+    adpe_mgSbEq: Optional[float] = None
+    pd_mj: Optional[float] = None
+    wcf_liters: Optional[float] = None
     usage_date: date
 
     model_config = {"from_attributes": True}

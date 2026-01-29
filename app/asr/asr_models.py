@@ -49,7 +49,7 @@ class SherpaOnnxASRService(ASRServiceBase):
         self._available = False
         self._recognizer = None
 
-        print(f"[ASR] Initializing Sherpa ONNX...")
+        print("[ASR] Initializing Sherpa ONNX...")
         print(f"[ASR] Model path: {self._model_path}")
         print(f"[ASR] Tokens: {self.TOKENS}")
         print(f"[ASR] Encoder: {self.ENCODER}")
@@ -166,6 +166,7 @@ class SherpaOnnxASRService(ASRServiceBase):
             )
             text = text.lower()
             print(f"[ASR] Transcription result: '{text}'")
+            logger.debug(f"Transcription result: '{text}'")
             return text
         except Exception as e:
             print(f"[ASR] Error during decode: {e}")

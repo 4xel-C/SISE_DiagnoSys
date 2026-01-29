@@ -97,7 +97,11 @@ class RagService:
         """
 
         # Checkpoint 1: Check raw transcript before LLM summarization
-        self.is_pertinent_and_secure(audio_input, checkpoint="raw_transcript")
+        if not self.is_pertinent_and_secure(audio_input, checkpoint="raw_transcript"):
+            raise UnsafeRequestException(
+                "Input failed security check at raw_transcript",
+                checkpoint="raw_transcript",
+            )
 
         # retrieve the patient context from db
         patient = self.patient_service.get_by_id(patient_id=id)
@@ -123,7 +127,13 @@ class RagService:
             raise LLMGenerationException("Failed to generate updated context")
 
         # Checkpoint 2: Check synthesized context before storing/embedding
-        self.is_pertinent_and_secure(new_context, checkpoint="synthesized_context")
+        if not self.is_pertinent_and_secure(
+            new_context, checkpoint="synthesized_context"
+        ):
+            raise UnsafeRequestException(
+                "Input failed security check at synthesized_context",
+                checkpoint="synthesized_context",
+            )
 
         # update the patient context in the database
         updated_patient = self.patient_service.update_context(
@@ -174,7 +184,13 @@ class RagService:
         context_text += (" " + patient.type_maladie) if patient.type_maladie else ""
 
         if context_text:
-            self.is_pertinent_and_secure(context_text, checkpoint="pre_diagnosis")
+            if not self.is_pertinent_and_secure(
+                context_text, checkpoint="pre_diagnosis"
+            ):
+                raise UnsafeRequestException(
+                    "Input failed security check at pre_diagnosis",
+                    checkpoint="pre_diagnosis",
+                )
 
         diagnosys_text = self.generate_diagnosys(
             context=context_text if context_text else "Pas de contexte disponible.",
@@ -254,10 +270,9 @@ class RagService:
 
         return unique_document_chunks
 
-    # TODO : Add pertinency check with a classifier to avoid useless calls to the llm
     def is_pertinent_and_secure(
         self, user_input: str, checkpoint: str = "raw_input"
-    ) -> None:
+    ) -> bool:
         """
         Check if user input is safe from prompt injection attacks.
 
@@ -269,7 +284,7 @@ class RagService:
             UnsafeRequestException: If injection is detected.
         """
         if not user_input or not user_input.strip():
-            return
+            raise ValueError("Wrong input")
 
         result = guardrail_classifier.predict(user_input)
 
@@ -284,24 +299,10 @@ class RagService:
                 f"(confidence={result.confidence:.3f}), "
                 f"input_preview='{user_input[:50]}...'"
             )
-            raise UnsafeRequestException(
-                f"Input failed security check at {checkpoint}",
-                confidence=result.confidence,
-                checkpoint=checkpoint,
-            )
+            return False
 
         logger.debug(
             f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
         )
 
-    # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?
-    def translate_text(self, text: str) -> str:
-        """
-        translate user text (french) into english to be consistent with embedder used.
-        Args:
-            user_input (str): The input text from the user.
-
-        Returns:
-            str: The generated response.
-        """
-        return text
+        return True

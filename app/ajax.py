@@ -47,14 +47,20 @@ def audio_stt(patient_id: int):
     print(f"audio_stt - Transcription empty, took {time() - temp_start:.2f}s")
     # Update context with transcription if not empty
     if transcription and len(transcription.strip()) > 0:
-        # TIME_ID
-        temp_start = time()
-        app.rag_service.update_context_after_audio(patient_id, transcription)
-        # TIME_ID
-        print(
-            f"audio_stt - Update context after audio, took {time() - temp_start:.2f}s"
-        )
-        return jsonify({"transcription": transcription}), 200
+        try:
+            app.rag_service.update_context_after_audio(patient_id, transcription)
+            return jsonify({"transcription": transcription}), 200
+        except UnsafeRequestException as e:
+            logger.warning(
+                f"Guardrail blocked transcription for patient {patient_id}: "
+                f"checkpoint={e.checkpoint}, confidence={e.confidence:.3f}"
+            )
+            return jsonify(
+                {
+                    "error": "Input blocked by security filter",
+                    "transcription": transcription,
+                }
+            ), 400
 
     return jsonify({"transcription": ""}), 200
 

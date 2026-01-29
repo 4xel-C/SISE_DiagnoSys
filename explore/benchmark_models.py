@@ -27,7 +27,6 @@ from sklearn.metrics import (
     matthews_corrcoef,
 )
 from app.rag.vectorizer import Vectorizer
-from app.rag.guardrail import FeatureExtractor
 warnings.filterwarnings("ignore")
 
 

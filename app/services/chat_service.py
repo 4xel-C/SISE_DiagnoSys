@@ -19,6 +19,7 @@ from typing import Optional
 from app.rag.llm import Message, llm_handler
 from app.rag.llm_options import SYSTEM_PROMPT, SystemPromptTemplate
 from app.schemas import PatientSchema
+
 ## Delayed imports to avoid circular import
 
 logger = logging.getLogger(__name__)
@@ -51,11 +52,15 @@ class ChatSession:
             patient_id: The ID of the patient to simulate.
         """
         from app.services import PatientService  # Local import to avoid circular import
+
         patient_service = PatientService()
         patient: Optional[PatientSchema] = patient_service.get_by_id(patient_id)
 
         self.patient = patient
-        from app.services import LLMUsageService  # Local import to avoid circular import
+        from app.services import (
+            LLMUsageService,  # Local import to avoid circular import
+        )
+
         self.llm_usage_service = LLMUsageService()
 
         # Prepare the system prompt with patient details
@@ -63,6 +68,7 @@ class ChatSession:
             nom=patient.nom,
             prenom=patient.prenom,
             symptomes=patient.symptomes_exprimes or "Non spécifiés",
+            context=patient.contexte,
         )
 
         # Initialize empty conversation history
@@ -146,12 +152,9 @@ class ChatSession:
         return len(self.history)
 
 
-
 class ChatService:
-
     # Registry to store ChatService instances by patient_id
     _chat_instances: dict[int, "ChatSession"] = {}
-
 
     def get_or_create_chat(self, patient_id: int) -> "ChatSession":
         """
@@ -172,7 +175,6 @@ class ChatService:
             )
         return self._chat_instances[patient_id]
 
-
     def remove_chat(self, patient_id: int) -> bool:
         """
         Remove a ChatService instance from the registry.
@@ -188,7 +190,6 @@ class ChatService:
             logger.info(f"Removed ChatService instance for patient_id={patient_id}")
             return True
         return False
-
 
     def clear_all_chats(self) -> None:
         """Remove all ChatService instances from the registry."""
