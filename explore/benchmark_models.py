@@ -27,6 +27,7 @@ from sklearn.metrics import (
     matthews_corrcoef,
 )
 from app.rag.vectorizer import Vectorizer
+
 warnings.filterwarnings("ignore")
 
 
@@ -80,10 +81,15 @@ def load_benchmark_datasets():
     if medical_path.exists():
         print("Loading Medical consultations...")
         df = pd.read_csv(medical_path)
-        datasets['medical'] = {'texts': df['text'].tolist(), 'labels': df['label'].tolist()}
-        benign_count = (df['label'] == 0).sum()
-        injection_count = (df['label'] == 1).sum()
-        print(f"  Loaded {len(df)} samples (benign: {benign_count}, injection: {injection_count})")
+        datasets["medical"] = {
+            "texts": df["text"].tolist(),
+            "labels": df["label"].tolist(),
+        }
+        benign_count = (df["label"] == 0).sum()
+        injection_count = (df["label"] == 1).sum()
+        print(
+            f"  Loaded {len(df)} samples (benign: {benign_count}, injection: {injection_count})"
+        )
     else:
         print(f"  Skipping medical consultations (file not found: {medical_path})")
         print("  Run 'python create_medical_consultation_dataset.py' to generate it.")

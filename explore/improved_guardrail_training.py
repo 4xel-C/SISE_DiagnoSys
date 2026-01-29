@@ -45,7 +45,8 @@ from sklearn.metrics import (
 )
 from app.rag.vectorizer import Vectorizer
 from app.rag.guardrail import FeatureExtractor
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 # Set random seeds for reproducibility
 RANDOM_STATE = 42
@@ -143,22 +144,30 @@ def load_all_datasets(max_samples=None):
     # 6. Medical consultations - critical for reducing false positives on real transcripts
     # This dataset includes both benign consultations AND medical injection attacks
     # to teach the model that medical context != automatically safe
-    medical_consultations_path = pathlib.Path(__file__).parent / "medical_consultations_benign.csv"
+    medical_consultations_path = (
+        pathlib.Path(__file__).parent / "medical_consultations_benign.csv"
+    )
     if medical_consultations_path.exists():
         print("Loading Medical consultations (benign + medical injections)...")
         df_medical = pd.read_csv(medical_consultations_path)
-        df_medical['source'] = 'medical_consultations'
+        df_medical["source"] = "medical_consultations"
         # Ensure label column is integer
-        df_medical['label'] = df_medical['label'].astype(int)
+        df_medical["label"] = df_medical["label"].astype(int)
         if max_samples and len(df_medical) > max_samples:
             df_medical = df_medical.sample(n=max_samples, random_state=RANDOM_STATE)
-        datasets['medical_consultations'] = df_medical[['text', 'label', 'source']]
-        benign_count = (df_medical['label'] == 0).sum()
-        injection_count = (df_medical['label'] == 1).sum()
-        print(f"  Loaded {len(df_medical)} samples (benign: {benign_count}, injection: {injection_count})")
+        datasets["medical_consultations"] = df_medical[["text", "label", "source"]]
+        benign_count = (df_medical["label"] == 0).sum()
+        injection_count = (df_medical["label"] == 1).sum()
+        print(
+            f"  Loaded {len(df_medical)} samples (benign: {benign_count}, injection: {injection_count})"
+        )
     else:
-        print(f"Warning: Medical consultations dataset not found at {medical_consultations_path}")
-        print("  Run 'python create_medical_consultation_dataset.py' first to generate it.")
+        print(
+            f"Warning: Medical consultations dataset not found at {medical_consultations_path}"
+        )
+        print(
+            "  Run 'python create_medical_consultation_dataset.py' first to generate it."
+        )
 
     return datasets
 
@@ -448,9 +457,9 @@ def run_lodo_evaluation(
     for i, split in enumerate(lodo_splits):
         test_name = split["test_name"]
         split_start = time.time()
-        print(f"\n{'='*60}")
-        print(f"[{i+1}/{len(lodo_splits)}] Testing on: {test_name}")
-        print(f"{'='*60}")
+        print(f"\n{'=' * 60}")
+        print(f"[{i + 1}/{len(lodo_splits)}] Testing on: {test_name}")
+        print(f"{'=' * 60}")
 
         train_texts = split["train"]["text"].tolist()
         train_labels = split["train"]["label"].tolist()
@@ -607,7 +616,7 @@ def main():
         benign = (df["label"] == 0).sum()
         jailbreak = (df["label"] == 1).sum()
         print(
-            f"{name:25s}: {len(df):6d} samples | Benign: {benign:5d} ({benign/len(df)*100:.1f}%) | Jailbreak: {jailbreak:5d} ({jailbreak/len(df)*100:.1f}%)"
+            f"{name:25s}: {len(df):6d} samples | Benign: {benign:5d} ({benign / len(df) * 100:.1f}%) | Jailbreak: {jailbreak:5d} ({jailbreak / len(df) * 100:.1f}%)"
         )
 
     results_df = None
@@ -699,8 +708,8 @@ def main():
     cm = confusion_matrix(y_val, y_val_pred)
 
     print("\nConfusion Matrix:")
-    print(f"  TN: {cm[0,0]:5d}  FP: {cm[0,1]:5d}")
-    print(f"  FN: {cm[1,0]:5d}  TP: {cm[1,1]:5d}")
+    print(f"  TN: {cm[0, 0]:5d}  FP: {cm[0, 1]:5d}")
+    print(f"  FN: {cm[1, 0]:5d}  TP: {cm[1, 1]:5d}")
 
     # Save model artifacts
     print("\n[7/7] Saving model artifacts...")
@@ -744,7 +753,7 @@ def main():
     print("\n" + "=" * 60)
     print("TRAINING COMPLETE!")
     print(
-        f"Total time: {time.time() - total_start:.1f}s ({(time.time() - total_start)/60:.1f} minutes)"
+        f"Total time: {time.time() - total_start:.1f}s ({(time.time() - total_start) / 60:.1f} minutes)"
     )
     print("=" * 60)
 

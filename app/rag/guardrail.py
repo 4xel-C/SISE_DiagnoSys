@@ -465,6 +465,21 @@ class GuardrailClassifier:
         """
         return not self.predict(text).is_injection
 
+    def update_threshold(self, new_threshold: float) -> None:
+        """
+        Update the classification threshold.
+
+        Args:
+            new_threshold: New threshold value (0.0 to 1.0).
+
+        Example:
+            >>> classifier.update_threshold(0.7)
+        """
+        if not (0.0 <= new_threshold <= 1.0):
+            raise ValueError("Threshold must be between 0.0 and 1.0")
+        self.threshold = new_threshold
+        logger.info(f"Guardrail classification threshold updated to {self.threshold}")
+
 
 # Pre-configured instance for convenient access
 guardrail_classifier = GuardrailClassifier()
