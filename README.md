@@ -1,6 +1,6 @@
-# DiagnoSys
+<img width="1536" height="627" alt="Logo DiagnoSys avec cerveau et croix médicale" src="https://github.com/user-attachments/assets/89dc7da8-d6fb-4e82-8360-2127b4042a34" />
 
-**AI-Powered Medical Diagnostic Support System**
+# **AI-Powered Medical Diagnostic Support System**
 
 DiagnoSys is a web application designed for healthcare professionals, combining patient record management, real-time speech recognition, and a Retrieval-Augmented Generation (RAG) pipeline to assist clinical decision-making.
 
@@ -500,3 +500,4 @@ Project developed as part of the SISE Master's program - University of Lyon 2
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
