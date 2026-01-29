@@ -23,24 +23,18 @@ main {
     display: flex;
     position: relative;
 
-    .error {
+    .error-info {
         display: none;
         position: absolute;
-        top: 1rem;
-        left: 1rem;
-        padding: .6rem;
-        background-color: #ffcccc;
-        border-radius: var(--border-radius);
+        top: 2rem;
+        right: 2rem;
         z-index: 9999;
-
-        p, strong {
-            color: var(--bad-color);
-        }
     }
 }
 main.error {
-    .error {
+    .error-info  {
         display: block;
+        animation: slideIn .3s ease;
     }
 }
 
@@ -60,4 +54,15 @@ main .page-container {
     height: 100%;
     max-height: 80%;
     margin: 1rem;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0px);
+    }
 }

@@ -263,7 +263,26 @@ button:disabled {
     }
 }
 
+/* INFO MESSAGE */
 
+.error-info {
+    padding: .6rem;
+    background-color: #ffcccc;
+    border-radius: var(--border-radius);
+    box-shadow: 0px 2px 10px 0px rgba(0, 0, 0, 0.1);
+
+    p, strong {
+        color: var(--bad-color);
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    img {
+        display: inline-block;
+        vertical-align: middle;
+        filter: invert(40%) sepia(19%) saturate(2712%) hue-rotate(318deg) brightness(113%) contrast(109%);
+    }
+}
 
 
 

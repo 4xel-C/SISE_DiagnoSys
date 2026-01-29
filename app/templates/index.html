@@ -44,11 +44,17 @@
                 <p class="label">À propos</p>
             </li>
         </ul>
+        <form class="create-patient">
+            
+        </form>
         <ul class="patients"></ul>
     </nav>
    <main>
-        <div class="error">
-            <p><strong>Erreur</strong></p>
+        <div class="error-info">
+            <div>
+                <img src="{{ url_for('static', filename='images/warning.svg') }}" alt="" height="16px">
+                <strong>Erreur</strong>
+            </div>
             <p class="label"></p>
         </div>
         <div class="content">

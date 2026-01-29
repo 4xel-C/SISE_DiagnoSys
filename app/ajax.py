@@ -164,7 +164,7 @@ def process_rag(patient_id: int):
     except UnsafeRequestException:
         return jsonify({
             "error": "Entrée bloquée par le filtre de sécurité"
-        })
+        }), 400
 
 
 # ---------------
