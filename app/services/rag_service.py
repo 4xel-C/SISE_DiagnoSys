@@ -58,6 +58,7 @@ class RagService:
         document_service: DocumentService = DocumentService(),
         llm_handler: LLMHandler = llm_handler,
         llm_usage_service: LLMUsageService = LLMUsageService(),
+        guardrail_classifier=guardrail_classifier,
         asr_model: Optional[ASRServiceBase] = None,
     ):
         # save the instances of the core components
@@ -67,6 +68,7 @@ class RagService:
         self.document_service = document_service
         self.llm_handler = llm_handler
         self.llm_usage_service = llm_usage_service
+        self.guardrail_classifier = guardrail_classifier
         self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
 
     def transcribe(self, audio_data: bytes) -> str:
@@ -286,7 +288,7 @@ class RagService:
         if not user_input or not user_input.strip():
             raise ValueError("Wrong input")
 
-        result = guardrail_classifier.predict(user_input)
+        result = self.guardrail_classifier.predict(user_input)
 
         print(
             f"[Guardrail] checkpoint={checkpoint}, "
@@ -306,3 +308,13 @@ class RagService:
         )
 
         return True
+
+    def update_guardrail_threshold(self, new_threshold: float) -> None:
+        """
+        Update the guardrail classifier threshold.
+
+        Args:
+            new_threshold (float): The new threshold value to set.
+        """
+        self.guardrail_classifier.update_threshold(new_threshold)
+        logger.info(f"Guardrail threshold updated to {new_threshold}")
