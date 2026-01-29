@@ -35,7 +35,7 @@ def audio_stt(patient_id: int):
     audio_data = request.get_data()
 
     if not audio_data:
-        return jsonify({"error": "No audio data received"}), 400
+        return jsonify({"error": "Aucun signal audio reçu"}), 400
 
     # Transcribe audio
     transcription = app.rag_service.transcribe(audio_data)
@@ -52,7 +52,7 @@ def audio_stt(patient_id: int):
             )
             return jsonify(
                 {
-                    "error": "Input blocked by security filter",
+                    "error": "Entrée bloquée par le filtre de sécurité",
                     "transcription": transcription,
                 }
             ), 400
@@ -161,6 +161,10 @@ def process_rag(patient_id: int):
     except ValueError as e:
         # Patient not found
         abort(404, e)
+    except UnsafeRequestException:
+        return jsonify({
+            "error": "Entrée bloquée par le filtre de sécurité"
+        })
 
 
 # ---------------

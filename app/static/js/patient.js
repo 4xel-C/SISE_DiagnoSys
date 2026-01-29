@@ -26,9 +26,20 @@ async function saveContext(patientId, context) {
 }
 
 async function processRAG(patientId) {
-    await fetch(`ajax/process_rag/${patientId}`, {
+    const response = await fetch(`ajax/process_rag/${patientId}`, {
         method: 'POST'
     })
+    if (!response.ok) {
+        const content = await response.json();
+        document.dispatchEvent(
+            new CustomEvent('RAGProcessedError', {
+                detail: { 
+                    patientId,
+                    error: content?.error ?? 'Erreur interne'
+                }
+            })
+        );
+    }
 }
 
 
@@ -113,6 +124,7 @@ async function renderCases(patientId) {
 
 // On diagnostics loaded
 document.addEventListener('patientRendered', (e) => {
+    main.classList.remove('error');
     const patientId = e.detail.patientId;
     const patientContainer = main.querySelector('.patient');
     const chatButton = patientContainer.querySelector('button#start-chat');
@@ -168,12 +180,14 @@ document.addEventListener('patientRendered', (e) => {
         contextForm.querySelector('fieldset').disabled = false;
         if (!response.ok) {
             console.error('Failed to update context in database');
-            return
+            return;
         }
         contextForm.classList.remove('edited');
         main.classList.remove('unsaved');
         // Request context processing
+        frames.diagnostic.classList.add('waiting');
         frames.documents.classList.add('waiting');
+        frames.cases.classList.add('waiting');
         processRAG(patientId).then(() => {
             // Update results
             renderDiagnostics(patientId);
@@ -207,6 +221,7 @@ document.addEventListener('patientRendered', (e) => {
 // On audio process compleded (and chatbot simulation)
 ['audioProcessCompleted', 'assistantConversationProcessed'].forEach(eventName => {
     document.addEventListener(eventName, (e) => {
+        main.classList.remove('error');
         const patientId = e.detail.patientId;
         // Update context
         renderContext(patientId);
@@ -217,5 +232,14 @@ document.addEventListener('patientRendered', (e) => {
             renderDocuments(patientId);
             renderCases(patientId);
         })
+    })
+});
+
+// On audio process error (and chatbot simulation error)
+['audioProcessError', 'assistantConversationError', 'RAGProcessedError'].forEach(eventName => {
+    document.addEventListener(eventName, (e) => {
+        main.classList.add('error');
+        const errorMessage = main.querySelector('.error .label');
+        errorMessage.textContent = e.detail.error;
     })
 });
