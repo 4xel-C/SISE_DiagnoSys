@@ -61,7 +61,7 @@ class PlotManager:
         #         f"Comparison dict file '{self._comparison_dict_path}' not found"
         #     ) from e
         self._comparison_dict = {
-            "water": {
+            "wcf_liters": {
                 1000: "un litre d'eau",
                 72000: "une douche de 6 minutes",
                 150000: "un bain",
@@ -78,6 +78,16 @@ class PlotManager:
                 0.5: "une heure de télévision",
                 1.5: "une machine à laver",
                 3.0: "un sèche-linge",
+            },
+            "adpe_mgSbEq": {
+                10: "la fabrication d'un smartphone",
+                50: "la fabrication d'un ordinateur portable",
+                200: "la fabrication d'une télévision",
+            },
+            "total_requests": {
+                1: "une requête",
+                1000: "mille requêtes",
+                1000000: "un million de requêtes",
             },
         }
 
@@ -111,7 +121,7 @@ class PlotManager:
         return results
 
     def _get_kpi_data_grouped_by(
-        self, temporal_axis: str, models: str | None = None
+        self, temporal_axis: str, model: str | None = None
     ) -> dict[tuple[str, str | None], dict]:
         # we check if the kpi cache is still valid (ie. same day)
         # otherwise we clear it
@@ -120,13 +130,13 @@ class PlotManager:
             self._date_kpi_cache = date.today()
 
         # now we check if the request is already cached
-        cache_key = (temporal_axis, models if models else "all")
+        cache_key = (temporal_axis, model if model else "all")
         if cache_key in self._kpi_cache:
             return self._kpi_cache[cache_key]
 
         # else we fetch the data
         results = self.llm_usage.get_aggregated_kpi(
-            data_grouped_by={"temporal_axis": temporal_axis, "model": models}
+            data_grouped_by={"temporal_axis": temporal_axis, "model": model}
         )
 
         # we cache the result
@@ -203,9 +213,9 @@ class PlotManager:
         if which not in self._kpi_units_dict:
             raise ValueError(f"KPI '{which}' does not exist.")
 
-        aggregated = self._get_data_grouped_by(
+        aggregated = self._get_kpi_data_grouped_by(
             temporal_axis=temporal_axis,
-            models=[model_name] if model_name else None,
+            model=model_name if model_name else None,
         )[(temporal_axis, model_name)]
 
         value = aggregated[which]
@@ -330,9 +340,9 @@ class PlotManager:
         Returns:
             dict[str, dict[str, str]]: Dictionary of KPI statistics.
         """
-        data = self._get_data_grouped_by(
+        data = self._get_kpi_data_grouped_by(
             temporal_axis=temporal_axis,
-            models=[model_name] if model_name else None,
+            model=model_name if model_name else None,
         )[(temporal_axis, model_name)]
         if data == []:
             logger.info(

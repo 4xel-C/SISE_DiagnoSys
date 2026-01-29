@@ -489,8 +489,70 @@ class LLMUsageService:
     def get_aggregated_kpi(
         self, data_grouped_by: dict[str, str] | None = None
     ) -> dict[tuple[str, str | None], dict]:
-        print("hello from get_aggregated_kpi")
-        return
+        logger.debug("Fetching aggregated LLM KPI grouped by %s", data_grouped_by)
+
+        if data_grouped_by is None:
+            return self.get_all()
+
+        temporal_axis = data_grouped_by.get("temporal_axis")
+        model_grouping = data_grouped_by.get("model")
+
+        if temporal_axis is None:
+            raise ValueError("temporal_axis must be provided in data_grouped_by")
+
+        temporal_mapping = {
+            "W": "%Y-%W",
+            "M": "%Y-%m",
+            "Y": "%Y",
+        }
+
+        if temporal_axis not in temporal_mapping:
+            raise ValueError(f"Unsupported temporal_axis: {temporal_axis}")
+
+        period_expr = func.strftime(
+            temporal_mapping[temporal_axis], LLMMetrics.usage_date
+        ).label("period")
+
+        # Tous les KPI à sommer par période
+        kpis = {
+            "gwp_kgCO2eq": LLMMetrics.gwp_kgCO2eq,
+            "wcf_liters": LLMMetrics.wcf_liters,
+            "adpe_mgSbEq": LLMMetrics.adpe_mgSbEq,
+            "energy_kwh": LLMMetrics.energy_kwh,
+            "total_requests": LLMMetrics.total_requests,
+        }
+
+        query_columns = [period_expr]
+
+        for name, column in kpis.items():
+            query_columns.append(func.sum(column).label(name))
+
+        if model_grouping:
+            query_columns.insert(0, LLMMetrics.nom_modele)
+
+        with self.db_manager.session() as session:
+            query = session.query(*query_columns).group_by(period_expr)
+
+            if model_grouping:
+                query = query.group_by(LLMMetrics.nom_modele)
+
+            results = query.all()
+
+        if not results:
+            return {}
+
+        # 🔹 Post-agrégation : moyenne par période
+        nb_periods = len(results)
+
+        summed = {kpi: 0.0 for kpi in kpis}
+
+        for row in results:
+            for kpi in summed:
+                summed[kpi] += getattr(row, kpi)
+
+        averaged = {kpi: summed[kpi] / nb_periods for kpi in summed}
+        print("averaged kpi :", averaged)
+        return {(temporal_axis, model_grouping): averaged}
 
     ################################################################
     # DELETE METHODS
