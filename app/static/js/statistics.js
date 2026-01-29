@@ -11,7 +11,7 @@ document.addEventListener('internalRendered', (e) => {
     const plotGrid = page.querySelector('.plot-grid');
     const testPlotContainer = plotGrid.querySelector('#test-plot');
 
-    async function loadStatPlots(ids=[]) {
+    async function loadStatPlots() {
         // Update UI
         plotGrid.classList.add('waiting');
         // Build request params (filters?)
