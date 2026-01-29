@@ -13,6 +13,8 @@ Example:
 import logging
 from datetime import date, timedelta
 
+from sqlalchemy import func
+
 from app.config import Database, db
 from app.models import LLMMetrics
 from app.rag import LLMUsage
@@ -370,6 +372,113 @@ class LLMUsageService:
             "total_denials": total_denials,
             "models": models,
         }
+
+    def get_all_group_by(
+        self, data_grouped_by: dict[str, str] | None = None
+    ) -> dict[tuple[str, str | None], list[dict]]:
+        """
+        Retrieve LLM usage data grouped by specified parameters.
+
+        Args:
+            data_grouped_by (dict[str, str] | None, optional):
+            Parameters to group data by. Defaults to None.
+
+        Raises:
+            ValueError: If temporal_axis is not provided in data_grouped_by.
+            ValueError: If an unsupported temporal_axis is provided.
+        Returns:
+            dict[tuple[str, str | None], list[dict]]: Grouped usage data.
+        """
+        logger.debug("Fetching LLM usage grouped by %s", data_grouped_by)
+        if data_grouped_by is None:
+            return self.get_all()
+
+        temporal_axis = data_grouped_by.get("temporal_axis")
+        model = data_grouped_by.get("model")
+
+        if temporal_axis is None:
+            raise ValueError("temporal_axis must be provided in data_grouped_by")
+
+        # Mapping axe temporel → SQLite strftime
+        temporal_mapping = {
+            "W": "%Y-%W",
+            "M": "%Y-%m",
+            "Y": "%Y",
+        }
+
+        if temporal_axis not in temporal_mapping:
+            raise ValueError(f"Unsupported temporal_axis: {temporal_axis}")
+
+        time_expr = func.strftime(
+            temporal_mapping[temporal_axis], LLMMetrics.usage_date
+        ).label("period")
+
+        # Metrics to aggregate
+        metrics = {
+            "total_input_tokens": LLMMetrics.total_input_tokens,
+            "total_completion_tokens": LLMMetrics.total_completion_tokens,
+            "total_tokens": LLMMetrics.total_tokens,
+            "total_requests": LLMMetrics.total_requests,
+            "total_success": LLMMetrics.total_success,
+            "total_denials": LLMMetrics.total_denials,
+            "energy_kwh": LLMMetrics.energy_kwh,
+            "gwp_kgCO2eq": LLMMetrics.gwp_kgCO2eq,
+            "adpe_mgSbEq": LLMMetrics.adpe_mgSbEq,
+            "pd_mj": LLMMetrics.pd_mj,
+            "wcf_liters": LLMMetrics.wcf_liters,
+        }
+
+        # we perform the query
+        with self.db_manager.session() as session:
+            select_cols = [time_expr]
+            group_by_cols = [time_expr]
+
+            # we check if we need to group by model too
+            # because we will group by a temporal axis anyway
+            if model is not None:
+                select_cols.append(LLMMetrics.nom_modele)
+                group_by_cols.append(LLMMetrics.nom_modele)
+
+            # Aggregation
+            metric_exprs = [func.sum(col).label(name) for name, col in metrics.items()]
+
+            query = (
+                session.query(*select_cols, *metric_exprs)
+                .group_by(*group_by_cols)
+                .order_by(*group_by_cols)
+            )
+            # we select every cols we need, group by them and order by them
+
+            rows = query.all()
+
+        # Format the result to the expected dict structure
+        result: dict[tuple[str, str | None], list[dict]] = {(temporal_axis, model): []}
+
+        if rows is None:
+            return result
+
+        for row in rows:
+            # convert SQLAlchemy row to dict
+            row_dict = row._asdict()
+
+            # adjust keys and values
+            period = row_dict.pop("period")
+            row_dict["period"] = period
+
+            # if we grouped by model, we remove it from the dict to avoid redundancy
+            if model is not None:
+                row_dict.pop("nom_modele")
+
+            # append to result
+            result[(temporal_axis, model)].append(row_dict)
+
+        logger.debug(
+            "Grouped LLM usage result: %s",
+            result[(temporal_axis, model)][0]
+            if result[(temporal_axis, model)]
+            else "No data",
+        )
+        return result
 
     ################################################################
     # DELETE METHODS

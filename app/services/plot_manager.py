@@ -1,8 +1,9 @@
-import logging
-from collections import defaultdict
-from datetime import datetime, date, timedelta
 import bisect
 import json
+import logging
+from collections import defaultdict
+from datetime import date, datetime, timedelta
+
 import numpy as np
 from plotly import graph_objects as go
 
@@ -11,8 +12,13 @@ from app.services.llm_usage_service import LLMUsageService
 
 logger = logging.getLogger(__name__)
 
+
 class PlotManager:
-    def __init__(self, llm_usage: LLMUsageService = LLMUsageService(), comparison_dict_path: str | None = None) -> None:
+    def __init__(
+        self,
+        llm_usage: LLMUsageService = LLMUsageService(),
+        comparison_dict_path: str | None = None,
+    ) -> None:
         """Initialize the PlotManager..
 
         Args:
@@ -21,25 +27,9 @@ class PlotManager:
         self.llm_usage = llm_usage
 
         # cache of requests
-        self._cache: dict[
-            tuple[str, list[str] | str],
-            list[LLMMetricsSchema]
-        ] = {}
-        # ie. dict[number of days, list of models or all] = list of schemas
-
-        # cache of aggregated metrics
-        self._agg_cache: dict[
-            tuple[str, str, str],
-            dict[tuple[date, str], float]
-        ] = {}
-        # ie. dict[temporal_axis, model, metric] = dict[(period_date, model_name), value]
-
-        # cache of aggregated requets
-        self._kpi_cache: dict[
-            tuple[str, str | None],
-            dict[str, float]
-        ] = {}
-        # ie. dict[number of days, list of models or all] = dict[kpi, value]
+        self._cache: dict[tuple[str, str | None], list[dict]] = {}
+        # ie. dict[temporal_axis, specific model or all] = list of dicts of data
+        self._date_cache: date = date.today()
 
         self._kpi_units_dict: dict[str, str] = {
             "gwp_kgCO2eq": "kgCO2eq",
@@ -49,102 +39,85 @@ class PlotManager:
             "total_requests": "nombre de requêtes",
         }
 
-        # comparison_dict import logic
-        _fp: str = "data/comparison_dict.json"
-        self._comparion_dict_path: str = comparison_dict_path if comparison_dict_path else _fp
-        try:
-            with open(self._comparion_dict_path, "r", encoding="UTF-8") as file:
-                self._comparison_dict: dict[str, dict[float, str]] = json.load(file)
-                # example :
-                # {water: {1000: "un litre d'eau", 72000: "une douche de 6 minutes", ...}}
-        except FileNotFoundError as e:
-            raise FileNotFoundError(
-                f"Comparison dict file '{self._comparion_dict_path}' not found"
-                ) from e
+        # # comparison_dict import logic
+        # _fp: str = "data/comparison_dict.json"
+        # self._comparion_dict_path: str = (
+        #     comparison_dict_path if comparison_dict_path else _fp
+        # )
+        # try:
+        #     with open(self._comparion_dict_path, "r", encoding="UTF-8") as file:
+        #         self._comparison_dict: dict[str, dict[float, str]] = json.load(file)
+        #         # example :
+        #         # {water: {1000: "un litre d'eau", 72000: "une douche de 6 minutes", ...}}
+        # except FileNotFoundError as e:
+        #     raise FileNotFoundError(
+        #         f"Comparison dict file '{self._comparion_dict_path}' not found"
+        #     ) from e
+        self.comparison_dict = {
+            "water": {
+                1000: "un litre d'eau",
+                72000: "une douche de 6 minutes",
+                150000: "un bain",
+                2000000: "la consommation moyenne journalière d'une personne en France",
+            },
+            "gwp_kgCO2eq": {
+                0.21: "un kilomètre en voiture thermique",
+                0.05: "un kilomètre en vélo",
+                0.012: "un kilomètre en train",
+                0.4: "une heure de visioconférence",
+            },
+            "energy_kwh": {
+                0.1: "une heure d'ordinateur portable",
+                0.5: "une heure de télévision",
+                1.5: "une machine à laver",
+                3.0: "un sèche-linge",
+            },
+        }
 
     ################################################################
     # HELPER METHODS : DATA RETRIEVAL
     ################################################################
 
-    def _get_aggregated_metric(
-        self,
-        temporal_axis: str,
-        metric: str,
-        model: str | None = None,
-    ) -> dict[tuple[date, str], float]:
-        """
-        Return aggregated metric by period and model as {(period_date, model_name): value}.
-        Stores the result in a dedicated aggregation cache.
-        """
-        if model is None:
-            model = "all"
+    def _get_data_grouped_by(
+        self, temporal_axis: str, models: list[str] | None = None
+    ) -> dict[tuple[str, str | None], list[dict]]:
+        # we check if the cache is still valid (ie. same day)
+        # otherwise we clear it
+        if self._date_cache != date.today():
+            self._cache = {}
+            self._date_cache = date.today()
 
-        # Check aggregation cache
-        agg_cache_key = (temporal_axis, model, metric)
-        if agg_cache_key in self._agg_cache:
-            return self._agg_cache[agg_cache_key]
+        # now we check if the request is already cached
+        # if yes we return it
+        cache_key = (temporal_axis, tuple(models) if models else "all")
+        if cache_key in self._cache:
+            return self._cache[cache_key]
 
-        # Retrieve raw data (from cache or service)
-        cache_key = (temporal_axis, model)
-        if cache_key in self._cache and self._cache[cache_key]:
-            data: list[LLMMetricsSchema] = self._cache[cache_key]
-        else:
-            data = self.llm_usage.get_all()
-            self._cache[cache_key] = data
-
-        # Perform aggregation
-        result: dict[tuple[date, str], float] = defaultdict(float)
-        for row in data:
-            if model not in ("all", row.nom_modele):
-                continue
-
-            d = row.usage_date
-            if temporal_axis == "W":
-                year, week, _ = d.isocalendar()
-                period_date = date.fromisocalendar(year, week, 1)
-            elif temporal_axis == "M":
-                period_date = date(d.year, d.month, 1)
-            elif temporal_axis == "Y":
-                period_date = date(d.year, 1, 1)
-            else:
-                raise ValueError("temporal_axis must be one of W, M, Y")
-
-            result[(period_date, row.nom_modele)] += getattr(row, metric) or 0.0
-
-        # Store aggregated result in cache
-        self._agg_cache[agg_cache_key] = result
-
-        return result
+        # else we fetch the data
+        results = self.llm_usage.get_all_group_by(
+            {"temporal_axis": temporal_axis, "model": models}
+        )
+        # we cache the result
+        self._cache[cache_key] = results
+        # we return it
+        return results
 
     ################################################################
     # KPI METHODS
     ################################################################
 
-    def _aggregate_kpis(
-        self,
-        temporal_axis: str,
-        model_name: str | None,
-    ) -> dict[str, float]:
-        cache_key = (temporal_axis, model_name)
-        if cache_key in self._kpi_cache:
-            logger.debug("KPI cache hit for %s", cache_key)
-            return self._kpi_cache[cache_key]
+    def make_a_comparison(self, which: str, value: float) -> str:
+        """Make a comparison with a "real-world" action / object, for a given KPI and value.
 
-        logger.debug("KPI cache miss for %s", cache_key)
+        Args:
+            which (str): KPI to compare.
+            value (float): Value of the KPI.
+        Raises:
+            ValueError: If the comparison dictionary for the specified KPI is not found.
 
-        totals: dict[str, float] = {}
-
-        for kpi in self._kpi_units_dict.keys():
-            # Use the aggregation cache per KPI
-            agg = self._get_aggregated_metric(temporal_axis, kpi, model_name)
-            total = sum(agg.values())
-            totals[kpi] = total
-
-        # Store in KPI cache
-        self._kpi_cache[cache_key] = totals
-        return totals
-
-    def make_a_comparison(self, which:str, value: float) -> str:
+        Returns:
+            str: Comparison sentence.
+        """
         logger.debug("'make_a_comparison' method called.")
         kpi_dict: dict[float, str] | None = self._comparison_dict.get(which, None)
         if kpi_dict is None:
@@ -167,24 +140,41 @@ class PlotManager:
         return sentence
 
     def _format_kpi_value(self, value: float, unit: str, rounded_to: int = 2) -> str:
+        """Format KPI value with unit.
+
+        Args:
+            value (float): Value to format.
+            unit (str): Unit of the value.
+            rounded_to (int, optional): Number of decimal places to round to. Defaults to 2.
+
+        Returns:
+            str: Formatted KPI value with unit.
+        """
         return f"{round(value, rounded_to)}{unit}"
 
     def get_kpi_statistic(
-        self,
-        which: str,
-        temporal_axis: str,
-        model_name: str | None,
-        data: list[LLMMetricsSchema],
+        self, which: str, temporal_axis: str, model_name: str | None
     ) -> dict[str, str]:
+        """Get KPI statistic for a given KPI, temporal axis and model.
 
+        Args:
+            which (str): KPI to retrieve.
+            temporal_axis (str): Temporal axis for grouping.
+            model_name (str | None): Specific model name or None for all models.
+
+        Raises:
+            ValueError: If the specified KPI does not exist.
+
+        Returns:
+            dict[str, str]: Dictionary containing formatted KPI value and comparison.
+        """
         if which not in self._kpi_units_dict:
             raise ValueError(f"KPI '{which}' does not exist.")
 
-        aggregated = self._aggregate_kpis(
+        aggregated = self._get_data_grouped_by(
             temporal_axis=temporal_axis,
-            model_name=model_name,
-            data=data,
-        )
+            models=[model_name] if model_name else None,
+        )[(temporal_axis, model_name)]
 
         value = aggregated[which]
         unit = self._kpi_units_dict[which]
@@ -208,14 +198,21 @@ class PlotManager:
         """
         # Qualitative Plotly colors (10 max, will repeat if more models)
         base_colors = [
-            "#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A",
-            "#19D3F3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"
+            "#636EFA",
+            "#EF553B",
+            "#00CC96",
+            "#AB63FA",
+            "#FFA15A",
+            "#19D3F3",
+            "#FF6692",
+            "#B6E880",
+            "#FF97FF",
+            "#FECB52",
         ]
         palette = {}
         for i, model in enumerate(sorted(models)):
             palette[model] = base_colors[i % len(base_colors)]
         return palette
-
 
     ################################################################
     # FACADE PATTERN METHODS
@@ -225,7 +222,17 @@ class PlotManager:
     ################################################################
 
     def plot_all(self, temporal_axis: str, model_name: str | None = None):
-        data: list[LLMMetricsSchema] = self._get_data_for(temporal_axis=temporal_axis, model=model_name)
+        data = self._get_data_grouped_by(
+            temporal_axis=temporal_axis,
+            models=[model_name] if model_name else None,
+        )[(temporal_axis, model_name)]
+        if data == []:
+            logger.info(
+                "No data found for plot_all with temporal_axis=%s and model_name=%s",
+                temporal_axis,
+                model_name,
+            )
+            return {}
 
         # now that we have data, we dispatch the data to the different plot methods
         plots: dict[str, str] | None = None
@@ -234,16 +241,36 @@ class PlotManager:
 
         return plots
 
-    def kpis_all(self, temporal_axis: str, model_name: str | None = None):
-        data = self._get_data_for(temporal_axis=temporal_axis, model=model_name)
+    def kpis_all(
+        self, temporal_axis: str, model_name: str | None = None
+    ) -> dict[str, dict[str, str]]:
+        """Get all KPI statistics for a given temporal axis and model.
+
+        Args:
+            temporal_axis (str): Temporal axis for grouping.
+            model_name (str | None, optional): Specific model name or None for all models. Defaults to None.
+
+        Returns:
+            dict[str, dict[str, str]]: Dictionary of KPI statistics.
+        """
+        data = self._get_data_grouped_by(
+            temporal_axis=temporal_axis,
+            models=[model_name] if model_name else None,
+        )[(temporal_axis, model_name)]
+        if data == []:
+            logger.info(
+                "No data found for kpis_all with temporal_axis=%s and model_name=%s",
+                temporal_axis,
+                model_name,
+            )
+            return {}
 
         return {
-            kpi: self.get_kpi_statistic(
-                which=kpi,
-                temporal_axis=temporal_axis,
-                model_name=model_name,
-                data=data,
-            )
+            kpi: self.get_kpi_statistic(kpi, temporal_axis, model_name)
             for kpi in self._kpi_units_dict
         }
 
+
+if __name__ == "__main__":
+    pm = PlotManager()
+    print(pm.kpis_all("W", None))
