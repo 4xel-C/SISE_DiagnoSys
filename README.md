@@ -1,4 +1,4 @@
-<img width="1536" height="627" alt="Logo DiagnoSys avec cerveau et croix médicale" src="https://github.com/user-attachments/assets/89dc7da8-d6fb-4e82-8360-2127b4042a34" />
+<img width="1395" height="569" alt="image" src="https://github.com/user-attachments/assets/7160ecf4-510b-463d-89f5-d51a68eea35a" />
 
 # **AI-Powered Medical Diagnostic Support System**
 
@@ -500,4 +500,5 @@ Project developed as part of the SISE Master's program - University of Lyon 2
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
