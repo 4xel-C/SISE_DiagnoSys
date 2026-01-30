@@ -152,13 +152,20 @@ def render_typing_bubbles():
 def stat_plots():
     # treating args
     new_args = {}
+    # verification of the args
+    temporal_axis = request.args.get("temporal_axis")
+    model_name = request.args.get("model_name")
+    if temporal_axis in ["W", "M", "Y"]:
+        new_args["temporal_axis"] = temporal_axis
 
-    # sending the args to the plot_manager interface function
-    plots = app.plot_manager.plot_all(new_args)
+    new_args["model_name"] = model_name if model_name else None
+    # sending the args to the plot_manager interface plot method
+    plots = app.plot_manager.plot_all(**new_args)  # type: ignore
     # plots : {name_of_plot: __json_string__, ...}
     # -> dict of plots
-    kpis = app.plot_manager.kpis_all(new_args)
-    # kpis : {name_of_kpi: {kpi_value : __value__, kpi_commentary: __commentary__}, ...}
+    # sending the args to the plot_manager interface kpi method
+    kpis = app.plot_manager.kpis_all(**new_args)  # type: ignore
+    # kpis : {name_of_kpi: {kpi_value : __str_value__, kpi_commentary: __commentary__}, ...}
     # -> dict of kpis with their values and their commentary
     return jsonify({"plots": plots, "kpis": kpis})
 
