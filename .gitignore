@@ -28,6 +28,7 @@ data/scraped_documents/
 scraped_documents.zip
 scripts/test.py
 data/*
+
 chroma/
 
 test.py
@@ -35,3 +36,4 @@ test.py
 !data/ml_models/**
 !data/benchmark_embeddings_en.json
 !data/benchmark_embeddings.json
+!data/comparison_dict.json
