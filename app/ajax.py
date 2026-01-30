@@ -93,6 +93,14 @@ def custom_popup():
     params = request.args.to_dict()
     return render_template("elements/custom_popup.html", **params)
 
+@ajax.route("create_patient_popup", methods=["GET"])
+def create_patient_popup():
+    return render_template("elements/create_patient_popup.html")
+
+@ajax.route("settings_popup", methods=["GET"])
+def settings_popup():
+    return render_template("elements/settings_popup.html")
+
 
 # ---------------
 # RENDER TEMPLATES
@@ -194,6 +202,39 @@ def query_agent(patient_id: int):
 # ---------------
 # DATABASE
 
+
+@ajax.route("create_patient", methods=["POST"])
+def create_patient():
+    data: dict = request.get_json()
+    required_keys = {
+        "nom": str,
+        "prenom": str,
+        "gravite": str,
+        "type_maladie": str,
+        "symptomes_exprimes": str,
+        "fc": int,
+        "fr": int,
+        "spo2": float,
+        "ta_systolique": int,
+        "ta_diastolique": int,
+        "temperature": float
+    }
+
+    for field, converter in required_keys.items():
+        if field not in data:
+            return jsonify({
+                "error": f"Le champ '{field}' est obligatoire"
+            }), 400
+        try:
+            data[field] = converter(data[field])
+        except (ValueError, TypeError):
+            return jsonify({
+                "error": f"Le champ '{field}' doit être de type {converter.__name__}"
+            }), 400
+    
+    patient = app.patient_service.create(**data)
+
+    return jsonify({'patient_id': patient.id})
 
 @ajax.route("get_profile/<int:patient_id>", methods=["GET"])
 def get_profile(patient_id: int):

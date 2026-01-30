@@ -4,7 +4,7 @@ fieldset {
         border: none;
 }
 
-input[type="text"] {
+input {
     width: 100%;
     background-color: var(--bg-frame-color);
     border: solid 1px var(--border-color);
@@ -12,7 +12,24 @@ input[type="text"] {
     padding: .6rem;
 }
 
-input:focus {
+textarea {
+    background-color: var(--bg-frame-color);
+    border: solid 1px var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.6rem;
+    width: 100%;
+    height: 100px;
+}
+
+select {
+    width: 100%;
+    background-color: var(--bg-frame-color);
+    border: solid 1px var(--border-color);
+    border-radius: var(--border-radius);
+    padding: .6rem;
+}
+
+input:focus, textarea:focus, select:focus {
     border-color: var(--accent-color);
     outline: solid 1px var(--accent-color);
 }
@@ -200,12 +217,12 @@ button:disabled {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999999;
+    z-index: 9999;
     animation: fadeIn .2s ease;
 
     .content {
-        width: 30rem;
-        background-color: var(--bg-color);
+        min-width: 50rem;
+        background-color: var(--bg-second-color);
         border: solid 1px var(--border-color);
         border-radius: var(--border-radius);
         padding: 1rem;
@@ -214,6 +231,21 @@ button:disabled {
 
         form {
             margin-top: 1rem;
+        }
+
+        .grouped {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .entry {
+            margin-bottom: 1rem;
+            width: 100%;
+
+            label {
+                margin-bottom: .2rem;
+                display: block;
+            }
         }
 
         .actions {
@@ -230,6 +262,10 @@ button:disabled {
 
     }
     
+}
+
+.popup .content.custom-popup {
+    width: 30rem;
 }
 
 

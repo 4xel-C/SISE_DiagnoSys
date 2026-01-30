@@ -5,6 +5,8 @@ const main = document.querySelector('main');
 const searchForm = menu.querySelector('form.search');
 const internalList = menu.querySelector('ul.internal');
 const patientList = menu.querySelector('ul.patients');
+const addPatientButton = menu.querySelector('.create-patient button');
+const settingsButton = menu.querySelector('.settings button');
 const topbar = main.querySelector('.top-bar');
 
 const shortcuts = new Map([
@@ -54,6 +56,78 @@ function selectElement(element) {
     element.classList.add('selected');
 }
 
+async function createPatient() {
+    // Render popup
+    const response = await fetch('ajax/create_patient_popup');
+    const html = await response.text();
+    const popup = renderPopup(html);
+
+    const popupForm = popup.querySelector('form');
+    const popupFieldset = popupForm.querySelector('fieldset');
+    // On cancel
+    popupForm.addEventListener('reset', () => {
+        popup.remove();
+    });
+    // On submit
+    popupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const data = new FormData(popupForm);
+        popupFieldset.disabled = true;
+        fetch('ajax/create_patient', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(data))
+        }).then(async (response) => {
+            const content = await response.json();
+
+            if (!response.ok) {
+                popupFieldset.disabled = false;
+                showError(content.error);
+                return;
+            }
+
+            popup.remove();
+            await searchPatients();
+            renderPatient(content.patient_id);
+        })
+    });
+}
+
+async function openSettings() {
+    // Render popup
+    const response = await fetch('ajax/settings_popup');
+    const html = await response.text();
+    const popup = renderPopup(html);
+
+    const popupForm = popup.querySelector('form');
+    // On cancel
+    popupForm.addEventListener('reset', () => {
+        popup.remove();
+    });
+    // On submit
+    popupForm.addEventListener('submit', () => {
+        e.preventDefault();
+        const data = new FormData(popupForm);
+        fetch('ajax/update_settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(data))
+        }).then(async (response) => {
+            const content = await response.json();
+
+            if (!response.ok) {
+                popupFieldset.disabled = false;
+                showError(content.error);
+                return;
+            }
+
+            popup.remove();
+            await searchPatients();
+            renderPatient(content.patient_id);
+        })
+    });
+}
+
 
 // Key shortcut handler
 function focusSearch() {
@@ -75,7 +149,7 @@ searchForm.addEventListener('submit', (e) => {
 
 // On internal clicked => select it
 internalList.querySelectorAll('li').forEach(internal => {
-    internal.addEventListener('click', (e) => {
+    internal.addEventListener('click', () => {
         selectElement(internal);
         renderPage(internal.dataset.pageName);
     })
@@ -125,6 +199,16 @@ window.addEventListener('keydown', (event) => {
         event.preventDefault();
         handler(event);
     }
+});
+
+// On create patient 
+addPatientButton.addEventListener('click', () => {
+    createPatient();
+});
+
+// On settings open
+settingsButton.addEventListener('click', () => {
+    openSettings();
 });
 
 

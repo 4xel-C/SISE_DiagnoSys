@@ -26,7 +26,6 @@ async function saveContext(patientId, context) {
 }
 
 async function processRAG(patientId) {
-    console.log('hello');
     const response = await fetch(`ajax/process_rag/${patientId}`, {
         method: 'POST'
     })
@@ -239,12 +238,6 @@ document.addEventListener('patientRendered', (e) => {
 // On audio process error (and chatbot simulation error)
 ['audioProcessError', 'assistantConversationError', 'RAGProcessedError'].forEach(eventName => {
     document.addEventListener(eventName, (e) => {
-        main.classList.add('error');
-        const errorMessage = main.querySelector('.error .label');
-        errorMessage.textContent = e.detail.error;
-
-        setTimeout(() => {
-            main.classList.remove('error');
-        }, 5000); // 5 seconds
+        showError(e.detail.error);
     })
 });

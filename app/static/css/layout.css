@@ -28,7 +28,7 @@ main {
         position: absolute;
         top: 2rem;
         right: 2rem;
-        z-index: 9999;
+        z-index: 99999;
     }
 }
 main.error {

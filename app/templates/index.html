@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/statistics.css') }}">
-    <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
 
 <body>
@@ -44,10 +44,19 @@
                 <p class="label">À propos</p>
             </li>
         </ul>
-        <form class="create-patient">
-            
-        </form>
+        <div class="create-patient">
+            <button class="second-icon-button">
+                <img src="{{ url_for('static', filename='images/add.svg') }}" alt="" height="16px">
+                <p>Ajouter un patient</p>
+            </button>
+        </div>
         <ul class="patients"></ul>
+        <div class="settings">
+            <button class="second-icon-button">
+                <img src="{{ url_for('static', filename='images/settings.svg') }}" alt="" height="16px">
+                <p>Réglages</p>
+            </button>
+        </div>
     </nav>
    <main>
         <div class="error-info">
