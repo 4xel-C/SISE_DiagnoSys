@@ -34,13 +34,13 @@ class PlotManager:
         # cache of the date when the cache was last updated
         self._date_cache: date = date.today()
         # cache of requests
-        self._cache: dict[tuple[str, str | None], list[dict]] = {}
+        self._cache: dict[tuple[str, str | None], list[dict[str, float]]] = {}
         # ie. dict[temporal_axis, specific model or all] = list of dicts of data
 
         # cache of the date when the kpi cache was last updated
         self._date_kpi_cache: date = date.today()
         # cache of kpi requests
-        self._kpi_cache: dict[tuple[str, str | None], list[dict]] = {}
+        self._kpi_cache: dict[tuple[str, str | None], list[dict[str, float]]] = {}
         # ie. dict[temporal_axis, specific model or all] = list of dicts of data
 
         self._kpi_units_dict: dict[str, str] = {
