@@ -1,13 +1,15 @@
+"""
+PlotManager class to handle plotting and KPI generation for LLM usage data.
+Utilizes LLMUsageService to fetch and process data.
+"""
+
 import bisect
 import json
 import logging
-from collections import defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date
 
-import numpy as np
 from plotly import graph_objects as go
 
-from app.schemas.llm_metrics_schema import LLMMetricsSchema
 from app.services.llm_usage_service import LLMUsageService
 
 logger = logging.getLogger(__name__)
