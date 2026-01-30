@@ -313,4 +313,6 @@ llm_handler = LLMHandler(
 )
 
 # Instance for contextupdate
-llm_context_updator = LLMHandler(model=MistralModel("ministral-3b-latest"))
+llm_context_updator = LLMHandler(
+    model=MistralModel(os.getenv("LLM_CONTEXT", "ministral-3b-latest"))
+)
