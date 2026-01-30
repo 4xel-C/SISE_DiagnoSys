@@ -43,53 +43,24 @@ class PlotManager:
             "wcf_liters": "l",
             "adpe_mgSbEq": "mgSbEq",
             "energy_kwh": "kwh",
-            "total_requests": "nombre de requêtes",
+            "total_requests": "requêtes",
         }
 
-        # # comparison_dict import logic
-        # _fp: str = "data/comparison_dict.json"
-        # self._comparison_dict_path: str = (
-        #     comparison_dict_path if comparison_dict_path else _fp
-        # )
-        # try:
-        #     with open(self._comparison_dict_path, "r", encoding="UTF-8") as file:
-        #         self._comparison_dict: dict[str, dict[float, str]] = json.load(file)
-        #         # example :
-        #         # {water: {1000: "un litre d'eau", 72000: "une douche de 6 minutes", ...}}
-        # except FileNotFoundError as e:
-        #     raise FileNotFoundError(
-        #         f"Comparison dict file '{self._comparison_dict_path}' not found"
-        #     ) from e
-        self._comparison_dict = {
-            "wcf_liters": {
-                1000: "un litre d'eau",
-                72000: "une douche de 6 minutes",
-                150000: "un bain",
-                2000000: "la consommation moyenne journalière d'une personne en France",
-            },
-            "gwp_kgCO2eq": {
-                0.21: "un kilomètre en voiture thermique",
-                0.05: "un kilomètre en vélo",
-                0.012: "un kilomètre en train",
-                0.4: "une heure de visioconférence",
-            },
-            "energy_kwh": {
-                0.1: "une heure d'ordinateur portable",
-                0.5: "une heure de télévision",
-                1.5: "une machine à laver",
-                3.0: "un sèche-linge",
-            },
-            "adpe_mgSbEq": {
-                10: "la fabrication d'un smartphone",
-                50: "la fabrication d'un ordinateur portable",
-                200: "la fabrication d'une télévision",
-            },
-            "total_requests": {
-                1: "une requête",
-                1000: "mille requêtes",
-                1000000: "un million de requêtes",
-            },
-        }
+        # comparison_dict import logic
+        _fp: str = "data/comparison_dict.json"
+        self._comparison_dict_path: str = (
+            comparison_dict_path if comparison_dict_path else _fp
+        )
+        try:
+            with open(self._comparison_dict_path, "r", encoding="UTF-8") as file:
+                self._comparison_dict: dict[str, dict[float, str]] = json.load(file)
+                # example :
+                # {water: {1000: "un litre d'eau", 72000: "une douche de 6 minutes", ...}}
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                f"Comparison dict file '{self._comparison_dict_path}' not found"
+            ) from e
+
 
     ################################################################
     # HELPER METHODS : DATA RETRIEVAL
@@ -154,6 +125,7 @@ class PlotManager:
         Args:
             which (str): KPI to compare.
             value (float): Value of the KPI.
+
         Raises:
             ValueError: If the comparison dictionary for the specified KPI is not found.
 
@@ -161,24 +133,45 @@ class PlotManager:
             str: Comparison sentence.
         """
         logger.debug("'make_a_comparison' method called.")
-        kpi_dict: dict[float, str] | None = self._comparison_dict.get(which, None)
+
+        kpi_dict: dict[str, str] | None = self._comparison_dict.get(which)
         if kpi_dict is None:
             raise ValueError(f"comparison dict for {which} is None.")
 
-        # we get the number just lower or equal to the value provided
-        # Carefull thought: bisect assumes the orderable-like first arg is sorted ASC.
-        thresholds: list[float] = sorted(kpi_dict.keys())
+        # mapping stable of float to str keys
+        float_to_key = {float(k): k for k in kpi_dict.keys()}
+        thresholds = sorted(float_to_key.keys())
+
+        # SPECIAL CASE : total_requests
+        if which == "total_requests":
+            idx = bisect.bisect_left(thresholds, value)
+
+            # smaller than the first threshold
+            if idx == 0:
+                ref = thresholds[0]
+                pct = round((value / ref) * 100, 2)
+                return f"Environ {pct}% du {kpi_dict[float_to_key[ref]]}"
+
+            # else we take the closest threshold
+            ref = thresholds[idx] if idx < len(thresholds) else thresholds[-1]
+            pct = round((value / ref) * 100, 2)
+            return f"Environ {pct}% du {kpi_dict[float_to_key[ref]]}"
+
+        # GENERAL CASE: other KPIs
         idx = bisect.bisect_right(thresholds, value)
         if idx == 0:
             return "Valeur trop faible pour une comparaison."
 
-        lower_key: float = thresholds[idx - 1]
-        # now that we have the lower number and the value, we calculate the ratio
-        ratio: float = round(value / lower_key, 2)
+        lower_key = thresholds[idx - 1]
+        ratio = round(value / lower_key, 2)
 
-        # finally we make a sentence and return it
-        sentence: str = f"Soit {ratio}x {kpi_dict[lower_key]}"
-        logger.debug("'make_a_comparison' method returning : %s", sentence)
+        # phrase cohérente
+        if ratio < 1.1:
+            sentence = f"Comparable à {kpi_dict[float_to_key[lower_key]]}"
+        else:
+            sentence = f"Soit {ratio}x {kpi_dict[float_to_key[lower_key]]}"
+
+        logger.debug("'make_a_comparison' method returning: %s", sentence)
         return sentence
 
     def _format_kpi_value(self, value: float, unit: str, rounded_to: int = 2) -> str:
@@ -192,6 +185,8 @@ class PlotManager:
         Returns:
             str: Formatted KPI value with unit.
         """
+        if unit in ["requêtes"]:
+            return f"{int(value)} {unit}"
         return f"{round(value, rounded_to)}{unit}"
 
     def get_kpi_statistic(
@@ -359,5 +354,10 @@ class PlotManager:
 
 
 if __name__ == "__main__":
+    # you can test here the class methods
+    # just write in your terminal: python -m app.services.plot_manager
+    # arguments for kpis_all : temporal_axis, model_name
+    # temporal_axis : "W", "M", "Y"
+    # model_name : specific model name or None for all models
     pm = PlotManager()
-    print(pm.kpis_all("W", None))
+    print(f"{pm.kpis_all('M', None) = }")

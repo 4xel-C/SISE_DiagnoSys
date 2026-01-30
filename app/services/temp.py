@@ -428,39 +428,51 @@ class PlotManager:
 if __name__ == "__main__":
     import json
     from random import randint, uniform
+    import bisect
 
-    # Generate fake data
-    models = ["small", "medium", "large"]
-    fake_data = []
-    start_date = date(2024, 1, 1)
-    for i in range(30):  # 30 days
-        for m in models:
-            fake_data.append(
-                LLMMetricsSchema(
-                    nom_modele=m,
-                    total_input_tokens=randint(5000, 20000),
-                    total_completion_tokens=randint(2000, 10000),
-                    total_tokens=randint(10000, 30000),
-                    mean_response_time_ms=uniform(100, 500),
-                    total_requests=randint(50, 200),
-                    total_success=randint(40, 200),
-                    total_denials=randint(0, 10),
-                    energy_kwh=uniform(10, 100),
-                    gwp_kgCO2eq=uniform(5, 50),
-                    adpe_mgSbEq=uniform(0.1, 2),
-                    pd_mj=uniform(10, 100),
-                    wcf_liters=uniform(50, 500),
-                    usage_date=start_date + timedelta(days=i),
-                )
-            )
 
-    class FakeService(LLMUsageService):
-        def get_all(self) -> List[LLMMetricsSchema]:
-            return fake_data
+    with open("data/comparison_dict.json", "r", encoding="utf-8") as f:
+        comparison_dict = json.load(f)
+    
+    print(json.dumps(comparison_dict, indent=2, ensure_ascii=False))
+    
+    kpi = "gwp_kgCO2eq"
+    comparison_dict = comparison_dict[kpi]
+    thresholds: list[float] = sorted(float(key) for key in comparison_dict.keys())
+    idx = bisect.bisect_right(thresholds, 50)
+    print(idx)
+    # # Generate fake data
+    # models = ["small", "medium", "large"]
+    # fake_data = []
+    # start_date = date(2024, 1, 1)
+    # for i in range(30):  # 30 days
+    #     for m in models:
+    #         fake_data.append(
+    #             LLMMetricsSchema(
+    #                 nom_modele=m,
+    #                 total_input_tokens=randint(5000, 20000),
+    #                 total_completion_tokens=randint(2000, 10000),
+    #                 total_tokens=randint(10000, 30000),
+    #                 mean_response_time_ms=uniform(100, 500),
+    #                 total_requests=randint(50, 200),
+    #                 total_success=randint(40, 200),
+    #                 total_denials=randint(0, 10),
+    #                 energy_kwh=uniform(10, 100),
+    #                 gwp_kgCO2eq=uniform(5, 50),
+    #                 adpe_mgSbEq=uniform(0.1, 2),
+    #                 pd_mj=uniform(10, 100),
+    #                 wcf_liters=uniform(50, 500),
+    #                 usage_date=start_date + timedelta(days=i),
+    #             )
+    #         )
 
-    manager = PlotManager(FakeService())
+    # class FakeService(LLMUsageService):
+    #     def get_all(self) -> List[LLMMetricsSchema]:
+    #         return fake_data
 
-    print("\n=== Plot Example ===")
-    plots = manager.plot_all("M")
-    for name, fig in plots.items():
-        fig.show()
+    # manager = PlotManager(FakeService())
+
+    # print("\n=== Plot Example ===")
+    # plots = manager.plot_all("M")
+    # for name, fig in plots.items():
+    #     fig.show()
