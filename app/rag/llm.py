@@ -307,7 +307,10 @@ class LLMHandler:
         return list(MODELS.keys())
 
 
-# Default singleton instance
+# Default instance
 llm_handler = LLMHandler(
     model=MistralModel(os.getenv("LLM_MODEL", "mistral-small-latest"))
 )
+
+# Instance for contextupdate
+llm_context_updator = LLMHandler(model=MistralModel("ministral-3b-latest"))

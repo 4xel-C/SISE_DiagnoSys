@@ -4,7 +4,7 @@ from app.rag.guardrail import (
     GuardrailResult,
     guardrail_classifier,
 )
-from app.rag.llm import LLMHandler, llm_handler
+from app.rag.llm import LLMHandler, llm_context_updator, llm_handler
 from app.rag.llm_options import (
     LLMUsage,
     MistralModel,
@@ -21,6 +21,7 @@ __all__ = [
     "guardrail_classifier",
     "LLMHandler",
     "llm_handler",
+    "llm_context_updator",
     "PromptTemplate",
     "SystemPromptTemplate",
     "Vectorizer",
