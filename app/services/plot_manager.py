@@ -45,6 +45,13 @@ class PlotManager:
             "energy_kwh": "kwh",
             "total_requests": "requêtes",
         }
+        self._kpi_colors_dict: dict[str, str] = {
+            "energy_kwh": "#1f77b4",
+            "gwp_kgCO2eq": "#d62728",
+            "wcf_liters": "#17becf",
+            "pd_mj": "#ff7f0e",
+            "adpe_mgSbEq": "#9467bd",
+        }
 
         # comparison_dict import logic
         _fp: str = "data/comparison_dict.json"
@@ -61,13 +68,12 @@ class PlotManager:
                 f"Comparison dict file '{self._comparison_dict_path}' not found"
             ) from e
 
-
     ################################################################
     # HELPER METHODS : DATA RETRIEVAL
     ################################################################
 
     def _get_data_grouped_by(
-        self, temporal_axis: str, models: str | None = None
+        self, temporal_axis: str, model: str | None = None
     ) -> dict[tuple[str, str | None], list[dict]]:
         # we check if the cache is still valid (ie. same day)
         # otherwise we clear it
@@ -77,13 +83,13 @@ class PlotManager:
 
         # now we check if the request is already cached
         # if yes we return it
-        cache_key = (temporal_axis, tuple(models) if models else "all")
+        cache_key = (temporal_axis, tuple(model) if model else "all")
         if cache_key in self._cache:
             return self._cache[cache_key]
 
         # else we fetch the data
         results = self.llm_usage.get_all_group_by(
-            data_grouped_by={"temporal_axis": temporal_axis, "model": models}
+            data_grouped_by={"temporal_axis": temporal_axis, "model": model}
         )
 
         # we cache the result
@@ -197,7 +203,7 @@ class PlotManager:
         Args:
             which (str): KPI to retrieve.
             temporal_axis (str): Temporal axis for grouping.
-            model_name (str | None): Specific model name or None for all models.
+            model_name (str | None): Specific model name or None for all model.
 
         Raises:
             ValueError: If the specified KPI does not exist.
@@ -225,76 +231,194 @@ class PlotManager:
         }
 
     ################################################################
-    # PLOT HELPER METHODS
-    ################################################################
-
-    def _get_model_palette(self, models: list[str]) -> dict[str, str]:
-        """
-        Return a color mapping for each model.
-        Colors are chosen from a Plotly qualitative palette and repeated if necessary.
-        """
-        # Qualitative Plotly colors (10 max, will repeat if more models)
-        base_colors = [
-            "#636EFA",
-            "#EF553B",
-            "#00CC96",
-            "#AB63FA",
-            "#FFA15A",
-            "#19D3F3",
-            "#FF6692",
-            "#B6E880",
-            "#FF97FF",
-            "#FECB52",
-        ]
-        palette = {}
-        for i, model in enumerate(sorted(models)):
-            palette[model] = base_colors[i % len(base_colors)]
-        return palette
-
-    ################################################################
     # PLOT METHODS
     ################################################################
 
-    def plot_kpis_over_time(
-        self, temporal_axis: str, model_name: str | None = None, to_json: bool = True
-    ) -> str | go.Figure:
-        """Plot KPIs over time.
-
-        Args:
-            to_json (bool, optional): Whether to return the plot as a JSON string. Defaults to True.
-
-        Returns:
-            str | go.Figure: Plotly figure or its JSON representation.
-        """
-        # Placeholder implementation
-        fig = go.Figure()
-        fig.update_layout(
-            title="KPIs Over Time", xaxis_title="Time", yaxis_title="KPI Value"
-        )
+    def plot_envir_kpis_over_time(
+        self,
+        temporal_axis: str,
+        model_name: str | None = None,
+        to_json: bool = True,
+    ):
+        """Line plots of environmental KPIs over time (energy, CO2, water, etc.), with one line per model."""
         data = self._get_data_grouped_by(
             temporal_axis=temporal_axis,
-            models=[model_name] if model_name else None,
+            model=model_name if model_name else None,
         )[(temporal_axis, model_name)]
 
-        # add traces to the figure based on data
-        for kpi in self._kpi_units_dict:
-            fig.add_trace(
-                go.Scatter(
-                    x=[entry["time"] for entry in data],
-                    y=[entry[kpi] for entry in data],
-                    mode="lines+markers",
-                    name=kpi,
-                )
-            )
+        if not data:
+            return go.Figure().to_json() if to_json else go.Figure()
 
-        # add legend, grid, etc.
-        fig.update_layout(legend_title="KPIs", template="plotly_white")
+        fig = go.Figure()
+        model = sorted({d["model_name"] for d in data})
+
+        kpis_to_plot = self._kpi_units_dict.keys() - {"total_requests"}
+        for kpi in kpis_to_plot:
+            for m in model:
+                x = [d["period"] for d in data if d["model_name"] == m]
+                y = [d[kpi] for d in data if d["model_name"] == m]
+                fig.add_trace(
+                    go.Scatter(
+                        x=x,
+                        y=y,
+                        mode="lines+markers",
+                        name=f"{kpi} ({m})",
+                        line=dict(color=self._kpi_colors_dict[kpi]),
+                    )
+                )
+
+        fig.update_layout(
+            title="KPIs Environnementaux par Modèle",
+            xaxis_title="Période",
+            yaxis_title="Valeur",
+            template="plotly_white",
+            legend_title="KPI (Modèle)",
+        )
         fig.update_xaxes(showgrid=True)
         fig.update_yaxes(showgrid=True)
 
         if to_json:
             return fig.to_json()
-        return fig
+        return fig.show()
+
+    def plot_energy_vs_co2(self, temporal_axis: str, to_json: bool = True):
+        data_dict = self._get_data_grouped_by(temporal_axis=temporal_axis, model=None)
+
+        fig = go.Figure()
+
+        for _, data in data_dict.items():
+            for d in data:
+                fig.add_trace(
+                    go.Scatter(
+                        x=[d["energy_kwh"]],
+                        y=[d["gwp_kgCO2eq"]],
+                        mode="markers",
+                        marker=dict(
+                            size=12, color=self._kpi_colors_dict["gwp_kgCO2eq"]
+                        ),
+                        name=d["model_name"],
+                        hovertemplate=(
+                            "Modèle: %{text}<br>"
+                            "Énergie: %{x:.2f} kWh<br>"
+                            "CO₂: %{y:.2f} kg"
+                        ),
+                        text=[d["model_name"]],
+                        showlegend=False,
+                    )
+                )
+
+        fig.update_layout(
+            title="Diagnostic — Énergie vs CO₂",
+            xaxis_title="Énergie (kWh)",
+            yaxis_title="CO₂ (kgCO₂eq)",
+            template="plotly_white",
+        )
+
+        return fig.to_json() if to_json else fig.show()
+
+    def plot_requests_distribution(self, temporal_axis: str, to_json: bool = True):
+        data_dict = self._get_data_grouped_by(temporal_axis=temporal_axis, model=None)
+
+        fig = go.Figure()
+
+        for _, data in data_dict.items():
+            models = sorted(set(d["model_name"] for d in data))
+
+            for model in models:
+                model_data = [d for d in data if d["model_name"] == model]
+
+                fig.add_trace(
+                    go.Bar(
+                        x=[d["period"] for d in model_data],
+                        y=[d["total_success"] for d in model_data],
+                        name=f"{model} – Succès",
+                        marker_color="#2ca02c",
+                    )
+                )
+
+                fig.add_trace(
+                    go.Bar(
+                        x=[d["period"] for d in model_data],
+                        y=[d["total_denials"] for d in model_data],
+                        name=f"{model} – Refus",
+                        marker_color="#d62728",
+                    )
+                )
+
+        fig.update_layout(
+            title="Répartition des demandes par modèle",
+            xaxis_title="Période",
+            yaxis_title="Nombre de requêtes",
+            barmode="stack",
+            template="plotly_white",
+        )
+
+        return fig.to_json() if to_json else fig.show()
+
+    def plot_tokens_per_request(self, temporal_axis: str, to_json: bool = True):
+        data_dict = self._get_data_grouped_by(temporal_axis=temporal_axis, model=None)
+
+        fig = go.Figure()
+
+        for _, data in data_dict.items():
+            for model in sorted(set(d["model_name"] for d in data)):
+                model_data = [d for d in data if d["model_name"] == model]
+
+                fig.add_trace(
+                    go.Scatter(
+                        x=[d["period"] for d in model_data],
+                        y=[d["total_tokens"] / d["total_requests"] for d in model_data],
+                        mode="lines+markers",
+                        name=model,
+                    )
+                )
+
+        fig.update_layout(
+            title="Tokens par requête (efficacité d’usage)",
+            xaxis_title="Période",
+            yaxis_title="Tokens / requête",
+            template="plotly_white",
+        )
+
+        return fig.to_json() if to_json else fig.show()
+
+    def plot_environmental_heatmap(self, temporal_axis: str, to_json: bool = True):
+        data_dict = self._get_data_grouped_by(temporal_axis=temporal_axis, model=None)
+
+        rows = []
+        for _, data in data_dict.items():
+            for d in data:
+                rows.append(d)
+
+        models = sorted(set(r["model_name"] for r in rows))
+        kpis = ["energy_kwh", "gwp_kgCO2eq", "wcf_liters", "pd_mj"]
+
+        z = []
+        for model in models:
+            model_rows = [r for r in rows if r["model_name"] == model]
+            z.append(
+                [
+                    sum(r[k] for r in model_rows)
+                    / sum(r["total_requests"] for r in model_rows)
+                    for k in kpis
+                ]
+            )
+
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=z,
+                x=kpis,
+                y=models,
+                colorscale="Reds",
+            )
+        )
+
+        fig.update_layout(
+            title="Profil environnemental par modèle (normalisé par requête)",
+            template="plotly_white",
+        )
+
+        return fig.to_json() if to_json else fig.show()
 
     ################################################################
     # FACADE PATTERN METHODS
@@ -303,10 +427,15 @@ class PlotManager:
     # link to the pattern: https://en.wikipedia.org/wiki/Facade_pattern
     ################################################################
 
-    def plot_all(self, temporal_axis: str, model_name: str | None = None):
+    def plot_all(
+        self,
+        temporal_axis: str,
+        model_name: str | None = None,
+        to_json: bool = True,
+    ) -> dict[str, str] | go.Figure:
         data = self._get_data_grouped_by(
             temporal_axis=temporal_axis,
-            models=[model_name] if model_name else None,
+            model=model_name if model_name else None,
         )[(temporal_axis, model_name)]
         if data == []:
             logger.info(
@@ -320,6 +449,15 @@ class PlotManager:
         plots: dict[str, str] | None = None
         # plots:  {name_of_plot: __json_string__}
         # -> dict of plots
+        args = {
+            "temporal_axis": temporal_axis,
+            "to_json": to_json,
+        }
+        self.plot_envir_kpis_over_time(**args, model_name=model_name)
+        self.plot_energy_vs_co2(**args)
+        self.plot_requests_distribution(**args)
+        self.plot_environmental_heatmap(**args)
+        self.plot_tokens_per_request(**args)
 
         return plots
 
@@ -330,7 +468,7 @@ class PlotManager:
 
         Args:
             temporal_axis (str): Temporal axis for grouping.
-            model_name (str | None, optional): Specific model name or None for all models. Defaults to None.
+            model_name (str | None, optional): Specific model name or None for all model. Defaults to None.
 
         Returns:
             dict[str, dict[str, str]]: Dictionary of KPI statistics.
@@ -352,12 +490,26 @@ class PlotManager:
             for kpi in self._kpi_units_dict
         }
 
+    def dummy_data(self, temporal_axis, model_name) -> None:
+        """Method to create dummy data for testing purposes."""
+        data = self._get_data_grouped_by(
+            temporal_axis=temporal_axis,
+            model=model_name if model_name else None,
+        )
+        return data
+
 
 if __name__ == "__main__":
     # you can test here the class methods
     # just write in your terminal: python -m app.services.plot_manager
     # arguments for kpis_all : temporal_axis, model_name
     # temporal_axis : "W", "M", "Y"
-    # model_name : specific model name or None for all models
+    # model_name : specific model name or None for all model
     pm = PlotManager()
-    print(f"{pm.kpis_all('M', None) = }")
+    # print(f"{pm.kpis_all('M', None) = }")
+    # print(f"{pm.plot_all('W', None, to_json=False) = }")
+    temporal_axis = "W"
+    model_name = None
+    print(pm.dummy_data(temporal_axis, model_name))
+    # pm.plot_envir_kpis_over_time(temporal_axis, model_name, to_json=False)
+    pm.plot_all(temporal_axis, model_name, to_json=False)

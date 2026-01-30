@@ -373,19 +373,55 @@ class LLMUsageService:
             "models": models,
         }
 
+    # helper method
+    def _format_temporal_label(self, temporal_axis: str, value: str) -> str:
+        if temporal_axis == "W":
+            jours = {
+                "0": "dimanche",
+                "1": "lundi",
+                "2": "mardi",
+                "3": "mercredi",
+                "4": "jeudi",
+                "5": "vendredi",
+                "6": "samedi",
+            }
+            return jours.get(value, "inconnu")
+
+        if temporal_axis == "M":
+            # Ici, on peut garder le chiffre du jour ou le transformer en "1er", "2", ...
+            return str(int(value))  # convertit "01" -> "1", "15" -> "15"
+
+        if temporal_axis == "Y":
+            mois = {
+                "01": "janvier",
+                "02": "février",
+                "03": "mars",
+                "04": "avril",
+                "05": "mai",
+                "06": "juin",
+                "07": "juillet",
+                "08": "août",
+                "09": "septembre",
+                "10": "octobre",
+                "11": "novembre",
+                "12": "décembre",
+            }
+            return mois.get(value, "inconnu")
+
+        return value  # fallback
+
     def get_all_group_by(
         self, data_grouped_by: dict[str, str] | None = None
-    ) -> dict[tuple[str, str | None], list[dict]]:
+    ) -> dict[tuple[str, str | None], list[dict[str, float | str]]]:
         """
-        Retrieve LLM usage data grouped by specified parameters.
+        Retrieve LLM usage data grouped by specified parameters (OLAP style).
 
         Args:
             data_grouped_by (dict[str, str] | None, optional):
             Parameters to group data by. Defaults to None.
 
         Raises:
-            ValueError: If temporal_axis is not provided in data_grouped_by.
-            ValueError: If an unsupported temporal_axis is provided.
+            ValueError: If temporal_axis is not provided or unsupported.
         Returns:
             dict[tuple[str, str | None], list[dict]]: Grouped usage data.
         """
@@ -395,25 +431,24 @@ class LLMUsageService:
 
         temporal_axis = data_grouped_by.get("temporal_axis")
         model = data_grouped_by.get("model")
+        print("temporal_axis :", temporal_axis)
+        print("model :", model)
 
-        if temporal_axis is None:
-            raise ValueError("temporal_axis must be provided in data_grouped_by")
-
-        # Mapping axe temporel → SQLite strftime
-        temporal_mapping = {
-            "W": "%Y-%W",
-            "M": "%Y-%m",
-            "Y": "%Y",
-        }
-
-        if temporal_axis not in temporal_mapping:
+        if temporal_axis not in {"W", "M", "Y"}:
             raise ValueError(f"Unsupported temporal_axis: {temporal_axis}")
 
-        time_expr = func.strftime(
-            temporal_mapping[temporal_axis], LLMMetrics.usage_date
-        ).label("period")
+        # OLAP-style strftime expressions
+        if temporal_axis == "W":
+            # day of the week (0=Sunday, 1=Monday,...)
+            time_expr = func.strftime("%w", LLMMetrics.usage_date).label("period")
+        elif temporal_axis == "M":
+            # day of the month (01-31)
+            time_expr = func.strftime("%d", LLMMetrics.usage_date).label("period")
+        else:  # "Y"
+            # month (01-12)
+            time_expr = func.strftime("%m", LLMMetrics.usage_date).label("period")
 
-        # Metrics to aggregate
+        # Metrics to aggregate with average
         metrics = {
             "total_input_tokens": LLMMetrics.total_input_tokens,
             "total_completion_tokens": LLMMetrics.total_completion_tokens,
@@ -428,58 +463,44 @@ class LLMUsageService:
             "wcf_liters": LLMMetrics.wcf_liters,
         }
 
-        # we perform the query
         with self.db_manager.session() as session:
-            select_cols = [time_expr]
-            group_by_cols = [time_expr]
+            select_cols = [time_expr, LLMMetrics.nom_modele.label("nom_modele")]
+            group_by_cols = [time_expr, LLMMetrics.nom_modele]
 
-            # we check if we need to group by model too
-            # because we will group by a temporal axis anyway
-            if model is not None:
-                select_cols.append(LLMMetrics.nom_modele)
-                group_by_cols.append(LLMMetrics.nom_modele)
-
-            # Aggregation
-            metric_exprs = [func.sum(col).label(name) for name, col in metrics.items()]
+            # Aggregation: average for OLAP
+            metric_exprs = [func.avg(col).label(name) for name, col in metrics.items()]
 
             query = (
                 session.query(*select_cols, *metric_exprs)
                 .group_by(*group_by_cols)
                 .order_by(*group_by_cols)
             )
-            # we select every cols we need, group by them and order by them
+
+            # Filter by model if specified
+            if model is not None:
+                query = query.filter(LLMMetrics.nom_modele == model)
 
             rows = query.all()
 
-        # Format the result to the expected dict structure
         result: dict[tuple[str, str | None], list[dict]] = {(temporal_axis, model): []}
 
-        if rows is None:
+        if not rows:
             return result
 
         for row in rows:
-            # convert SQLAlchemy row to dict
             row_dict = row._asdict()
-
-            # adjust keys and values
             period = row_dict.pop("period")
-            row_dict["period"] = period
+            row_dict["period"] = self._format_temporal_label(temporal_axis, period)
 
-            # if we grouped by model, we remove it from the dict to avoid redundancy
-            if model is not None:
-                row_dict.pop("nom_modele")
+            # Keep model_name
+            row_dict["model_name"] = (
+                row_dict.pop("nom_modele") if "nom_modele" in row_dict else model
+            )
 
-            # append to result
             result[(temporal_axis, model)].append(row_dict)
 
         logger.debug(
             "Grouped LLM usage result: %s",
-            result[(temporal_axis, model)][0]
-            if result[(temporal_axis, model)]
-            else "No data",
-        )
-        print(
-            "first grouped result :",
             result[(temporal_axis, model)][0]
             if result[(temporal_axis, model)]
             else "No data",
