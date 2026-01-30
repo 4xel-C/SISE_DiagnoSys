@@ -14,12 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 class PlotManager:
+    """
+    PlotManager class to handle plotting and KPI generation for LLM usage data.
+    Utilizes LLMUsageService to fetch and process data.
+    """
+
     def __init__(
         self,
         llm_usage: LLMUsageService = LLMUsageService(),
         comparison_dict_path: str | None = None,
     ) -> None:
-        """Initialize the PlotManager..
+        """Initialize the PlotManager.
 
         Args:
             usage_service (LLMUsageService): LLM usage service instance.
@@ -74,7 +79,15 @@ class PlotManager:
 
     def _get_data_grouped_by(
         self, temporal_axis: str, model: str | None = None
-    ) -> dict[tuple[str, str | None], list[dict]]:
+    ) -> dict[tuple[str, str | None], list[dict[str, float]]]:
+        """Get data grouped by temporal axis and model.
+
+        Args:
+            temporal_axis (str): Temporal axis to group by.
+            model (str | None, optional): Model name to group by. Defaults to None.
+        Returns:
+            dict[tuple[str, str | None], list[dict[str, float]]]: Data grouped by temporal axis and model.
+        """
         # we check if the cache is still valid (ie. same day)
         # otherwise we clear it
         if self._date_cache != date.today():
@@ -99,7 +112,16 @@ class PlotManager:
 
     def _get_kpi_data_grouped_by(
         self, temporal_axis: str, model: str | None = None
-    ) -> dict[tuple[str, str | None], dict]:
+    ) -> dict[tuple[str, str | None], dict[str, float]]:
+        """Get KPI data grouped by temporal axis and model.
+
+        Args:
+            temporal_axis (str): Temporal axis to group by.
+            model (str | None, optional): Model name to group by. Defaults to None.
+
+        Returns:
+            dict[tuple[str, str | None], dict]: KPI data grouped by temporal axis and model.
+        """
         # we check if the kpi cache is still valid (ie. same day)
         # otherwise we clear it
         if self._date_kpi_cache != date.today():
@@ -234,6 +256,14 @@ class PlotManager:
     # PLOT HELPER METHODS
     ################################################################
     def _get_model_color_map(self, model_names: list[str]) -> dict[str, str]:
+        """Return a color map for the given model names.
+
+        Args:
+            model_names (list[str]): List of model names to assign colors.
+
+        Returns:
+            dict[str, str]: Dictionary mapping model names to colors.
+        """
         base_palette = [
             "#1f77b4",  # bleu
             "#ff7f0e",  # orange
@@ -261,7 +291,16 @@ class PlotManager:
         model_name: str | None = None,
         to_json: bool = True,
     ):
-        """Line plots of environmental KPIs over time (energy, CO2, water, etc.), with one line per model."""
+        """Plot environmental KPIs over time.
+
+        Args:
+            temporal_axis (str): Temporal axis for grouping.
+            model_name (str | None, optional): Specific model name or None for all models. Defaults to None.
+            to_json (bool, optional): Whether to return the plot as a JSON string. Defaults to True.
+
+        Returns:
+            str | None: JSON string of the plot or None if no data is available.
+        """
         data = self._get_data_grouped_by(
             temporal_axis=temporal_axis,
             model=model_name if model_name else None,
@@ -305,6 +344,16 @@ class PlotManager:
     def plot_energy_vs_co2(
         self, temporal_axis: str, model_name: str | None = None, to_json: bool = True
     ):
+        """Plot energy consumption vs CO2 emissions scatter plot.
+
+        Args:
+            temporal_axis (str): Temporal axis for grouping.
+            model_name (str | None, optional): Specific model name or None for all models. Defaults to None.
+            to_json (bool, optional): Whether to return the plot as a JSON string. Defaults to True.
+
+        Returns:
+            str | None: JSON string of the plot or None if no data is available.
+        """
         data_dict = self._get_data_grouped_by(
             temporal_axis=temporal_axis, model=model_name
         )
@@ -358,6 +407,16 @@ class PlotManager:
     def plot_requests_distribution(
         self, temporal_axis: str, model_name: str | None = None, to_json: bool = True
     ):
+        """Plot requests distribution (success vs denials) over time.
+
+        Args:
+            temporal_axis (str): Temporal axis for grouping.
+            model_name (str | None, optional): Specific model name or None for all models. Defaults to None.
+            to_json (bool, optional): Whether to return the plot as a JSON string. Defaults to True.
+
+        Returns:
+            str | None: JSON string of the plot or None if no data is available.
+        """
         data_dict = self._get_data_grouped_by(
             temporal_axis=temporal_axis, model=model_name
         )
@@ -409,10 +468,16 @@ class PlotManager:
 
     def plot_energy_efficiency(
         self, temporal_axis: str, model_name: str | None = None, to_json: bool = True
-    ):
-        """
-        Bar chart: energy consumption per request (kWh / request),
-        grouped by model and period.
+    ) -> str | None:
+        """Plot energy efficiency (energy per request) over time.
+
+        Args:
+            temporal_axis (str): Temporal axis for grouping.
+            model_name (str | None, optional): Specific model name or None for all models. Defaults to None.
+            to_json (bool, optional): Whether to return the plot as a JSON string. Defaults to True.
+
+        Returns:
+            str | None: JSON string of the plot or None if no data is available.
         """
         data_dict = self._get_data_grouped_by(
             temporal_axis=temporal_axis, model=model_name
@@ -479,7 +544,17 @@ class PlotManager:
         temporal_axis: str,
         model_name: str | None = None,
         to_json: bool = True,
-    ) -> dict[str, str] | go.Figure:
+    ) -> dict[str, str] | None:
+        """Generates all plots for a given temporal axis and model.
+
+        Args:
+            temporal_axis (str): Temporal axis for grouping.
+            model_name (str | None, optional): Specific model name or None for all models. Defaults to None.
+            to_json (bool, optional): Whether to return the plots as JSON strings. Defaults to True.
+
+        Returns:
+            dict[str, str] | go.Figure: Dictionary of plot JSON strings or a Plotly Figure.
+        """
         data = self._get_data_grouped_by(
             temporal_axis=temporal_axis,
             model=model_name if model_name else None,
@@ -493,14 +568,21 @@ class PlotManager:
             return {}
 
         # now that we have data, we dispatch the data to the different plot methods
-        plots: dict[str, str] | None = None
+        plots: dict[str, str] = {}
         # plots:  {name_of_plot: __json_string__}
         # -> dict of plots
-        args = {
+        args: dict[str, str | bool | None] = {
             "temporal_axis": temporal_axis,
             "to_json": to_json,
             "model_name": model_name,
         }
+        if to_json:
+            plots["envir_kpis_over_time"] = self.plot_envir_kpis_over_time(**args)
+            plots["energy_vs_co2"] = self.plot_energy_vs_co2(**args)
+            plots["requests_distribution"] = self.plot_requests_distribution(**args)
+            plots["energy_efficiency"] = self.plot_energy_efficiency(**args)
+            return plots
+
         self.plot_envir_kpis_over_time(**args)
         self.plot_energy_vs_co2(**args)
         self.plot_requests_distribution(**args)
@@ -537,14 +619,6 @@ class PlotManager:
             for kpi in self._kpi_units_dict
         }
 
-    def dummy_data(self, temporal_axis, model_name) -> None:
-        """Method to create dummy data for testing purposes."""
-        data = self._get_data_grouped_by(
-            temporal_axis=temporal_axis,
-            model=model_name if model_name else None,
-        )
-        return data
-
 
 if __name__ == "__main__":
     # you can test here the class methods
@@ -558,11 +632,10 @@ if __name__ == "__main__":
     # Y = year
     # model_name : "mistral-small" | "mistral-medium" | None
     # None = all models
-    temporal_axis = "M"
-    model_name = "mistral-medium"
+    TEMPORAL_AXIS_TO_TRY = "M"
+    MODEL_NAME_TO_TRY = "mistral-medium"
     pm = PlotManager()
-    print(pm.dummy_data(temporal_axis, model_name))
-    pm.plot_all(temporal_axis, model_name, to_json=False)
+    pm.plot_all(TEMPORAL_AXIS_TO_TRY, MODEL_NAME_TO_TRY, to_json=False)
     print("kpis : ")
-    print(pm.kpis_all(temporal_axis, model_name))
+    print(pm.kpis_all(TEMPORAL_AXIS_TO_TRY, MODEL_NAME_TO_TRY))
     # have fun :)
