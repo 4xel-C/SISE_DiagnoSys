@@ -12,13 +12,25 @@ Example:
 
 import logging
 from datetime import date, timedelta
+from enum import Enum
+from typing import List, Optional, Sequence, Union
+
+from sqlalchemy import text
 
 from app.config import Database, db
 from app.models import LLMMetrics
-from app.rag import LLMUsage
-from app.schemas import LLMMetricsSchema
+from app.rag import LLMUsage, MistralModel
+from app.schemas import AggregatedMetrics, LLMMetricsSchema
 
 logger = logging.getLogger(__name__)
+
+
+class AggLevel(Enum):
+    """Aggregation levels for metrics."""
+
+    DAILY = "daily"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
 
 
 class LLMUsageService:
@@ -316,52 +328,173 @@ class LLMUsageService:
         records = self.get_today()
         return sum(r.total_requests or 0 for r in records)
 
-    def get_summary(self) -> dict:
+    def get_metrics(
+        self,
+        agg_level: Union[str, AggLevel] = AggLevel.DAILY,
+        models: Sequence[Union[str, MistralModel]] = MistralModel.all_models(),
+    ) -> List[AggregatedMetrics]:
         """
-        Get a summary of all-time LLM usage.
+        Generate aggregated metrics for the stats page.
+
+        Args:
+            agg_level: Aggregation level (daily, monthly, yearly).
+                       Accepts string or AggLevel enum.
+            models: Optional list of models to filter by.
+                    Accepts strings or MistralModel enums.
 
         Returns:
-            dict: Summary with total tokens, requests, and per-model breakdown.
+            List[AggregatedMetrics]: Aggregated metrics per period and model.
+
+        Raises:
+            ValueError: If agg_level is invalid.
 
         Example:
-            >>> summary = service.get_summary()
-            >>> print(summary["total_tokens"])
+            >>> metrics = service.get_metrics(AggLevel.MONTHLY, [MistralModel.MISTRAL_SMALL])
+            >>> metrics = service.get_metrics("monthly", ["mistral-small-latest"])
         """
-        all_records = self.get_all()
 
-        total_input = sum(r.total_input_tokens for r in all_records)
-        total_output = sum(r.total_completion_tokens for r in all_records)
-        total_tokens = sum(r.total_tokens for r in all_records)
-        total_requests = sum(r.total_requests or 0 for r in all_records)
-        total_success = sum(r.total_success for r in all_records)
-        total_denials = sum(r.total_denials or 0 for r in all_records)
+        # Type validation
+        level = AggLevel(agg_level) if isinstance(agg_level, str) else agg_level
 
-        # Per-model breakdown
-        models: dict[str, dict] = {}
-        for record in all_records:
-            if record.nom_modele not in models:
-                models[record.nom_modele] = {
-                    "total_input_tokens": 0,
-                    "total_output_tokens": 0,
-                    "total_tokens": 0,
-                    "total_requests": 0,
-                }
-            models[record.nom_modele]["total_input_tokens"] += record.total_input_tokens
-            models[record.nom_modele]["total_output_tokens"] += (
-                record.total_completion_tokens
-            )
-            models[record.nom_modele]["total_tokens"] += record.total_tokens
-            models[record.nom_modele]["total_requests"] += record.total_requests or 0
+        model_names: Optional[List[str]] = None
+        if models:
+            model_names = [
+                m.value if isinstance(m, MistralModel) else m for m in models
+            ]
 
-        return {
-            "total_input_tokens": total_input,
-            "total_output_tokens": total_output,
-            "total_tokens": total_tokens,
-            "total_requests": total_requests,
-            "total_success": total_success,
-            "total_denials": total_denials,
-            "models": models,
+        logger.debug(
+            f"Generating LLM usage metrics for agg_level={level.value}, models={model_names}"
+        )
+
+        # Period format based on aggregation level
+        period_formats = {
+            AggLevel.DAILY: "%Y-%m-%d",
+            AggLevel.MONTHLY: "%Y-%m",
+            AggLevel.YEARLY: "%Y",
         }
+        period_format = period_formats[level]
+
+        # Build SQL query with optional model filter
+        where_clause = ""
+        params = {}
+        if model_names:
+            placeholders = ", ".join(f":m{i}" for i in range(len(model_names)))
+            where_clause = f"WHERE nom_modele IN ({placeholders})"
+            params = {f"m{i}": name for i, name in enumerate(model_names)}
+
+        sql = f"""
+            SELECT
+                strftime('{period_format}', usage_date) as period,
+                nom_modele,
+                SUM(total_input_tokens) as total_input_tokens,
+                SUM(total_completion_tokens) as total_completion_tokens,
+                SUM(total_tokens) as total_tokens,
+                SUM(total_requests) as total_requests,
+                SUM(total_success) as total_success,
+                SUM(COALESCE(total_denials, 0)) as total_denials,
+                SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
+                SUM(gco2) as gco2,
+                SUM(water_ml) as water_ml,
+                SUM(mgSb) as mgSb
+            FROM llm_usage_journalier
+            {where_clause}
+            GROUP BY period, nom_modele
+            ORDER BY period DESC
+        """
+
+        with self.db_manager.session() as session:
+            rows = session.execute(text(sql), params).fetchall()
+
+            logger.debug(f"Found {len(rows)} aggregated records.")
+
+            return [
+                AggregatedMetrics(
+                    period=row.period,
+                    nom_modele=row.nom_modele,
+                    total_input_tokens=row.total_input_tokens or 0,
+                    total_completion_tokens=row.total_completion_tokens or 0,
+                    total_tokens=row.total_tokens or 0,
+                    total_requests=row.total_requests or 0,
+                    total_success=row.total_success or 0,
+                    total_denials=row.total_denials or 0,
+                    mean_response_time_ms=row.mean_response_time_ms or 0.0,
+                    gco2=row.gco2 or 0.0,
+                    water_ml=row.water_ml or 0.0,
+                    mgSb=row.mgSb or 0.0,
+                )
+                for row in rows
+            ]
+
+    def get_current_period_metrics(
+        self,
+        agg_level: Union[str, AggLevel] = AggLevel.DAILY,
+    ) -> Optional[AggregatedMetrics]:
+        """
+        Get total metrics for the current period (today, this month, or this year).
+
+        Args:
+            agg_level: Aggregation level determining the current period.
+                - DAILY: today
+                - MONTHLY: this month
+                - YEARLY: this year
+
+        Returns:
+            AggregatedMetrics: Total metrics for the current period, or None if no data.
+
+        Example:
+            >>> today_metrics = service.get_current_period_metrics(AggLevel.DAILY)
+            >>> this_month = service.get_current_period_metrics("monthly")
+        """
+        level = AggLevel(agg_level) if isinstance(agg_level, str) else agg_level
+        today = date.today()
+
+        period_formats = {
+            AggLevel.DAILY: "%Y-%m-%d",
+            AggLevel.MONTHLY: "%Y-%m",
+            AggLevel.YEARLY: "%Y",
+        }
+        period_format = period_formats[level]
+        current_period = today.strftime(period_format)
+
+        sql = f"""
+            SELECT
+                strftime('{period_format}', usage_date) as period,
+                SUM(total_input_tokens) as total_input_tokens,
+                SUM(total_completion_tokens) as total_completion_tokens,
+                SUM(total_tokens) as total_tokens,
+                SUM(total_requests) as total_requests,
+                SUM(total_success) as total_success,
+                SUM(COALESCE(total_denials, 0)) as total_denials,
+                SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
+                SUM(gco2) as gco2,
+                SUM(water_ml) as water_ml,
+                SUM(mgSb) as mgSb
+            FROM llm_usage_journalier
+            WHERE strftime('{period_format}', usage_date) = :current_period
+        """
+
+        with self.db_manager.session() as session:
+            row = session.execute(
+                text(sql), {"current_period": current_period}
+            ).fetchone()
+
+            if not row or row.period is None:
+                return None
+
+            return AggregatedMetrics(
+                period=row.period,
+                nom_modele="all",
+                total_input_tokens=row.total_input_tokens or 0,
+                total_completion_tokens=row.total_completion_tokens or 0,
+                total_tokens=row.total_tokens or 0,
+                total_requests=row.total_requests or 0,
+                total_success=row.total_success or 0,
+                total_denials=row.total_denials or 0,
+                mean_response_time_ms=row.mean_response_time_ms or 0.0,
+                gco2=row.gco2 or 0.0,
+                water_ml=row.water_ml or 0.0,
+                mgSb=row.mgSb or 0.0,
+            )
 
     ################################################################
     # DELETE METHODS

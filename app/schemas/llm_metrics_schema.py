@@ -16,6 +16,43 @@ from typing import Optional
 from pydantic import BaseModel, computed_field
 
 
+class AggregatedMetrics(BaseModel):
+    """
+    Aggregated metrics for a period.
+
+    Used to return metrics aggregated by day, month, or year.
+
+    Attributes:
+        period (str): The period identifier (e.g., "2024-01-15", "2024-01", "2024").
+        nom_modele (str | None): Model name, None if aggregated across all models.
+        total_input_tokens (int): Sum of input tokens for the period.
+        total_completion_tokens (int): Sum of completion tokens for the period.
+        total_tokens (int): Sum of all tokens for the period.
+        total_requests (int): Total number of requests for the period.
+        total_success (int): Total successful requests for the period.
+        total_denials (int): Total denied requests for the period.
+        mean_response_time_ms (float): Weighted average response time in ms.
+        gco2 (float): Total CO2 emissions in grams.
+        water_ml (float): Total water usage in milliliters.
+        mgSb (float): Total antimony usage in milligrams.
+    """
+
+    period: str
+    nom_modele: str
+    total_input_tokens: int
+    total_completion_tokens: int
+    total_tokens: int
+    total_requests: int
+    total_success: int
+    total_denials: int
+    mean_response_time_ms: float
+    gco2: float
+    water_ml: float
+    mgSb: float
+
+    model_config = {"from_attributes": True}
+
+
 class LLMMetricsSchema(BaseModel):
     """
     Pydantic schema for LLM usage metrics.
