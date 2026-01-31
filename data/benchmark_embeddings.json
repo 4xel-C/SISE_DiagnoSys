@@ -1,301 +1,301 @@
 [
     {
         "query": "Le patient présente une toux grasse et une fièvre à 39 depuis 3 jours.",
-        "expected_doc": "Protocole de diagnostic des infections respiratoires aiguës et pneumonies.",
+        "expected_doc": "Diagnostic protocol for acute respiratory infections and pneumonia",
         "category": "Pneumologie",
         "severity": "jaune"
     },
     {
         "query": "Douleur thoracique irradiant dans le bras gauche, sueurs et nausées.",
-        "expected_doc": "Prise en charge d'urgence du Syndrome Coronarien Aigu (SCA).",
+        "expected_doc": "Emergency management of Acute Coronary Syndrome (ACS)",
         "category": "Cardiologie",
         "severity": "rouge"
     },
     {
         "query": "Polyurie et polydipsie associées à une perte de poids inexpliquée.",
-        "expected_doc": "Critères de diagnostic et suivi du diabète de type 1 et 2.",
+        "expected_doc": "Diagnostic criteria and monitoring for type 1 and type 2 diabetes",
         "category": "Endocrinologie",
         "severity": "vert"
     },
     {
         "query": "Céphalées intenses avec photophobie et raideur de la nuque.",
-        "expected_doc": "Protocole de diagnostic et prise en charge des méningites.",
+        "expected_doc": "Diagnostic and management protocol for meningitis",
         "category": "Neurologie",
         "severity": "rouge"
     },
     {
         "query": "Ictère, urines foncées et selles décolorées depuis une semaine.",
-        "expected_doc": "Diagnostic différentiel des ictères et explorations hépatobiliaires.",
+        "expected_doc": "Differential diagnosis of jaundice and hepatobiliary investigations",
         "category": "Hépatologie",
         "severity": "jaune"
     },
     {
         "query": "Dyspnée aiguë avec sibilants diffus et tirage intercostal.",
-        "expected_doc": "Prise en charge de la crise d'asthme aiguë sévère.",
+        "expected_doc": "Management of severe acute asthma exacerbation",
         "category": "Pneumologie",
         "severity": "rouge"
     },
     {
         "query": "Douleur abdominale intense localisée en fosse iliaque droite avec défense.",
-        "expected_doc": "Protocole de diagnostic et traitement de l'appendicite aiguë.",
+        "expected_doc": "Diagnostic and treatment protocol for acute appendicitis",
         "category": "Chirurgie",
         "severity": "rouge"
     },
     {
         "query": "Hématurie macroscopique indolore chez un patient de 65 ans fumeur.",
-        "expected_doc": "Exploration des hématuries et dépistage des tumeurs vésicales.",
+        "expected_doc": "Investigation of hematuria and bladder tumor screening",
         "category": "Urologie",
         "severity": "jaune"
     },
     {
         "query": "Perte de conscience brutale avec mouvements tonico-cloniques.",
-        "expected_doc": "Prise en charge de l'état de mal épileptique et crises généralisées.",
+        "expected_doc": "Management of status epilepticus and generalized seizures",
         "category": "Neurologie",
         "severity": "rouge"
     },
     {
         "query": "Douleur épigastrique à type de brûlure soulagée par l'alimentation.",
-        "expected_doc": "Diagnostic et traitement de l'ulcère gastroduodénal.",
+        "expected_doc": "Diagnosis and treatment of peptic ulcer disease",
         "category": "Gastro-entérologie",
         "severity": "vert"
     },
     {
         "query": "Éruption érythémateuse maculopapuleuse avec fièvre chez un enfant.",
-        "expected_doc": "Diagnostic différentiel des exanthèmes fébriles de l'enfant.",
+        "expected_doc": "Differential diagnosis of febrile exanthems in children",
         "category": "Pédiatrie",
         "severity": "jaune"
     },
     {
         "query": "Palpitations avec tachycardie irrégulière à 150 bpm et dyspnée.",
-        "expected_doc": "Prise en charge de la fibrillation auriculaire rapide.",
+        "expected_doc": "Management of rapid atrial fibrillation",
         "category": "Cardiologie",
         "severity": "rouge"
     },
     {
         "query": "Douleur lombo-abdominale irradiant vers les organes génitaux.",
-        "expected_doc": "Diagnostic et traitement de la colique néphrétique.",
+        "expected_doc": "Diagnosis and treatment of renal colic",
         "category": "Urologie",
         "severity": "jaune"
     },
     {
         "query": "Vomissements en jet avec hypotonie axiale chez un nourrisson.",
-        "expected_doc": "Diagnostic d'urgence de la sténose du pylore.",
+        "expected_doc": "Emergency diagnosis of pyloric stenosis",
         "category": "Pédiatrie",
         "severity": "rouge"
     },
     {
         "query": "Œdème des membres inférieurs bilatéral avec prise de poids rapide.",
-        "expected_doc": "Exploration de l'insuffisance cardiaque congestive.",
+        "expected_doc": "Investigation of congestive heart failure",
         "category": "Cardiologie",
         "severity": "jaune"
     },
     {
         "query": "Vertiges rotatoires avec nausées et nystagmus horizontal.",
-        "expected_doc": "Diagnostic et prise en charge du vertige positionnel paroxystique bénin.",
+        "expected_doc": "Diagnosis and management of benign paroxysmal positional vertigo",
         "category": "ORL",
         "severity": "vert"
     },
     {
         "query": "Confusion mentale avec tremblements et sueurs chez un patient alcoolique.",
-        "expected_doc": "Prise en charge du delirium tremens et sevrage alcoolique.",
+        "expected_doc": "Management of delirium tremens and alcohol withdrawal",
         "category": "Psychiatrie",
         "severity": "rouge"
     },
     {
         "query": "Douleur au mollet unilatérale avec œdème et signe de Homans positif.",
-        "expected_doc": "Diagnostic et traitement de la thrombose veineuse profonde.",
+        "expected_doc": "Diagnosis and treatment of deep vein thrombosis",
         "category": "Angiologie",
         "severity": "rouge"
     },
     {
         "query": "Arthralgies migratoires avec rash malaire et photosensibilité.",
-        "expected_doc": "Critères diagnostiques du lupus érythémateux systémique.",
+        "expected_doc": "Diagnostic criteria for systemic lupus erythematosus",
         "category": "Rhumatologie",
         "severity": "jaune"
     },
     {
         "query": "Dysphagie progressive aux solides puis aux liquides.",
-        "expected_doc": "Exploration des troubles de la déglutition et cancer œsophagien.",
+        "expected_doc": "Investigation of dysphagia and esophageal cancer",
         "category": "Gastro-entérologie",
         "severity": "jaune"
     },
     {
         "query": "Purpura pétéchial avec fièvre et altération de l'état général.",
-        "expected_doc": "Prise en charge d'urgence du purpura fulminans et méningococcémie.",
+        "expected_doc": "Emergency management of purpura fulminans and meningococcemia",
         "category": "Infectiologie",
         "severity": "rouge"
     },
     {
         "query": "Douleur oculaire avec vision floue et halos colorés.",
-        "expected_doc": "Diagnostic et traitement du glaucome aigu par fermeture de l'angle.",
+        "expected_doc": "Diagnosis and treatment of acute angle-closure glaucoma",
         "category": "Ophtalmologie",
         "severity": "rouge"
     },
     {
         "query": "Toux chronique productive depuis plus de 3 mois chez un fumeur.",
-        "expected_doc": "Diagnostic de la bronchopneumopathie chronique obstructive (BPCO).",
+        "expected_doc": "Diagnosis of chronic obstructive pulmonary disease (COPD)",
         "category": "Pneumologie",
         "severity": "vert"
     },
     {
         "query": "Diarrhée sanglante avec ténesme et faux besoins.",
-        "expected_doc": "Exploration des colites inflammatoires et rectocolite hémorragique.",
+        "expected_doc": "Investigation of inflammatory bowel disease and ulcerative colitis",
         "category": "Gastro-entérologie",
         "severity": "jaune"
     },
     {
         "query": "Faiblesse musculaire proximale symétrique progressive.",
-        "expected_doc": "Diagnostic des myopathies inflammatoires et polymyosites.",
+        "expected_doc": "Diagnosis of inflammatory myopathies and polymyositis",
         "category": "Neurologie",
         "severity": "jaune"
     },
     {
         "query": "Saignement vaginal post-ménopausique.",
-        "expected_doc": "Exploration systématique des métrorragies post-ménopausiques.",
+        "expected_doc": "Systematic investigation of post-menopausal bleeding",
         "category": "Gynécologie",
         "severity": "jaune"
     },
     {
         "query": "Douleur testiculaire aiguë avec testicule ascensionné.",
-        "expected_doc": "Prise en charge urgente de la torsion testiculaire.",
+        "expected_doc": "Emergency management of testicular torsion",
         "category": "Urologie",
         "severity": "rouge"
     },
     {
         "query": "Hyperthermie, rigidité musculaire et confusion après prise de neuroleptiques.",
-        "expected_doc": "Diagnostic et traitement du syndrome malin des neuroleptiques.",
+        "expected_doc": "Diagnosis and treatment of neuroleptic malignant syndrome",
         "category": "Psychiatrie",
         "severity": "rouge"
     },
     {
         "query": "Toux sèche persistante avec dyspnée d'effort et crépitants bilatéraux.",
-        "expected_doc": "Diagnostic de la fibrose pulmonaire interstitielle.",
+        "expected_doc": "Diagnosis of interstitial pulmonary fibrosis",
         "category": "Pneumologie",
         "severity": "jaune"
     },
     {
         "query": "Céphalées pulsatiles unilatérales avec nausées et phonophobie.",
-        "expected_doc": "Prise en charge de la crise migraineuse et traitement de fond.",
+        "expected_doc": "Management of migraine attacks and preventive treatment",
         "category": "Neurologie",
         "severity": "vert"
     },
     {
         "query": "Polyarthrite symétrique des petites articulations avec raideur matinale.",
-        "expected_doc": "Critères diagnostiques de la polyarthrite rhumatoïde.",
+        "expected_doc": "Diagnostic criteria for rheumatoid arthritis",
         "category": "Rhumatologie",
         "severity": "vert"
     },
     {
         "query": "Brûlures rétrosternales ascendantes aggravées par le décubitus.",
-        "expected_doc": "Diagnostic et traitement du reflux gastro-œsophagien (RGO).",
+        "expected_doc": "Diagnosis and treatment of gastroesophageal reflux disease (GERD)",
         "category": "Gastro-entérologie",
         "severity": "vert"
     },
     {
         "query": "Anémie microcytaire avec pâleur et asthénie chez une femme en âge de procréer.",
-        "expected_doc": "Exploration d'une anémie ferriprive et carence martiale.",
+        "expected_doc": "Investigation of iron deficiency anemia",
         "category": "Hématologie",
         "severity": "vert"
     },
     {
         "query": "Dyspnée inspiratoire avec cornage et tirage sus-sternal chez un enfant.",
-        "expected_doc": "Prise en charge de la laryngite aiguë et croup.",
+        "expected_doc": "Management of acute laryngitis and croup",
         "category": "Pédiatrie",
         "severity": "rouge"
     },
     {
         "query": "Douleur aiguë du gros orteil avec rougeur et chaleur locale.",
-        "expected_doc": "Diagnostic et traitement de la crise de goutte aiguë.",
+        "expected_doc": "Diagnosis and treatment of acute gout attack",
         "category": "Rhumatologie",
         "severity": "vert"
     },
     {
         "query": "Perte de poids involontaire avec adénopathies cervicales et sueurs nocturnes.",
-        "expected_doc": "Exploration des lymphomes et hémopathies malignes.",
+        "expected_doc": "Investigation of lymphomas and hematologic malignancies",
         "category": "Hématologie",
         "severity": "jaune"
     },
     {
         "query": "Douleur péri-ombilicale migrante vers la fosse iliaque droite.",
-        "expected_doc": "Sémiologie classique de l'appendicite aiguë.",
+        "expected_doc": "Classic presentation of acute appendicitis",
         "category": "Chirurgie",
         "severity": "jaune"
     },
     {
         "query": "Hypertension artérielle réfractaire chez un sujet jeune avec hypokaliémie.",
-        "expected_doc": "Diagnostic de l'hyperaldostéronisme primaire (syndrome de Conn).",
+        "expected_doc": "Diagnosis of primary hyperaldosteronism (Conn syndrome)",
         "category": "Endocrinologie",
         "severity": "vert"
     },
     {
         "query": "Trémulations, nervosité et perte de poids malgré appétit conservé.",
-        "expected_doc": "Diagnostic de l'hyperthyroïdie et maladie de Basedow.",
+        "expected_doc": "Diagnosis of hyperthyroidism and Graves disease",
         "category": "Endocrinologie",
         "severity": "vert"
     },
     {
         "query": "Diplopie et ptosis fluctuants aggravés en fin de journée.",
-        "expected_doc": "Diagnostic de la myasthénie auto-immune.",
+        "expected_doc": "Diagnosis of autoimmune myasthenia gravis",
         "category": "Neurologie",
         "severity": "jaune"
     },
     {
         "query": "Écoulement nasal purulent unilatéral avec douleur faciale.",
-        "expected_doc": "Diagnostic et traitement de la sinusite maxillaire aiguë.",
+        "expected_doc": "Diagnosis and treatment of acute maxillary sinusitis",
         "category": "ORL",
         "severity": "vert"
     },
     {
         "query": "Prurit généralisé intense sans lésion cutanée primaire.",
-        "expected_doc": "Exploration des prurits sine materia et causes systémiques.",
+        "expected_doc": "Investigation of pruritus sine materia and systemic causes",
         "category": "Dermatologie",
         "severity": "vert"
     },
     {
         "query": "Anurie avec œdème généralisé et hypertension artérielle sévère.",
-        "expected_doc": "Prise en charge de l'insuffisance rénale aiguë.",
+        "expected_doc": "Management of acute renal failure",
         "category": "Néphrologie",
         "severity": "rouge"
     },
     {
         "query": "Scotome scintillant précédant une céphalée unilatérale.",
-        "expected_doc": "Diagnostic de la migraine avec aura visuelle.",
+        "expected_doc": "Diagnosis of migraine with visual aura",
         "category": "Neurologie",
         "severity": "vert"
     },
     {
         "query": "Syndrome grippal avec myalgies diffuses et AEG chez une personne âgée.",
-        "expected_doc": "Prise en charge de la grippe saisonnière et complications.",
+        "expected_doc": "Management of seasonal influenza and complications",
         "category": "Infectiologie",
         "severity": "jaune"
     },
     {
         "query": "Bradycardie symptomatique avec lipothymies à répétition.",
-        "expected_doc": "Indications de la stimulation cardiaque définitive.",
+        "expected_doc": "Indications for permanent cardiac pacing",
         "category": "Cardiologie",
         "severity": "rouge"
     },
     {
         "query": "Douleur rétro-oculaire avec baisse brutale de l'acuité visuelle.",
-        "expected_doc": "Diagnostic de la névrite optique rétrobulbaire.",
+        "expected_doc": "Diagnosis of retrobulbar optic neuritis",
         "category": "Ophtalmologie",
         "severity": "rouge"
     },
     {
         "query": "Hoquet persistant résistant aux traitements usuels.",
-        "expected_doc": "Exploration d'un hoquet chronique et causes sous-jacentes.",
+        "expected_doc": "Investigation of chronic hiccups and underlying causes",
         "category": "Gastro-entérologie",
         "severity": "vert"
     },
     {
         "query": "Épisode de paralysie flasque unilatérale résolutif en moins d'une heure.",
-        "expected_doc": "Prise en charge de l'accident ischémique transitoire (AIT).",
+        "expected_doc": "Management of transient ischemic attack (TIA)",
         "category": "Neurologie",
         "severity": "rouge"
     },
     {
         "query": "Douleur périnéale avec dysurie et pollakiurie chez l'homme jeune.",
-        "expected_doc": "Diagnostic et traitement de la prostatite aiguë.",
+        "expected_doc": "Diagnosis and treatment of acute prostatitis",
         "category": "Urologie",
         "severity": "jaune"
     }
