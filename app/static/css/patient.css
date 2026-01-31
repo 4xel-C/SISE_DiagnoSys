@@ -13,6 +13,11 @@ main .patient-content .patient {
         border-radius: var(--border-radius);
         border: solid 1px var(--border-color);
         overflow: hidden;
+        position: relative;
+
+        .lds-ring {
+            display: none;
+        }
 
         .title {
             padding: 0.6rem 1rem 0;
@@ -48,6 +53,11 @@ main .patient-content .patient {
 
         > * {
             opacity: .3;
+        }
+
+        .lds-ring {
+            display: block;
+            opacity: .5;
         }
     }
 
