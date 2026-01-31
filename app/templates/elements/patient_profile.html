@@ -1,9 +1,30 @@
-<li data-patient-id="{{ id }}" class="patient-result profile">
-    <div class="pp">
-        <svg width="30" height="30" viewBox="0 0 30 30">
-            <circle r="14" fill="var(--bg-selected-color)" cy="15" cx="15"></circle>
-            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="40" fill="#333" dy=".05em">{{ initials }}</text>
-        </svg>
+<div class="top">
+    <div class="main-info">
+        <div class="patient-profile">
+            <svg width="50" height="50" viewBox="0 0 30 30">
+                <circle r="14" fill="var(--bg-selected-color)" cy="15" cx="15"></circle>
+                <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="40" fill="#333" dy=".05em">{{ initials }}</text>
+            </svg>
+            <h2 class="name">{{ first_name }} {{ last_name }}</h2>
+        </div>
+        <p class="symptoms">{{ symptoms }}</p>
     </div>
-    <p class="label">{{ first_name }} {{ last_name }}</p>
-</li>
+    <div class="subinfo">
+        <div class="sub">
+            <img src="{{ url_for('static', filename='images/tag.svg') }}" alt="" height="16px">
+            <p class="label">{{ seriousness }}</p>
+        </div>
+        <div class="sub">
+            <img src="{{ url_for('static', filename='images/drug.svg') }}" alt="" height="16px">
+            <p class="label">{{ illness }}</p>
+        </div>
+    </div>
+</div>
+<ul class="data">
+    {% for data in metadata %}
+        <li>
+            <p class="label">{{ data.label }}</p>
+            <h2 class="value">{{ data.value }}</h2>
+        </li>
+    {% endfor %}
+</ul>

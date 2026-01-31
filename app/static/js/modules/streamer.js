@@ -25,17 +25,35 @@ async function sendAudioChunks(patientId, chunks) {
             body: audioBlob
         });
 
-        if (!response.ok) {
+        if (response.ok) {
+            document.dispatchEvent(
+                new CustomEvent('audioProcessCompleted', {
+                    detail: { patientId }
+                })
+            );  
+        } else {
             console.error('Failed to transcribe audio:', response.status);
+            const content = await response.json();
+            document.dispatchEvent(
+                new CustomEvent('audioProcessError', {
+                    detail: { 
+                        patientId,
+                        error: content?.error ?? 'Erreur interne'
+                    }
+                })
+            );
         }
 
-        document.dispatchEvent(
-            new CustomEvent('audioProcessCompleted', {
-                detail: { patientId }
-            })
-        );
     } catch (error) {
         console.error('Error sending audio:', error);
+        document.dispatchEvent(
+            new CustomEvent('audioProcessError', {
+                detail: { 
+                    patientId,
+                    error: "Impossible d'envoyer l'audio"
+                }
+            })
+        );
     }
 }
 

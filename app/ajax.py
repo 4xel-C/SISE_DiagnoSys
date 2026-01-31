@@ -35,7 +35,7 @@ def audio_stt(patient_id: int):
     audio_data = request.get_data()
 
     if not audio_data:
-        return jsonify({"error": "No audio data received"}), 400
+        return jsonify({"error": "Aucun signal audio reçu"}), 400
 
     # Transcribe audio
     transcription = app.rag_service.transcribe(audio_data)
@@ -52,7 +52,7 @@ def audio_stt(patient_id: int):
             )
             return jsonify(
                 {
-                    "error": "Input blocked by security filter",
+                    "error": "Entrée bloquée par le filtre de sécurité",
                     "transcription": transcription,
                 }
             ), 400
@@ -93,6 +93,23 @@ def custom_popup():
     params = request.args.to_dict()
     return render_template("elements/custom_popup.html", **params)
 
+@ajax.route("create_patient_popup", methods=["GET"])
+def create_patient_popup():
+    return render_template("elements/create_patient_popup.html")
+
+@ajax.route("settings_popup", methods=["GET"])
+def settings_popup():
+    models = app.rag_service.get_llm_models()
+    threshold = app.rag_service.get_guardrail_threshold()
+
+    return render_template(
+        "elements/settings_popup.html", 
+        models = models['available'], 
+        selected_context = models['context'],
+        selected_rag = models['rag'],
+        current_threshold = threshold
+    )
+
 
 # ---------------
 # RENDER TEMPLATES
@@ -114,10 +131,14 @@ def search_patients():
     htmls = [p.render() for p in patients]
     return jsonify(htmls)
 
-
 @ajax.route("render_patient/<int:patient_id>", methods=["GET"])
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
+
+@ajax.route("render_profile/<int:patient_id>", methods=["GET"])
+def render_profile(patient_id: int):
+    patient = app.patient_service.get_by_id(patient_id)
+    return patient.render(style='profile')
 
 
 @ajax.route("render_page/<page_name>", methods=["GET"])
@@ -161,6 +182,24 @@ def process_rag(patient_id: int):
     except ValueError as e:
         # Patient not found
         abort(404, e)
+    except UnsafeRequestException:
+        return jsonify({
+            "error": "Entrée bloquée par le filtre de sécurité"
+        }), 400
+    
+@ajax.route('update_settings', methods=['POST'])
+def update_settings():
+    data = request.get_json()
+    try:
+        data['threshold'] = float(data['threshold'])
+    except ValueError:
+        jsonify({
+            "error": f"Mauvais type de seuil, impossible de convertir {data['threshold']} en nombre float."
+        })
+
+    app.rag_service.change_llm_models(context_model=data['context-model'], rag_model=data['rag-model'])
+    app.rag_service.update_guardrail_threshold(new_threshold=data['threshold'])
+    return jsonify({"success": True})
 
 
 # ---------------
@@ -191,11 +230,43 @@ def query_agent(patient_id: int):
 # DATABASE
 
 
+@ajax.route("create_patient", methods=["POST"])
+def create_patient():
+    data: dict = request.get_json()
+    required_keys = {
+        "nom": str,
+        "prenom": str,
+        "gravite": str,
+        "type_maladie": str,
+        "symptomes_exprimes": str,
+        "fc": int,
+        "fr": int,
+        "spo2": float,
+        "ta_systolique": int,
+        "ta_diastolique": int,
+        "temperature": float
+    }
+
+    for field, converter in required_keys.items():
+        if field not in data:
+            return jsonify({
+                "error": f"Le champ '{field}' est obligatoire"
+            }), 400
+        try:
+            data[field] = converter(data[field])
+        except (ValueError, TypeError):
+            return jsonify({
+                "error": f"Le champ '{field}' doit être de type {converter.__name__}"
+            }), 400
+    
+    patient = app.patient_service.create(**data)
+
+    return jsonify({'patient_id': patient.id})
+
 @ajax.route("get_profile/<int:patient_id>", methods=["GET"])
 def get_profile(patient_id: int):
     profile = app.patient_service.get_by_id(patient_id)
     return jsonify(profile.to_metadata())
-
 
 @ajax.route("get_context/<int:patient_id>", methods=["GET"])
 def get_context(patient_id: int):

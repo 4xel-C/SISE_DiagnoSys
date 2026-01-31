@@ -3,7 +3,7 @@ main .patient-content .patient {
     height: 100%;
     display: grid;
     grid-template-columns: 2fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
+    grid-template-rows: 1fr 1fr;
     gap: 1rem;
 
     .frame {
@@ -13,6 +13,11 @@ main .patient-content .patient {
         border-radius: var(--border-radius);
         border: solid 1px var(--border-color);
         overflow: hidden;
+        position: relative;
+
+        .lds-ring {
+            display: none;
+        }
 
         .title {
             padding: 0.6rem 1rem 0;
@@ -49,6 +54,11 @@ main .patient-content .patient {
         > * {
             opacity: .3;
         }
+
+        .lds-ring {
+            display: block;
+            opacity: .5;
+        }
     }
 
     .frame .tab {
@@ -59,7 +69,7 @@ main .patient-content .patient {
     }
 
     .frame.context-profile {
-        grid-row: 1 / span 2;
+        grid-row: 1;
         position: relative;
 
         .tab.context {
@@ -67,6 +77,47 @@ main .patient-content .patient {
         }
         .tab.profile {
             padding: 1rem;
+            overflow-y: auto;
+
+            .top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .patient-profile {
+                    display: flex;
+                    align-items: center;
+                    gap: .6rem;
+                    margin-bottom: 1rem;
+                }
+
+                .subinfo .sub > * {
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin-left: .4rem;
+                    color: var(--text-second-color);
+                }
+                .subinfo .sub:not(:last-child) {
+                    margin-bottom: 1rem;
+                }
+            }
+
+            ul.data {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-row-gap: 3rem;
+                justify-items: center;
+                margin-top: 4rem;
+
+                > li {
+                    text-align: center;
+
+                    .value {
+                        font-weight: 600;
+                        font-size: 32px;
+                    }
+                }
+            }
         }
 
         form#context-editor {
@@ -93,7 +144,7 @@ main .patient-content .patient {
         }
     }
     .frame.diagnostic {
-        grid-row: 3;
+        grid-row: 2;
         overflow: hidden;
 
         .editor {
@@ -114,7 +165,7 @@ main .patient-content .patient {
         }
     }
     .frame.documents {
-        grid-row: 2 / span 2;
+        grid-row: 2;
 
         ul {
             padding: 1rem;
