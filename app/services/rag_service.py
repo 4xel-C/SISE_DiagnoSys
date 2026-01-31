@@ -4,11 +4,13 @@ from typing import Any, Dict, List, Optional
 from app.asr import ASRServiceBase, ASRServiceFactory
 from app.rag import (
     LLMHandler,
+    MistralModel,
     PromptTemplate,
     SystemPromptTemplate,
     VectorStore,
     document_store,
     guardrail_classifier,
+    llm_context_updator,
     llm_handler,
     patient_store,
 )
@@ -57,6 +59,7 @@ class RagService:
         patient_service: PatientService = PatientService(),
         document_service: DocumentService = DocumentService(),
         llm_handler: LLMHandler = llm_handler,
+        llm_context_updator: LLMHandler = llm_context_updator,
         llm_usage_service: LLMUsageService = LLMUsageService(),
         guardrail_classifier=guardrail_classifier,
         asr_model: Optional[ASRServiceBase] = None,
@@ -67,6 +70,7 @@ class RagService:
         self.patient_service = patient_service
         self.document_service = document_service
         self.llm_handler = llm_handler
+        self.llm_context_updator = llm_context_updator
         self.llm_usage_service = llm_usage_service
         self.guardrail_classifier = guardrail_classifier
         self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
@@ -109,7 +113,7 @@ class RagService:
         patient = self.patient_service.get_by_id(patient_id=id)
 
         # generate a condensed context from patient context and user input
-        new_context = self.llm_handler.generate_with_template(
+        new_context = self.llm_context_updator.generate_with_template(
             template=PromptTemplate.SUMMARY,
             system_prompt=SystemPromptTemplate.CONTEXT_UPDATER,
             context=patient.contexte,
@@ -125,7 +129,7 @@ class RagService:
             logger.info("Context successfully updated with audio input")
             new_context = new_context.content.strip()
         else:
-            logger.error("llm_handler failed to generate updated context")
+            logger.error("llm_context_updator failed to generate updated context")
             raise LLMGenerationException("Failed to generate updated context")
 
         # Checkpoint 2: Check synthesized context before storing/embedding
@@ -308,6 +312,50 @@ class RagService:
         )
 
         return True
+    
+    def get_llm_models(self) -> Dict:
+        """
+        Get the list of available and selected LLM models.
+
+        Returns:
+            Dict: Dict of available and selected models
+        """
+        models = {
+            'available': [model.value for model in MistralModel],
+            'context': self.llm_context_updator.model_name,
+            'rag': self.llm_handler.model_name,
+        }
+
+        return models
+
+    def change_llm_models(self, context_model: str|None = None, rag_model: str|None = None) -> None:
+        """
+        Change the LLM models.
+
+        Args:
+            context_model (str): The new model name to set for context updating.
+            rag_model (str): The new model name to set for for RAG diagnosys generation.
+        """
+        if context_model:
+            # Validate model_name
+            model = MistralModel(context_model)
+            self.llm_context_updator.set_model(model)
+            logger.info(f"Context LLM model changed to {model.value}")
+        
+        if rag_model:
+            # Validate model_name
+            model = MistralModel(rag_model)
+            self.llm_handler.set_model(model)
+            logger.info(f"RAG LLM model changed to {model.value}")
+
+    def get_guardrail_threshold(self) -> float:
+        """
+        Retrieve current guardrail threshold
+
+        Returns:
+            float: Guardrail threshold
+        """
+        return self.guardrail_classifier.threshold
 
     def update_guardrail_threshold(self, new_threshold: float) -> None:
         """

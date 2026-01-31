@@ -52,14 +52,14 @@ export async function renderPage(pageName, force=false) {
     }
     // Reset saved class
     main.classList.remove('unsaved');
-    // Patient class
-    content.classList.remove('patient-content');
-    content.classList.add('internal-content');
 
     // Request page HTML
     const response = await fetch(`ajax/render_page/${pageName}`);
     const html = await response.text();
 
+    // Render html
+    content.classList.remove('patient-content');
+    content.classList.add('internal-content');
     pageContainer.innerHTML = html;
 
     // Dispatch event

@@ -5,6 +5,8 @@ const main = document.querySelector('main');
 const searchForm = menu.querySelector('form.search');
 const internalList = menu.querySelector('ul.internal');
 const patientList = menu.querySelector('ul.patients');
+const addPatientButton = menu.querySelector('.create-patient button');
+const settingsButton = menu.querySelector('.settings button');
 const topbar = main.querySelector('.top-bar');
 
 const shortcuts = new Map([
@@ -54,6 +56,89 @@ function selectElement(element) {
     element.classList.add('selected');
 }
 
+async function createPatient() {
+    // Render popup
+    const response = await fetch('ajax/create_patient_popup');
+    const html = await response.text();
+    const popup = renderPopup(html);
+
+    const popupForm = popup.querySelector('form');
+    const popupFieldset = popupForm.querySelector('fieldset');
+    // On cancel
+    popupForm.addEventListener('reset', () => {
+        popup.remove();
+    });
+    // On submit
+    popupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const data = new FormData(popupForm);
+        popupFieldset.disabled = true;
+        fetch('ajax/create_patient', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(data))
+        }).then(async (response) => {
+            const content = await response.json();
+
+            if (!response.ok) {
+                popupFieldset.disabled = false;
+                showError(content.error);
+                return;
+            }
+
+            popup.remove();
+            await searchPatients();
+            renderPatient(content.patient_id);
+        })
+    });
+}
+
+async function openSettings() {
+    // Render popup
+    const response = await fetch('ajax/settings_popup');
+    const html = await response.text();
+    const popup = renderPopup(html);
+
+    const popupForm = popup.querySelector('form');
+    const thresholdSlider = popupForm.querySelector('.threshold-slider[name="threshold"]');
+
+    // Create sliders
+    noUiSlider.create(thresholdSlider, {
+        start: [thresholdSlider.dataset.default],
+        step: .01,
+        connect: [true, false],
+        tooltips: [true],
+        range: {
+            'min': 0,
+            'max': 1
+        }
+    });
+
+    // On cancel
+    popupForm.addEventListener('reset', () => {
+        popup.remove();
+    });
+    // On submit
+    popupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const data = new FormData(popupForm);
+        data.append('threshold', thresholdSlider.noUiSlider.get());
+        fetch('ajax/update_settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(data))
+        }).then(async (response) => {
+            const content = await response.json();
+            if (!response.ok) {
+                showError(content.error);
+                return;
+            }
+
+            popup.remove();
+        })
+    });
+}
+
 
 // Key shortcut handler
 function focusSearch() {
@@ -75,9 +160,13 @@ searchForm.addEventListener('submit', (e) => {
 
 // On internal clicked => select it
 internalList.querySelectorAll('li').forEach(internal => {
-    internal.addEventListener('click', (e) => {
-        selectElement(internal);
-        renderPage(internal.dataset.pageName);
+    internal.addEventListener('click', () => {
+        if (internal.dataset.pageUrl) {
+            window.open(internal.dataset.pageUrl, '_blank');
+        } else {
+            selectElement(internal);
+            renderPage(internal.dataset.pageName);
+        }
     })
 });
 
@@ -125,6 +214,16 @@ window.addEventListener('keydown', (event) => {
         event.preventDefault();
         handler(event);
     }
+});
+
+// On create patient 
+addPatientButton.addEventListener('click', () => {
+    createPatient();
+});
+
+// On settings open
+settingsButton.addEventListener('click', () => {
+    openSettings();
 });
 
 
