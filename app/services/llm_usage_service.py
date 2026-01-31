@@ -149,155 +149,6 @@ class LLMUsageService:
                 result.append(LLMMetricsSchema.model_validate(record))
         return result
 
-    def get_by_date_range(
-        self, start_date: date, end_date: date
-    ) -> list[LLMMetricsSchema]:
-        """
-        Retrieve usage records within a date range.
-
-        Args:
-            start_date (date): Start of the range (inclusive).
-            end_date (date): End of the range (inclusive).
-
-        Returns:
-            list[LLMMetricsSchema]: List of records in the range.
-
-        Example:
-            >>> from datetime import date, timedelta
-            >>> week_ago = date.today() - timedelta(days=7)
-            >>> records = service.get_by_date_range(week_ago, date.today())
-        """
-        logger.debug(f"Fetching LLM usage from {start_date} to {end_date}.")
-        result = []
-        with self.db_manager.session() as session:
-            records = (
-                session.query(LLMMetrics)
-                .filter(
-                    LLMMetrics.usage_date >= start_date,
-                    LLMMetrics.usage_date <= end_date,
-                )
-                .order_by(LLMMetrics.usage_date.desc())
-                .all()
-            )
-            logger.debug(f"Found {len(records)} records in date range.")
-            for record in records:
-                result.append(LLMMetricsSchema.model_validate(record))
-        return result
-
-    def get_last_n_days(self, n: int = 7) -> list[LLMMetricsSchema]:
-        """
-        Retrieve usage records for the last N days.
-
-        Args:
-            n (int): Number of days to look back. Defaults to 7.
-
-        Returns:
-            list[LLMMetricsSchema]: List of records for the last N days.
-
-        Example:
-            >>> last_week = service.get_last_n_days(7)
-        """
-        start_date = date.today() - timedelta(days=n - 1)
-        return self.get_by_date_range(start_date, date.today())
-
-    ################################################################
-    # RECORD / UPDATE METHODS
-    ################################################################
-
-    def record_usage(
-        self,
-        model_name: str,
-        usage: LLMUsage,
-        success: bool = True,
-    ) -> LLMMetricsSchema:
-        """
-        Record a new LLM usage. Updates today's record if exists, creates one otherwise.
-
-        Args:
-            model (MistralModel): The model used.
-            usage (LLMUsage): Usage statistics including token counts and latency.
-            success (bool): Whether the request was successful. Defaults to True.
-
-        Returns:
-            LLMMetricsSchema: The updated or created record.
-
-        Example:
-            >>> record = service.record_usage(
-            ...     MistralModel.MISTRAL_SMALL,
-            ...     usage=LLMUsage(input_tokens=150, output_tokens=75, latency_ms=250.5),
-            ...     success=True
-            ... )
-        """
-
-        logger.debug(f"Recording LLM usage for model={model_name}.")
-        today = date.today()
-
-        input_tokens = usage.input_tokens
-        output_tokens = usage.output_tokens
-        response_time_ms = usage.latency_ms
-        gco2 = usage.gco2
-        water_ml = usage.water_ml
-        mgSb = usage.mgSb
-        success = success
-
-        # Connect to the db and record usage
-        with self.db_manager.session() as session:
-            # Check if record exists for today and this model
-            record = (
-                session.query(LLMMetrics)
-                .filter(
-                    LLMMetrics.usage_date == today, LLMMetrics.nom_modele == model_name
-                )
-                .first()
-            )
-
-            if record:
-                # Update existing record
-                record.total_input_tokens += input_tokens
-                record.total_completion_tokens += output_tokens
-                record.total_tokens += input_tokens + output_tokens
-                record.total_requests += 1
-                record.gco2 += gco2
-                record.water_ml += water_ml
-                record.mgSb += mgSb
-
-                # Update mean response time (running average)
-                total_requests = record.total_requests
-                old_mean = record.mean_response_time_ms
-                record.mean_response_time_ms = (
-                    old_mean * (total_requests - 1) + response_time_ms
-                ) / total_requests
-
-                if success:
-                    record.total_success += 1
-                else:
-                    record.total_denials = (record.total_denials or 0) + 1
-
-                logger.info(f"Updated LLM usage for {model_name} on {today}.")
-            else:
-                # Create new record
-                record = LLMMetrics(
-                    nom_modele=model_name,
-                    total_input_tokens=input_tokens,
-                    total_completion_tokens=output_tokens,
-                    total_tokens=input_tokens + output_tokens,
-                    mean_response_time_ms=response_time_ms,
-                    total_requests=1,
-                    total_success=1 if success else 0,
-                    total_denials=0 if success else 1,
-                    gco2=gco2,
-                    water_ml=water_ml,
-                    mgSb=mgSb,
-                    usage_date=today,
-                )
-                session.add(record)
-                logger.info(
-                    f"Created new LLM usage record for {model_name} on {today}."
-                )
-
-            session.commit()
-            return LLMMetricsSchema.model_validate(record)
-
     ################################################################
     # AGGREGATE / STATS METHODS
     ################################################################
@@ -495,6 +346,104 @@ class LLMUsageService:
                 water_ml=row.water_ml or 0.0,
                 mgSb=row.mgSb or 0.0,
             )
+
+    ################################################################
+    # RECORD / UPDATE METHODS
+    ################################################################
+
+    def record_usage(
+        self,
+        model_name: str,
+        usage: LLMUsage,
+        success: bool = True,
+    ) -> LLMMetricsSchema:
+        """
+        Record a new LLM usage. Updates today's record if exists, creates one otherwise.
+
+        Args:
+            model (MistralModel): The model used.
+            usage (LLMUsage): Usage statistics including token counts and latency.
+            success (bool): Whether the request was successful. Defaults to True.
+
+        Returns:
+            LLMMetricsSchema: The updated or created record.
+
+        Example:
+            >>> record = service.record_usage(
+            ...     MistralModel.MISTRAL_SMALL,
+            ...     usage=LLMUsage(input_tokens=150, output_tokens=75, latency_ms=250.5),
+            ...     success=True
+            ... )
+        """
+
+        logger.debug(f"Recording LLM usage for model={model_name}.")
+        today = date.today()
+
+        input_tokens = usage.input_tokens
+        output_tokens = usage.output_tokens
+        response_time_ms = usage.latency_ms
+        gco2 = usage.gco2
+        water_ml = usage.water_ml
+        mgSb = usage.mgSb
+        success = success
+
+        # Connect to the db and record usage
+        with self.db_manager.session() as session:
+            # Check if record exists for today and this model
+            record = (
+                session.query(LLMMetrics)
+                .filter(
+                    LLMMetrics.usage_date == today, LLMMetrics.nom_modele == model_name
+                )
+                .first()
+            )
+
+            if record:
+                # Update existing record
+                record.total_input_tokens += input_tokens
+                record.total_completion_tokens += output_tokens
+                record.total_tokens += input_tokens + output_tokens
+                record.total_requests += 1
+                record.gco2 += gco2
+                record.water_ml += water_ml
+                record.mgSb += mgSb
+
+                # Update mean response time (running average)
+                total_requests = record.total_requests
+                old_mean = record.mean_response_time_ms
+                record.mean_response_time_ms = (
+                    old_mean * (total_requests - 1) + response_time_ms
+                ) / total_requests
+
+                if success:
+                    record.total_success += 1
+                else:
+                    record.total_denials = (record.total_denials or 0) + 1
+
+                logger.info(f"Updated LLM usage for {model_name} on {today}.")
+            else:
+                # Create new record
+                record = LLMMetrics(
+                    nom_modele=model_name,
+                    total_input_tokens=input_tokens,
+                    total_completion_tokens=output_tokens,
+                    total_tokens=input_tokens + output_tokens,
+                    mean_response_time_ms=response_time_ms,
+                    total_requests=1,
+                    total_success=1 if success else 0,
+                    total_denials=0 if success else 1,
+                    gco2=gco2,
+                    water_ml=water_ml,
+                    mgSb=mgSb,
+                    usage_date=today,
+                )
+                session.add(record)
+                logger.info(
+                    f"Created new LLM usage record for {model_name} on {today}."
+                )
+
+            session.commit()
+            return LLMMetricsSchema.model_validate(record)
 
     ################################################################
     # DELETE METHODS
