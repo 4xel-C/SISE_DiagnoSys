@@ -116,7 +116,6 @@ async function openSettings() {
             const content = await response.json();
 
             if (!response.ok) {
-                popupFieldset.disabled = false;
                 showError(content.error);
                 return;
             }
