@@ -161,8 +161,12 @@ searchForm.addEventListener('submit', (e) => {
 // On internal clicked => select it
 internalList.querySelectorAll('li').forEach(internal => {
     internal.addEventListener('click', () => {
-        selectElement(internal);
-        renderPage(internal.dataset.pageName);
+        if (internal.dataset.pageUrl) {
+            window.open(internal.dataset.pageUrl, '_blank');
+        } else {
+            selectElement(internal);
+            renderPage(internal.dataset.pageName);
+        }
     })
 });
 
