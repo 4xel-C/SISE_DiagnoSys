@@ -57,9 +57,18 @@ function switchTab(frame, li) {
 
 
 
+async function renderProfile(patientId) {
+    // Request profile HTML
+    const response = await fetch(`ajax/render_profile/${patientId}`);
+    const html = await response.text();
+    // Render profile
+    const tab = frames.context.querySelector('.tab.profile');
+    tab.innerHTML = html;
+}
+
 async function renderContext(patientId) {
     frames.context.classList.add('waiting');
-    // Request diagnostic
+    // Request context
     const response = await fetch(`ajax/get_context/${patientId}`);
     const content = await response.json();
     // Convert markdown to quill delta
@@ -83,7 +92,7 @@ async function renderDiagnostics(patientId) {
 
 async function renderDocuments(patientId) {
     frames.documents.classList.add('waiting');
-    // Request diagnostic
+    // Request documents
     const response = await fetch(`ajax/get_related_documents/${patientId}`);
     const content = await response.json();
     // Update close documents
@@ -102,7 +111,7 @@ async function renderDocuments(patientId) {
 
 async function renderCases(patientId) {
     frames.cases.classList.add('waiting');
-    // Request diagnostic
+    // Request similar cases
     const response = await fetch(`ajax/get_related_cases/${patientId}`);
     const content = await response.json();
     // Update similar cases
@@ -206,6 +215,7 @@ document.addEventListener('patientRendered', (e) => {
     renderDiagnostics(patientId);
     renderCases(patientId);
     renderDocuments(patientId);
+    renderProfile(patientId);
 });
 
 

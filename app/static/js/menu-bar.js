@@ -100,29 +100,41 @@ async function openSettings() {
     const popup = renderPopup(html);
 
     const popupForm = popup.querySelector('form');
+    const thresholdSlider = popupForm.querySelector('.threshold-slider[name="threshold"]');
+
+    // Create sliders
+    noUiSlider.create(thresholdSlider, {
+        start: [thresholdSlider.dataset.default],
+        step: .01,
+        connect: [true, false],
+        tooltips: [true],
+        range: {
+            'min': 0,
+            'max': 1
+        }
+    });
+
     // On cancel
     popupForm.addEventListener('reset', () => {
         popup.remove();
     });
     // On submit
-    popupForm.addEventListener('submit', () => {
+    popupForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const data = new FormData(popupForm);
+        data.append('threshold', thresholdSlider.noUiSlider.get());
         fetch('ajax/update_settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(Object.fromEntries(data))
         }).then(async (response) => {
             const content = await response.json();
-
             if (!response.ok) {
                 showError(content.error);
                 return;
             }
 
             popup.remove();
-            await searchPatients();
-            renderPatient(content.patient_id);
         })
     });
 }

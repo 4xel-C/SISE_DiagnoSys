@@ -312,48 +312,50 @@ class RagService:
         )
 
         return True
-
-    def change_context_llm_model(self, model_name: str) -> None:
+    
+    def get_llm_models(self) -> Dict:
         """
-        Change the LLM model used for context updating.
-
-        Args:
-            model_name (str): The new model name to set.
-        """
-
-        # Validate model_name
-        model = MistralModel(model_name)
-
-        self.llm_context_updator.set_model(model)
-        logger.info(f"Context LLM model changed to {model.value}")
-
-    def change_rag_llm_model(self, model_name: str) -> None:
-        """
-        Change the LLM model used for RAG diagnosys generation.
-
-        Args:
-            model_name (str): The new model name to set.
-        """
-
-        # Validate model_name
-        model = MistralModel(model_name)
-
-        self.llm_handler.set_model(model)
-        logger.info(f"RAG LLM model changed to {model.value}")
-
-    def get_model_list(self) -> List[str]:
-        """
-        Get the list of available LLM models.
+        Get the list of available and selected LLM models.
 
         Returns:
-            List[str]: List of available model names.
+            Dict: Dict of available and selected models
         """
-        model_list = list()
-        for model in MistralModel:
-            logger.debug(f"Available model: {model.value}")
-            model_list.append(model.value)
+        models = {
+            'available': [model.value for model in MistralModel],
+            'context': self.llm_context_updator.model_name,
+            'rag': self.llm_handler.model_name,
+        }
 
-        return model_list
+        return models
+
+    def change_llm_models(self, context_model: str|None = None, rag_model: str|None = None) -> None:
+        """
+        Change the LLM models.
+
+        Args:
+            context_model (str): The new model name to set for context updating.
+            rag_model (str): The new model name to set for for RAG diagnosys generation.
+        """
+        if context_model:
+            # Validate model_name
+            model = MistralModel(context_model)
+            self.llm_context_updator.set_model(model)
+            logger.info(f"Context LLM model changed to {model.value}")
+        
+        if rag_model:
+            # Validate model_name
+            model = MistralModel(rag_model)
+            self.llm_handler.set_model(model)
+            logger.info(f"RAG LLM model changed to {model.value}")
+
+    def get_guardrail_threshold(self) -> float:
+        """
+        Retrieve current guardrail threshold
+
+        Returns:
+            float: Guardrail threshold
+        """
+        return self.guardrail_classifier.threshold
 
     def update_guardrail_threshold(self, new_threshold: float) -> None:
         """

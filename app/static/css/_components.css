@@ -34,6 +34,21 @@ input:focus, textarea:focus, select:focus {
     outline: solid 1px var(--accent-color);
 }
 
+.noUi-target {
+    margin: 20px 0;
+
+    .noUi-connect {
+        background: var(--accent-color);
+    }
+
+    .noUi-tooltip {
+        display: none;
+    }
+    .noUi-handle:hover .noUi-tooltip {
+        display: block;
+    }
+}
+
 .main-button {
     color: white;
     padding: .3rem 1.1rem;
@@ -221,7 +236,7 @@ button:disabled {
     animation: fadeIn .2s ease;
 
     .content {
-        min-width: 50rem;
+        width: 30rem;
         background-color: var(--bg-second-color);
         border: solid 1px var(--border-color);
         border-radius: var(--border-radius);
@@ -246,6 +261,11 @@ button:disabled {
                 margin-bottom: .2rem;
                 display: block;
             }
+
+            p {
+                margin-top: .2rem;
+                color: var(--text-second-color);
+            }
         }
 
         .actions {
@@ -253,7 +273,7 @@ button:disabled {
             justify-content: center;
             align-items: center;
             gap: .6rem;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
 
             button {
                 width: 100%;
@@ -264,8 +284,8 @@ button:disabled {
     
 }
 
-.popup .content.custom-popup {
-    width: 30rem;
+.popup .content.large {
+    min-width: 50rem;
 }
 
 
