@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/statistics.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tutorial.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
 
@@ -120,5 +121,19 @@
 <script src="{{ url_for('static', filename='js/patient.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/chat.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/statistics.js') }}" type="module"></script>
+
+<!-- Show tutorial if first visit -->
+{% if show_tutorial %}
+<div class="tutorial-overlay">
+    <div class="tuto">
+        <div class="wrapper">
+            <h2>Titre</h2>
+            <p class="description">Description</p>
+        </div>
+        <img src="{{ url_for('static', filename='images/show-arrow.svg') }}" alt="" height="60px">
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/tutorial.js') }}" type="module"></script>
+{% endif %}
 
 </html>
