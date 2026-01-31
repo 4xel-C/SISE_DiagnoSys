@@ -1,0 +1,32 @@
+<div class="content">
+    <h2>Réglages</h2>
+    <form>
+        <div class="entry">
+            <label for="context-model">Modèle de contexte</label>
+            <select name="context-model">
+                {% for name in  models %}
+                    <option value="{{ name }}" {% if name == selected_context %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <p>Résumer les conversations audio et les messages pour adapter le contexte du patient</p>
+        </div>
+        <div class="entry">
+            <label for="rag-model">Modèle de RAG</label>
+            <select name="rag-model">
+                {% for name in  models %}
+                    <option value="{{ name }}" {% if name == selected_rag %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <p>Établir un diagnostic à partir du contexte du patient et des documents fournis via la RAG</p>
+        </div>
+        <div class="entry">
+            <label for="threshold">Seuil garde fou</label>
+            <div class="threshold-slider" name="threshold" data-default="{{ current_threshold }}"></div>
+            <p>Le seuil de déclenchement du garde-fou. Diminuer ce seuil risque de bloquer des requêtes pertinentes ; l'augmenter risque de laisser passer des injections</p>
+        </div>
+        <div class="actions">
+            <button type="reset" class="second-button">Annuler</button>
+            <button type="submit" class="main-button">Enregistrer</button>
+        </div>
+    </form>
+</div>

@@ -14,10 +14,18 @@ Example:
 """
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
 from flask import render_template
 from pydantic import BaseModel, computed_field
+
+
+class Gravite(Enum):
+    GRIS = "gris"
+    VERT = "vert"
+    JAUNE = "jaune"
+    ROUGE = "rouge"
 
 
 class PatientSchema(BaseModel):
@@ -32,7 +40,7 @@ class PatientSchema(BaseModel):
         id (int): Patient primary key from database.
         nom (str): Patient's last name.
         prenom (str, optional): Patient's first name.
-        gravite (str, optional): Triage severity level.
+        gravite (Gravite, optional): Triage severity level.
         type_maladie (str, optional): Disease type/category.
         symptomes_exprimes (str, optional): Expressed symptoms description.
         fc (int, optional): Heart rate (bpm).
@@ -54,7 +62,7 @@ class PatientSchema(BaseModel):
     id: int
     nom: str
     prenom: str
-    gravite: Optional[str] = None
+    gravite: Optional[Gravite] = None
     type_maladie: Optional[str] = None
     symptomes_exprimes: Optional[str] = None
     created_at: Optional[datetime] = None
@@ -81,7 +89,7 @@ class PatientSchema(BaseModel):
             str: Initials.
         """
         return f"{self.nom[0].upper()}{self.prenom[0].lower()}"
-    
+
     @computed_field
     @property
     def formatted_date(self) -> str:
@@ -93,7 +101,7 @@ class PatientSchema(BaseModel):
         """
         if not self.created_at:
             return ""
-        return self.created_at.strftime('%d-%m-%y')
+        return self.created_at.strftime("%d-%m-%y")
 
     @computed_field
     @property
@@ -146,25 +154,25 @@ class PatientSchema(BaseModel):
             "patient_id": self.id,
             "nom": self.nom,
             "prenom": self.prenom or "",
-            "gravite": self.gravite or "",
+            "gravite": self.gravite.value if self.gravite else "",
             "type_maladie": self.type_maladie or "",
             "contexte": self.contexte or "",
         }
 
-    def render(self, style="profile", **kwargs):
+    def render(self, style="result", **kwargs):
         """
         Render a HTML template from the patient
 
         Arguments:
-            style (str): The template style to render. Value should be in ["profile", "case"]
+            style (str): The template style to render. Value should be in ["result", "case", "profile"]
 
         Returns:
             str: HTML string
         """
         match style:
-            case "profile":
+            case "result":
                 return render_template(
-                    "elements/patient_profile.html",
+                    "elements/patient_result.html",
                     id=self.id,
                     first_name=self.prenom,
                     last_name=self.nom,
@@ -181,7 +189,43 @@ class PatientSchema(BaseModel):
                     date=self.formatted_date,
                     **kwargs,
                 )
+            case "profile":
+                return render_template(
+                    "elements/patient_profile.html",
+                    first_name=self.prenom,
+                    last_name=self.nom,
+                    initials=self.initials,
+                    symptoms=self.symptomes_exprimes,
+                    seriousness=self.gravite,
+                    illness=self.type_maladie,
+                    metadata=[
+                        {
+                            'label': 'Fc',
+                            'value': self.fc
+                        },
+                        {
+                            'label': 'Fr',
+                            'value': self.fr
+                        },
+                        {
+                            'label': 'Spo2',
+                            'value': self.spo2
+                        },
+                        {
+                            'label': 'TA systolique',
+                            'value': self.ta_systolique
+                        },
+                        {
+                            'label': 'TA diastolique',
+                            'value': self.ta_diastolique
+                        },
+                        {
+                            'label': 'Température',
+                            'value': self.temperature
+                        },
+                    ]
+                )
             case _:
                 raise ValueError(
-                    f'Unexpected style argument "{style}". Should be "profile" or "case"'
+                    f'Unexpected style argument "{style}". Should be "result", "case" or "profile"'
                 )

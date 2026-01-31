@@ -21,3 +21,14 @@ function renderPopup(html) {
     document.body.appendChild(popup);
     return popup;
 }
+
+function showError(message) {
+    const main = document.querySelector('main');
+    main.classList.add('error');
+    const errorMessage = main.querySelector('.error .label');
+    errorMessage.textContent = message;
+
+    setTimeout(() => {
+        main.classList.remove('error');
+    }, 5000); // 5 seconds
+}

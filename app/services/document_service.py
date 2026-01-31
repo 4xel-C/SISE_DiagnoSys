@@ -160,13 +160,17 @@ class DocumentService:
             document = Document(titre=titre, contenu=contenu, url=url)
             session.add(document)
             session.commit()
-            logger.info(f"Created document: {document}")
+            session.flush()
+
+            document_schema = DocumentSchema.model_validate(document)
+
+            logger.info(f"Created document: {document_schema}")
 
             # add to vector store
             document_store.add(
-                item_id=document.vector_id,
-                content=document.content_for_embedding,
-                metadata=document.to_metadata,
+                item_id=document_schema.vector_id,
+                content=document_schema.content_for_embedding,
+                metadata=document_schema.to_metadata(),
             )
 
             return DocumentSchema.model_validate(document)
@@ -200,16 +204,19 @@ class DocumentService:
             document.contenu = contenu
             document.url = url
             session.commit()
+            session.flush()
             logger.info(f"Updated document: {document}")
+
+            document_schema = DocumentSchema.model_validate(document)
 
             # update in chroma_db
             document_store.add(
-                item_id=document.vector_id,
-                content=document.content_for_embedding,
-                metadata=document.to_metadata,
+                item_id=document_schema.vector_id,
+                content=document_schema.content_for_embedding,
+                metadata=document_schema.to_metadata(),
             )
 
-            return DocumentSchema.model_validate(document)
+            return document_schema
 
     ################################################################
     # DELETE METHODS

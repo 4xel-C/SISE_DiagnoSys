@@ -7,8 +7,8 @@ import subprocess
 import numpy as np
 import sherpa_onnx
 
-from .base_asr import ASRServiceBase
-from .factory import ASRServiceFactory
+from app.asr.base_asr import ASRServiceBase
+from app.asr.factory import ASRServiceFactory
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class SherpaOnnxASRService(ASRServiceBase):
         self._available = False
         self._recognizer = None
 
-        print(f"[ASR] Initializing Sherpa ONNX...")
+        print("[ASR] Initializing Sherpa ONNX...")
         print(f"[ASR] Model path: {self._model_path}")
         print(f"[ASR] Tokens: {self.TOKENS}")
         print(f"[ASR] Encoder: {self.ENCODER}")
@@ -93,7 +93,9 @@ class SherpaOnnxASRService(ASRServiceBase):
         Returns:
             str: The transcription text.
         """
-        print(f"[ASR] transcribe() called with {len(audio_data) if audio_data else 0} bytes")
+        print(
+            f"[ASR] transcribe() called with {len(audio_data) if audio_data else 0} bytes"
+        )
 
         if not self._available or self._recognizer is None:
             print("[ASR] Service not available!")
@@ -133,7 +135,9 @@ class SherpaOnnxASRService(ASRServiceBase):
             print("[ASR] Empty audio after conversion")
             return ""
 
-        print(f"[ASR] Audio: {audio_float.size} samples, {audio_float.size / self.SAMPLE_RATE:.2f}s")
+        print(
+            f"[ASR] Audio: {audio_float.size} samples, {audio_float.size / self.SAMPLE_RATE:.2f}s"
+        )
 
         # Create stream and feed complete audio
         try:
@@ -155,9 +159,14 @@ class SherpaOnnxASRService(ASRServiceBase):
             print(f"[ASR] Decoded {decode_count} times")
 
             result = self._recognizer.get_result(stream)
-            text = result.strip() if isinstance(result, str) else getattr(result, "text", str(result)).strip()
+            text = (
+                result.strip()
+                if isinstance(result, str)
+                else getattr(result, "text", str(result)).strip()
+            )
             text = text.lower()
             print(f"[ASR] Transcription result: '{text}'")
+            logger.debug(f"Transcription result: '{text}'")
             return text
         except Exception as e:
             print(f"[ASR] Error during decode: {e}")

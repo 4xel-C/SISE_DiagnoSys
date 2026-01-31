@@ -21,7 +21,6 @@ app = cast(AppContext, current_app)
 ajax = Blueprint("ajax", __name__)
 
 
-
 # ----------------
 # AUDIO TRANSCRIPTION
 
@@ -36,7 +35,7 @@ def audio_stt(patient_id: int):
     audio_data = request.get_data()
 
     if not audio_data:
-        return jsonify({"error": "No audio data received"}), 400
+        return jsonify({"error": "Aucun signal audio reçu"}), 400
 
     # Transcribe audio
     transcription = app.rag_service.transcribe(audio_data)
@@ -51,34 +50,36 @@ def audio_stt(patient_id: int):
                 f"Guardrail blocked transcription for patient {patient_id}: "
                 f"checkpoint={e.checkpoint}, confidence={e.confidence:.3f}"
             )
-            return jsonify({
-                "error": "Input blocked by security filter",
-                "transcription": transcription,
-            }), 400
+            return jsonify(
+                {
+                    "error": "Entrée bloquée par le filtre de sécurité",
+                    "transcription": transcription,
+                }
+            ), 400
 
     return jsonify({"transcription": ""}), 200
-
 
 
 # ----------------
 # SIMULATION (CHAT)
 
-@ajax.route('process_conversation/<int:patient_id>', methods=["POST"])
+
+@ajax.route("process_conversation/<int:patient_id>", methods=["POST"])
 def process_conversation(patient_id: int):
     """
-    Simulate audio stt processing with chatbot conversation. 
+    Simulate audio stt processing with chatbot conversation.
     Creating a fake transcription from a message and its chatbot response and update context.
     """
-    print('hello from process', flush=True)
+    print("hello from process", flush=True)
     # Get message and its response
-    message: str = request.json.get('message')
-    response: str = request.json.get('response')
-    print('got variables', flush=True)
+    message: str = request.json.get("message")
+    response: str = request.json.get("response")
+    print("got variables", flush=True)
 
-    simulated_transcription = message + '\n\n' + response
-    print('created transcript', flush=True)
+    simulated_transcription = message + "\n\n" + response
+    print("created transcript", flush=True)
     app.rag_service.update_context_after_audio(patient_id, simulated_transcription)
-    print('by from process', flush=True)
+    print("by from process", flush=True)
 
     return "", 200
 
@@ -92,6 +93,22 @@ def custom_popup():
     params = request.args.to_dict()
     return render_template("elements/custom_popup.html", **params)
 
+@ajax.route("create_patient_popup", methods=["GET"])
+def create_patient_popup():
+    return render_template("elements/create_patient_popup.html")
+
+@ajax.route("settings_popup", methods=["GET"])
+def settings_popup():
+    models = app.rag_service.get_llm_models()
+    threshold = app.rag_service.get_guardrail_threshold()
+
+    return render_template(
+        "elements/settings_popup.html", 
+        models = models['available'], 
+        selected_context = models['context'],
+        selected_rag = models['rag'],
+        current_threshold = threshold
+    )
 
 
 # ---------------
@@ -114,20 +131,43 @@ def search_patients():
     htmls = [p.render() for p in patients]
     return jsonify(htmls)
 
-
 @ajax.route("render_patient/<int:patient_id>", methods=["GET"])
 def render_patient(patient_id: int) -> str:
     return render_template("patient.html", patient_id=patient_id)
+
+@ajax.route("render_profile/<int:patient_id>", methods=["GET"])
+def render_profile(patient_id: int):
+    patient = app.patient_service.get_by_id(patient_id)
+    return patient.render(style='profile')
+
+
+@ajax.route("render_page/<page_name>", methods=["GET"])
+def render_page(page_name: str) -> str:
+    print(f"pages/{page_name}.html")
+    return render_template(f"pages/{page_name}.html")
 
 
 @ajax.route("render_chat", methods=["GET"])
 def render_chat() -> str:
     return render_template("chat.html")
 
+
 @ajax.route("render_typing_bubbles", methods=["GET"])
 def render_typing_bubbles():
     return render_template("elements/typing_bubbles.html")
 
+
+# ---------------
+# PLOTS
+
+
+@ajax.route("stat_plots", methods=["GET"])
+def stat_plots():
+    request.args.get("date")
+
+    test_plot = ""  # json string
+
+    return jsonify({"test": test_plot})
 
 
 # ---------------
@@ -142,7 +182,24 @@ def process_rag(patient_id: int):
     except ValueError as e:
         # Patient not found
         abort(404, e)
+    except UnsafeRequestException:
+        return jsonify({
+            "error": "Entrée bloquée par le filtre de sécurité"
+        }), 400
+    
+@ajax.route('update_settings', methods=['POST'])
+def update_settings():
+    data = request.get_json()
+    try:
+        data['threshold'] = float(data['threshold'])
+    except ValueError:
+        jsonify({
+            "error": f"Mauvais type de seuil, impossible de convertir {data['threshold']} en nombre float."
+        })
 
+    app.rag_service.change_llm_models(context_model=data['context-model'], rag_model=data['rag-model'])
+    app.rag_service.update_guardrail_threshold(new_threshold=data['threshold'])
+    return jsonify({"success": True})
 
 
 # ---------------
@@ -152,28 +209,59 @@ def process_rag(patient_id: int):
 @ajax.route("load_agent/<int:patient_id>", methods=["POST"])
 def load_agent(patient_id: int):
     response = ""
-    
+
     chat_session = app.chat_service.get_or_create_chat(patient_id)
     history = chat_session.get_history()
     if len(history) == 0:
         response = chat_session.send_initial_greeting()
 
-    return jsonify({
-        'message': response,
-        'history': history
-        })
+    return jsonify({"message": response, "history": history})
+
 
 @ajax.route("query_agent/<int:patient_id>", methods=["POST"])
 def query_agent(patient_id: int):
-    message: str = request.json.get('query')
+    message: str = request.json.get("query")
     chat_session = app.chat_service.get_or_create_chat(patient_id)
     response = chat_session.send_message(message)
-    return jsonify({'message': response})
-
+    return jsonify({"message": response})
 
 
 # ---------------
 # DATABASE
+
+
+@ajax.route("create_patient", methods=["POST"])
+def create_patient():
+    data: dict = request.get_json()
+    required_keys = {
+        "nom": str,
+        "prenom": str,
+        "gravite": str,
+        "type_maladie": str,
+        "symptomes_exprimes": str,
+        "fc": int,
+        "fr": int,
+        "spo2": float,
+        "ta_systolique": int,
+        "ta_diastolique": int,
+        "temperature": float
+    }
+
+    for field, converter in required_keys.items():
+        if field not in data:
+            return jsonify({
+                "error": f"Le champ '{field}' est obligatoire"
+            }), 400
+        try:
+            data[field] = converter(data[field])
+        except (ValueError, TypeError):
+            return jsonify({
+                "error": f"Le champ '{field}' doit être de type {converter.__name__}"
+            }), 400
+    
+    patient = app.patient_service.create(**data)
+
+    return jsonify({'patient_id': patient.id})
 
 @ajax.route("get_profile/<int:patient_id>", methods=["GET"])
 def get_profile(patient_id: int):
@@ -205,6 +293,7 @@ def get_related_documents(patient_id: int):
 
     return jsonify({"documents": document_htmls})
 
+
 @ajax.route("get_related_cases/<int:patient_id>", methods=["GET"])
 def get_related_cases(patient_id: int):
     case_htmls: list[str] = []
@@ -218,6 +307,7 @@ def get_related_cases(patient_id: int):
         case_htmls.append(patient.render(style="case", score=round(score * 100)))
 
     return jsonify({"cases": case_htmls})
+
 
 @ajax.route("update_context/<int:patient_id>", methods=["POST"])
 def update_context(patient_id: int):

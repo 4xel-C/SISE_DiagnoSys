@@ -1,141 +1,186 @@
-main .patient-container {
+main .patient-content .patient {
+    position: relative;
     height: 100%;
-    max-height: 80%;
-    margin: 1rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
 
-    .patient {
-        position: relative;
-        height: 100%;
+    .frame {
         display: grid;
-        grid-template-columns: 2fr 1fr;
-        grid-template-rows: repeat(3, 1fr);
-        gap: 1rem;
+        grid-template-rows: auto 1fr;
+        background-color: var(--bg-second-color);
+        border-radius: var(--border-radius);
+        border: solid 1px var(--border-color);
+        overflow: hidden;
+        position: relative;
 
-        .frame {
-            display: grid;
-            grid-template-rows: auto 1fr;
-            background-color: var(--bg-second-color);
-            border-radius: var(--border-radius);
-            border: solid 1px var(--border-color);
-            overflow: hidden;
-
-            .title {
-                padding: 0.6rem 1rem 0;
-            }
-
-            ul.nav {
-                padding: 0.6rem 1rem 0;
-
-                > li {
-                    display: inline-block;
-                    margin-right: 1rem;
-                    padding-bottom: .2rem;
-                    border-bottom: solid 2px var(--bg-second-color);
-
-                    h2 {
-                        color: var(--text-second-color);
-                    }
-                }
-            }
-
-            ul.nav > li.selected {
-                border-bottom: solid 2px var(--accent-color);
-
-                h2 {
-                    color: var(--text-color);
-                }
-            }
-        }
-        .frame.waiting {
-            background-color: var(--bg-second-color);
-            animation: 3s ease-in-out 0s infinite normal none running fadeInOut;
-            border-color: var(--bg-second-color);
-
-            > * {
-                opacity: .3;
-            }
-        }
-
-        .frame .tab {
+        .lds-ring {
             display: none;
         }
-        .frame .tab.active {
-            display: block;
+
+        .title {
+            padding: 0.6rem 1rem 0;
         }
 
-        .frame.context-profile {
-            grid-row: 1 / span 2;
-            position: relative;
+        ul.nav {
+            padding: 0.6rem 1rem 0;
 
-            .tab.context {
-                padding-left: 1rem;
+            > li {
+                display: inline-block;
+                margin-right: 1rem;
+                padding-bottom: .2rem;
+                border-bottom: solid 2px var(--bg-second-color);
+
+                h2 {
+                    color: var(--text-second-color);
+                }
             }
-            .tab.profile {
-                padding: 1rem;
+        }
+
+        ul.nav > li.selected {
+            border-bottom: solid 2px var(--accent-color);
+
+            h2 {
+                color: var(--text-color);
+            }
+        }
+    }
+    .frame.waiting {
+        background-color: var(--bg-second-color);
+        animation: 3s ease-in-out 0s infinite normal none running fadeInOut;
+        border-color: var(--bg-second-color);
+
+        > * {
+            opacity: .3;
+        }
+
+        .lds-ring {
+            display: block;
+            opacity: .5;
+        }
+    }
+
+    .frame .tab {
+        display: none;
+    }
+    .frame .tab.active {
+        display: block;
+    }
+
+    .frame.context-profile {
+        grid-row: 1;
+        position: relative;
+
+        .tab.context {
+            padding-left: 1rem;
+        }
+        .tab.profile {
+            padding: 1rem;
+            overflow-y: auto;
+
+            .top {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+
+                .patient-profile {
+                    display: flex;
+                    align-items: center;
+                    gap: .6rem;
+                    margin-bottom: 1rem;
+                }
+
+                .subinfo .sub > * {
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin-left: .4rem;
+                    color: var(--text-second-color);
+                }
+                .subinfo .sub:not(:last-child) {
+                    margin-bottom: 1rem;
+                }
             }
 
-            form#context-editor {
-                height: 100%;
-                overflow-y: auto;
+            ul.data {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-row-gap: 3rem;
+                justify-items: center;
+                margin-top: 4rem;
 
-                .actions {
-                    position: absolute;
-                    bottom: 1rem;
-                    right: 1rem;
-                    z-index: 10;
+                > li {
+                    text-align: center;
 
-                    button:not(:last-child) {
-                        margin-right: .2rem;
+                    .value {
+                        font-weight: 600;
+                        font-size: 32px;
                     }
                 }
             }
-
-            form#context-editor .actions{
-                display: none;
-            }
-            form#context-editor.edited .actions{
-                display: block;
-            }
         }
-        .frame.diagnostic {
-            grid-row: 3;
-            overflow: hidden;
 
-            .editor {
-                padding-left: 1rem;
-                overflow-y: hidden;
-            }
-        }
-        .frame.cases {
-            grid-row: 1;
+        form#context-editor {
+            height: 100%;
+            overflow-y: auto;
 
-            ul {
-                padding: 1rem;
-                overflow-y: auto;
+            .actions {
+                position: absolute;
+                bottom: 1rem;
+                right: 1rem;
+                z-index: 10;
 
-                .patient-result {
-                    margin-bottom: .4rem;
-                }
-            }
-        }
-        .frame.documents {
-            grid-row: 2 / span 2;
-
-            ul {
-                padding: 1rem;
-                overflow-y: auto;
-
-                .document {
-                    margin-bottom: .4rem;
+                button:not(:last-child) {
+                    margin-right: .2rem;
                 }
             }
         }
 
-        button#start-chat {
-            position: absolute;
-            bottom: .6rem;
-            right: .6rem;
+        form#context-editor .actions{
+            display: none;
         }
+        form#context-editor.edited .actions{
+            display: block;
+        }
+    }
+    .frame.diagnostic {
+        grid-row: 2;
+        overflow: hidden;
+
+        .editor {
+            padding-left: 1rem;
+            overflow-y: hidden;
+        }
+    }
+    .frame.cases {
+        grid-row: 1;
+
+        ul {
+            padding: 1rem;
+            overflow-y: auto;
+
+            .patient-result {
+                margin-bottom: .4rem;
+            }
+        }
+    }
+    .frame.documents {
+        grid-row: 2;
+
+        ul {
+            padding: 1rem;
+            overflow-y: auto;
+
+            .document {
+                margin-bottom: .4rem;
+            }
+        }
+    }
+
+    button#start-chat {
+        position: absolute;
+        bottom: .6rem;
+        right: .6rem;
     }
 }
 
