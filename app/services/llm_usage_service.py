@@ -13,7 +13,7 @@ Example:
 import logging
 from datetime import date, timedelta
 from enum import Enum
-from typing import List, Optional, Sequence, Union
+from typing import List, Optional, Union
 
 from sqlalchemy import text
 
@@ -25,7 +25,7 @@ from app.schemas import AggregatedMetrics, LLMMetricsSchema
 logger = logging.getLogger(__name__)
 
 
-class AggLevel(Enum):
+class AggTime(Enum):
     """Aggregation levels for metrics."""
 
     DAILY = "daily"
@@ -179,17 +179,17 @@ class LLMUsageService:
         records = self.get_today()
         return sum(r.total_requests or 0 for r in records)
 
-    def get_metrics(
+    def get_aggregated_data(
         self,
-        agg_level: Union[str, AggLevel] = AggLevel.DAILY,
-        models: Sequence[Union[str, MistralModel]] = MistralModel.all_models(),
+        agg_time: Union[str, AggTime] = AggTime.DAILY,
+        models: Union[List[str], List[MistralModel]] = MistralModel.all_models(),
     ) -> List[AggregatedMetrics]:
         """
         Generate aggregated metrics for the stats page.
 
         Args:
-            agg_level: Aggregation level (daily, monthly, yearly).
-                       Accepts string or AggLevel enum.
+            agg_time: Aggregation time (daily, monthly, yearly).
+                       Accepts string or AggTime enum.
             models: Optional list of models to filter by.
                     Accepts strings or MistralModel enums.
 
@@ -197,15 +197,15 @@ class LLMUsageService:
             List[AggregatedMetrics]: Aggregated metrics per period and model.
 
         Raises:
-            ValueError: If agg_level is invalid.
+            ValueError: If agg_time is invalid.
 
         Example:
-            >>> metrics = service.get_metrics(AggLevel.MONTHLY, [MistralModel.MISTRAL_SMALL])
-            >>> metrics = service.get_metrics("monthly", ["mistral-small-latest"])
+            >>> metrics = service.get_aggregated_data(AggLevel.MONTHLY, [MistralModel.MISTRAL_SMALL])
+            >>> metrics = service.get_aggregated_data("monthly", ["mistral-small-latest"])
         """
 
         # Type validation
-        level = AggLevel(agg_level) if isinstance(agg_level, str) else agg_level
+        level = AggTime(agg_time) if isinstance(agg_time, str) else agg_time
 
         model_names: Optional[List[str]] = None
         if models:
@@ -219,9 +219,9 @@ class LLMUsageService:
 
         # Period format based on aggregation level
         period_formats = {
-            AggLevel.DAILY: "%Y-%m-%d",
-            AggLevel.MONTHLY: "%Y-%m",
-            AggLevel.YEARLY: "%Y",
+            AggTime.DAILY: "%Y-%m-%d",
+            AggTime.MONTHLY: "%Y-%m",
+            AggTime.YEARLY: "%Y",
         }
         period_format = period_formats[level]
 
@@ -244,7 +244,7 @@ class LLMUsageService:
                 SUM(total_success) as total_success,
                 SUM(COALESCE(total_denials, 0)) as total_denials,
                 SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
-                SUM(gco2) as gco2,
+                SUM(gwp_kgCO2eq) as gco2,
                 SUM(water_ml) as water_ml,
                 SUM(mgSb) as mgSb
             FROM llm_usage_journalier
@@ -278,13 +278,13 @@ class LLMUsageService:
 
     def get_current_period_metrics(
         self,
-        agg_level: Union[str, AggLevel] = AggLevel.DAILY,
+        agg_time: Union[str, AggTime] = AggTime.DAILY,
     ) -> Optional[AggregatedMetrics]:
         """
         Get total metrics for the current period (today, this month, or this year).
 
         Args:
-            agg_level: Aggregation level determining the current period.
+            agg_time: Aggregation time determining the current period.
                 - DAILY: today
                 - MONTHLY: this month
                 - YEARLY: this year
@@ -293,18 +293,18 @@ class LLMUsageService:
             AggregatedMetrics: Total metrics for the current period, or None if no data.
 
         Example:
-            >>> today_metrics = service.get_current_period_metrics(AggLevel.DAILY)
+            >>> today_metrics = service.get_current_period_metrics(AggTime.DAILY)
             >>> this_month = service.get_current_period_metrics("monthly")
         """
-        level = AggLevel(agg_level) if isinstance(agg_level, str) else agg_level
+        time = AggTime(agg_time) if isinstance(agg_time, str) else agg_time
         today = date.today()
 
         period_formats = {
-            AggLevel.DAILY: "%Y-%m-%d",
-            AggLevel.MONTHLY: "%Y-%m",
-            AggLevel.YEARLY: "%Y",
+            AggTime.DAILY: "%Y-%m-%d",
+            AggTime.MONTHLY: "%Y-%m",
+            AggTime.YEARLY: "%Y",
         }
-        period_format = period_formats[level]
+        period_format = period_formats[time]
         current_period = today.strftime(period_format)
 
         sql = f"""
@@ -361,7 +361,7 @@ class LLMUsageService:
         Record a new LLM usage. Updates today's record if exists, creates one otherwise.
 
         Args:
-            model (MistralModel): The model used.
+            model_name (str): The model used.
             usage (LLMUsage): Usage statistics including token counts and latency.
             success (bool): Whether the request was successful. Defaults to True.
 
@@ -370,7 +370,7 @@ class LLMUsageService:
 
         Example:
             >>> record = service.record_usage(
-            ...     MistralModel.MISTRAL_SMALL,
+            ...     "mistral-small",
             ...     usage=LLMUsage(input_tokens=150, output_tokens=75, latency_ms=250.5),
             ...     success=True
             ... )

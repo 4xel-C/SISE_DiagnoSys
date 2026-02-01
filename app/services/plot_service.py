@@ -7,7 +7,8 @@ Generates Plotly.js chart data from LLM usage metrics.
 import logging
 from typing import Union
 
-from app.services.llm_usage_service import AggLevel, LLMUsageService
+from app.schemas import AggregatedMetrics
+from app.services.llm_usage_service import AggTime, LLMUsageService
 
 logger = logging.getLogger(__name__)
 
@@ -21,19 +22,24 @@ class PlotService:
     def line_plot(
         self,
         metric: str,
-        agg_level: Union[str, AggLevel] = AggLevel.DAILY,
+        agg_time: Union[str, AggTime] = AggTime.DAILY,
     ) -> dict:
         """
         Generate a line plot with one line per model.
 
         Args:
-            metric: Field name to plot (e.g., "total_tokens", "gco2", "total_requests").
-            agg_level: Aggregation level (daily, monthly, yearly).
+            metric: Field name to plot (e.g., "tokens", "gco2", "requests").
+            agg_time: Aggregation time (daily, monthly, yearly).
 
         Returns:
             dict: Plotly.js structure {"data": [...], "layout": {...}}
         """
-        metrics = self.llm_usage_service.get_metrics(agg_level=agg_level)
+
+        # validate metric
+        if metric not in AggregatedMetrics.get_metrics_name():
+            raise ValueError(f"Invalid metric: {metric}")
+
+        metrics = self.llm_usage_service.get_aggregated_data(agg_time=agg_time)
 
         # Group by model
         by_model: dict[str, list] = {}
@@ -65,10 +71,28 @@ class PlotService:
             "layout": {
                 "title": metric,
                 "xaxis": {
-                    "title": agg_level.value
-                    if isinstance(agg_level, AggLevel)
-                    else agg_level
+                    "title": agg_time.value
+                    if isinstance(agg_time, AggTime)
+                    else agg_time
                 },
                 "yaxis": {"title": metric},
             },
         }
+
+    def get_metrics_name(self) -> list[str]:
+        """
+        Get the list of available metric names.
+
+        Returns:
+            list[str]: List of metric field names.
+        """
+        return AggregatedMetrics.get_metrics_name()
+
+    def get_possible_agg_times(self) -> list[str]:
+        """
+        Get the list of possible aggregation times.
+
+        Returns:
+            list[str]: List of aggregation time names.
+        """
+        return [time.value for time in AggTime]

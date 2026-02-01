@@ -52,6 +52,27 @@ class AggregatedMetrics(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @staticmethod
+    def get_metrics_name() -> list[str]:
+        """
+        Get the list of model field names.
+
+        Returns:
+            list[str]: List of field names.
+        """
+        return [
+            "input_tokens",
+            "completion_tokens",
+            "tokens",
+            "requests",
+            "success",
+            "denials",
+            "mean_response_time_ms",
+            "gco2",
+            "water_ml",
+            "mgSb",
+        ]
+
 
 class LLMMetricsSchema(BaseModel):
     """
@@ -79,7 +100,7 @@ class LLMMetricsSchema(BaseModel):
     total_completion_tokens: int
     total_tokens: int
     mean_response_time_ms: float
-    total_requests: Optional[int] = None
+    total_requests: int
     total_success: int
     total_denials: Optional[int] = None
     gco2: float
@@ -98,10 +119,9 @@ class LLMMetricsSchema(BaseModel):
         Returns:
             float: Success rate (0-100).
         """
-        total = self.total_requests or 0
-        if total == 0:
+        if self.total_requests == 0:
             return 0.0
-        return (self.total_success / total) * 100
+        return (self.total_success / self.total_requests) * 100
 
     @computed_field
     @property
@@ -112,7 +132,6 @@ class LLMMetricsSchema(BaseModel):
         Returns:
             float: Average tokens per request.
         """
-        total = self.total_requests or 0
-        if total == 0:
+        if self.total_requests == 0:
             return 0.0
-        return self.total_tokens / total
+        return self.total_tokens / self.total_requests
