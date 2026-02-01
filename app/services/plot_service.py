@@ -30,9 +30,9 @@ class PlotService:
         Generate a line plot with one line per model.
 
         Args:
-            metric: Field name to plot (e.g., "tokens", "gco2", "requests").
+            metric: Field name to plot (e.g: "total_tokens", "total_requests", "energy_kwh", "gwp_kgCO2eq", "adpe_mgSbEq", "wcf_liters", "mean_response_time_ms").
             agg_time: Aggregation time (daily, monthly, yearly).
-
+            models: Optional list of models to filter by.
         Returns:
             dict: Plotly.js structure {"data": [...], "layout": {...}}
         """
@@ -84,6 +84,55 @@ class PlotService:
                     else agg_time
                 },
                 "yaxis": {"title": metric},
+            },
+        }
+
+    def pie_plot(
+        self,
+        metric: str,
+        agg_time: Union[str, AggTime] = AggTime.DAILY,
+        models: List[str] = MistralModel.all_models(),
+    ) -> dict:
+        """
+        Generate a pie chart showing the distribution of a metric across models.
+
+        Args:
+            metric: Field name to plot (e.g: "total_tokens", "total_requests", "energy_kwh", "gwp_kgCO2eq", "adpe_mgSbEq", "wcf_liters", "mean_response_time_ms").
+            agg_time: Aggregation time (daily, monthly, yearly).
+            models: Optional list of models to filter by.
+        Returns:
+            dict: Plotly.js structure {"data": [...], "layout": {...}}
+        """
+
+        # validate metric
+        if metric not in AggregatedMetricsSchema.get_metrics_fields():
+            raise ValueError(f"Invalid metric: {metric}")
+
+        metrics = self.llm_usage_service.get_aggregated_data(
+            agg_time=agg_time, models=models
+        )
+
+        # Aggregate by model
+        aggregation: dict[str, float] = {}
+        for m in metrics:
+            if m.nom_modele not in aggregation:
+                aggregation[m.nom_modele] = 0.0
+            aggregation[m.nom_modele] += getattr(m, metric)
+
+        # Build pie chart data
+        labels = list(aggregation.keys())
+        values = [aggregation[label] for label in labels]
+
+        return {
+            "data": [
+                {
+                    "labels": labels,
+                    "values": values,
+                    "type": "pie",
+                }
+            ],
+            "layout": {
+                "title": f"Distribution of {metric}",
             },
         }
 

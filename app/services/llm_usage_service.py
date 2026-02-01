@@ -207,8 +207,9 @@ class LLMUsageService:
         # Type validation
         level = AggTime(agg_time) if isinstance(agg_time, str) else agg_time
 
-        model_names: Optional[List[str]] = None
-        if models:
+        if models == ["all"]:
+            model_names = MistralModel.all_models()
+        else:
             model_names = [
                 m.value if isinstance(m, MistralModel) else m for m in models
             ]
@@ -228,6 +229,7 @@ class LLMUsageService:
         # Build SQL query with optional model filter
         where_clause = ""
         params = {}
+
         if model_names:
             placeholders = ", ".join(f":m{i}" for i in range(len(model_names)))
             where_clause = f"WHERE nom_modele IN ({placeholders})"
