@@ -38,7 +38,7 @@
             </div>
         </form>
         <ul class="internal">
-            <li data-page-name="statistics">
+            <li data-page-name="statistics" class="selected">
                 <img src="{{ url_for('static', filename='images/statistics.svg') }}" alt="" height="16px">
                 <p class="label">Statistiques</p>
             </li>
@@ -129,6 +129,7 @@
         <div class="wrapper">
             <h2>Titre</h2>
             <p class="description">Description</p>
+            <p class="action">Cliquer pour continuer</p>
         </div>
         <img src="{{ url_for('static', filename='images/show-arrow.svg') }}" alt="" height="60px">
     </div>
