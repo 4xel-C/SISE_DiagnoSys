@@ -182,7 +182,7 @@ class AggregatedMetricsSchema(BaseModel):
             'energy_kwh': str(round(self.energy_kwh, 2)) + 'kWh',
             'gwp_kgCO2eq': str(round(self.gwp_kgCO2eq, 4)) + 'kg',
             'cout_total_usd': '$' + str(round(self.cout_total_usd, 2)),
-            'mean_response_time_ms': str(round(self.mean_response_time_ms)) + 'sec',
+            'mean_response_time_ms': str(round(self.mean_response_time_ms)) + 'ms',
             'total_tokens': self.total_tokens
         }
 

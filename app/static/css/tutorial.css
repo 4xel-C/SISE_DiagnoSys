@@ -16,6 +16,7 @@
             padding: 1rem;
             border-radius: var(--border-radius);
             max-width: 20rem;
+            position: relative;
 
             h2 {
                 margin-bottom: .2rem;
@@ -23,6 +24,13 @@
     
             * {
                 color: white;
+            }
+
+            .action {
+                position: absolute;
+                top: calc(100% + .4rem);
+                color: black;
+                animation: blink 3s infinite;
             }
         }
     }
@@ -66,4 +74,17 @@
 
 .tutorial-step {
     z-index: 999999;
+}
+
+
+@keyframes blink {
+    0% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }

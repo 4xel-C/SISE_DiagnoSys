@@ -70,16 +70,12 @@ def process_conversation(patient_id: int):
     Simulate audio stt processing with chatbot conversation.
     Creating a fake transcription from a message and its chatbot response and update context.
     """
-    print("hello from process", flush=True)
     # Get message and its response
     message: str = request.json.get("message")
     response: str = request.json.get("response")
-    print("got variables", flush=True)
 
     simulated_transcription = message + "\n\n" + response
-    print("created transcript", flush=True)
     app.rag_service.update_context_after_audio(patient_id, simulated_transcription)
-    print("by from process", flush=True)
 
     return "", 200
 
