@@ -116,6 +116,9 @@ The RAG pipeline orchestrates multiple steps to generate diagnostic hypotheses:
 3. **Similar case retrieval**: identification of patients with similar profiles
 4. **Diagnostic generation**: the LLM produces 3 hypotheses ranked by decreasing probability
 
+<img width="1913" height="905" alt="image" src="https://github.com/user-attachments/assets/41b55378-cfec-462f-a4a9-145fb37ef5e3" />
+
+
 ### Real-Time Speech Recognition
 
 - **Audio recording** via Web MediaRecorder API (WebM/Opus format)
@@ -133,6 +136,9 @@ Training mode for practitioners:
 - Conversation history maintained per session
 - The patient doesn't reveal all symptoms at once, simulating a real consultation
 
+<img width="484" height="911" alt="image" src="https://github.com/user-attachments/assets/bd039014-8e99-4f20-b6bd-b1b06300444a" />
+
+
 ### Metrics and Environmental Impact
 
 Complete tracking of language model usage:
@@ -146,6 +152,9 @@ Complete tracking of language model usage:
   - Abiotic depletion (mg Sb eq)
   - Primary energy demand (MJ)
   - Water consumption (liters)
+
+<img width="1571" height="827" alt="image" src="https://github.com/user-attachments/assets/c93b4640-64b5-44d5-98ba-a9ddaefb4dec" />
+
 
 ---
 
@@ -500,6 +509,7 @@ Project developed as part of the SISE Master's program - University of Lyon 2
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 
 
