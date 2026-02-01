@@ -148,11 +148,9 @@ class PlotService:
         Args:
             agg_time: Aggregation time (daily, monthly, yearly).
                        Accepts string or AggTime enum.
-            models: Optional list of models to filter by.
-                    Accepts strings or MistralModel enums.
 
         Returns:
-            List[AggregatedMetricsSchema]: Aggregated metrics per period and model.
+            AggregatedMetricsSchema: Aggregated metrics per period and model.
         """
         return self.llm_usage_service.get_current_period_metrics(agg_time)
 
