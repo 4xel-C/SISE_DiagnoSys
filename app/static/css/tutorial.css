@@ -1,0 +1,69 @@
+.tutorial-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: rgb(234 234 234 / 90%);
+    z-index: 99999;
+
+    .tuto {
+        position: absolute;
+        display: flex;
+
+        .wrapper {
+            background-color: var(--text-color);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            max-width: 20rem;
+
+            h2 {
+                margin-bottom: .2rem;
+            }
+    
+            * {
+                color: white;
+            }
+        }
+    }
+
+    .tuto[data-step="1"] {
+        bottom: 50%;
+        left: calc(320px + 2rem);
+        flex-direction: column-reverse;
+        align-items: flex-start;
+    }
+    .tuto[data-step="2"] {
+        bottom: 3rem;
+        left: 50%;
+        align-items: flex-start;
+
+        img {
+            transform: rotate(90deg);
+        }
+    }
+    .tuto[data-step="3"] {
+        bottom: 20rem;
+        left: 50%;
+        flex-direction: row-reverse;
+        align-items: flex-end;
+
+        img {
+            transform: rotate(-90deg);
+        }
+    }
+    .tuto[data-step="4"] {
+        bottom: 50%;
+        right: 35rem;
+        flex-direction: column;
+        align-items: flex-end;
+
+        img {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.tutorial-step {
+    z-index: 999999;
+}
