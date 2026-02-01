@@ -14,7 +14,7 @@ from flask import Flask
 
 from app.config.database import db
 from app.config.logging_config import get_logging_config
-from app.services import DocumentService, PatientService, RagService, ChatService
+from app.services import DocumentService, PatientService, RagService, ChatService, LLMUsageService
 
 
 class AppContext(Flask):
@@ -27,6 +27,7 @@ class AppContext(Flask):
     rag_service: RagService
     document_service: DocumentService
     chat_service: ChatService
+    llm_usage_service: LLMUsageService
 
 
 def create_app() -> Flask:
@@ -54,6 +55,7 @@ def create_app() -> Flask:
         app.rag_service = RagService()  # type: ignore
         app.document_service = DocumentService()  # type: ignore
         app.chat_service = ChatService()  # type: ignore
+        app.llm_usage_service = LLMUsageService() # type: ignore
 
     # Init pages routes
     from .routes import main as main_blueprint

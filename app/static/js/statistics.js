@@ -7,35 +7,61 @@ const main = document.querySelector('main');
 document.addEventListener('internalRendered', (e) => {
     if (e.detail.pageName != 'statistics') return;
 
-    const page = main.querySelector('.page-container');
-    const plotGrid = page.querySelector('.plot-grid');
-    const testPlotContainer = plotGrid.querySelector('#test-plot');
+    const page = main.querySelector('.page-container .stats');
+    const barPlotContainer = page.querySelector('#bar-plot');
+    const linePlotContainer = page.querySelector('#line-plot');
+    const piePlotContainer = page.querySelector('#pie-plot');
 
-    async function loadStatPlots() {
+    async function loadAivalableModels() {
+
+    }
+
+    async function loadAvailableMetrics() {
+
+    }
+
+    async function loadKpis() {
+        
+    }
+
+    async function loadPlots() {
         // Update UI
-        plotGrid.classList.add('waiting');
+        page.classList.add('waiting');
         // Build request params (filters?)
         const params = new URLSearchParams();
         params.append('date', ['2026-01-01', '2026-01-28']); // filter exemple
         // Request plots
         const response = await fetch(`/ajax/stat_plots?${params}`);
         if (!response.ok) {
-            plotGrid.classList.remove('waiting');
-            plotGrid.classList.add('error');
+            page.classList.remove('waiting');
+            page.classList.add('error');
             return
         }
-        const content = await response.json();
-        plotGrid.classList.remove('waiting');
         // Extract data
-        const testFig = JSON.parse(content.test);
-        await Plotly.react(testPlotContainer, testFig.data, testFig.layout, { responsive: true });
+        const content = await response.json();
+        const barFig = JSON.parse(content.bar);
+        const lineFig = JSON.parse(content.line);
+        const pieFig = JSON.parse(content.pie);
+        // Render plot
+        page.classList.remove('waiting');
+        await Plotly.react(barPlotContainer, barFig.data, barFig.layout, { responsive: true });
+        await Plotly.react(linePlotContainer, lineFig.data, lineFig.layout, { responsive: true });
+        await Plotly.react(piePlotContainer, pieFig.data, pieFig.layout, { responsive: true });
     }
 
 
     function relayoutPlots() {
-        Plotly.relayout(testPlotContainer, {
-            width: testPlotContainer.clientWidth,
-            height: testPlotContainer.clientHeight
+        Plotly.relayout(barPlotContainer, {
+            width: barPlotContainer.clientWidth,
+            height: barPlotContainer.clientHeight
+        });
+        Plotly.relayout(linePlotContainer, {
+            width: linePlotContainer.clientWidth,
+            height: linePlotContainer.clientHeight
+        });
+        Plotly.relayout(piePlotContainer, {
+            width: piePlotContainer.clientWidth,
+            height: piePlotContainer.clientHeight
         });
     }
 
@@ -45,7 +71,7 @@ document.addEventListener('internalRendered', (e) => {
     });
 
     // Init plots on page load
-    loadStatPlots().then(() => {
+    loadPlots().then(() => {
         observer.observe(page);
     });
 });

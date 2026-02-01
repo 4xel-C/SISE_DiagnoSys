@@ -143,8 +143,8 @@ def render_profile(patient_id: int):
 
 @ajax.route("render_page/<page_name>", methods=["GET"])
 def render_page(page_name: str) -> str:
-    print(f"pages/{page_name}.html")
     return render_template(f"pages/{page_name}.html")
+
 
 
 @ajax.route("render_chat", methods=["GET"])
