@@ -1,0 +1,66 @@
+form#stats {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    height: 100%;
+
+    .frame {
+        display: grid;
+        align-items: center;
+        padding: 1rem;
+        background-color: var(--bg-second-color);
+        border-radius: var(--border-radius);
+        border: solid 1px var(--border-color);
+        overflow: hidden;
+    }
+    
+    .frame.top {
+        grid-template-columns: auto 10rem;
+        margin-bottom: 1rem;
+    }
+    .frame.plots {
+        grid-template-columns: 3fr 2fr;
+    }
+
+    .metric {
+        .radio {
+            display: inline-block;
+            margin-right: .4rem;
+            background-color: var(--bg-frame-color);
+            padding: .2rem .6rem;
+            border-radius: var(--border-radius);
+            border: solid 1px var(--border-color);
+            margin-bottom: .4rem;
+        }
+        .radio.checked {
+            border-color: var(--accent-color);
+            background-color: var(--accent-second-color);
+
+            label {
+                color: white;
+            }
+        }
+    }
+
+    ul.kpis {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-around;
+        margin-right: 1rem;
+
+        > li {
+            text-align: center;
+
+            .value {
+                font-size: 32px;
+            }
+        }
+    }
+
+    .agg select:not(:last-child) {
+        margin-bottom: .4rem;
+    }
+
+    .plot-container {
+        height: 100%;
+    }
+}

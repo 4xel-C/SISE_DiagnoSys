@@ -52,7 +52,6 @@ main:not(.streaming) .content.internal-content .audio-record {
 
 main .page-container {
     height: 100%;
-    max-height: 80%;
     margin: 1rem;
 }
 

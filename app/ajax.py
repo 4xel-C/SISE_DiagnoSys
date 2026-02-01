@@ -140,17 +140,13 @@ def render_profile(patient_id: int):
     patient = app.patient_service.get_by_id(patient_id)
     return patient.render(style='profile')
 
-
 @ajax.route("render_page/<page_name>", methods=["GET"])
 def render_page(page_name: str) -> str:
     return render_template(f"pages/{page_name}.html")
 
-
-
 @ajax.route("render_chat", methods=["GET"])
 def render_chat() -> str:
     return render_template("chat.html")
-
 
 @ajax.route("render_typing_bubbles", methods=["GET"])
 def render_typing_bubbles():
@@ -158,16 +154,52 @@ def render_typing_bubbles():
 
 
 # ---------------
-# PLOTS
+# STATS
 
+@ajax.route("get_recorded_models", methods=["GET"])
+def get_recorded_models():
+    models = app.plot_service.get_possible_models()
+    return jsonify({'models': models})
 
 @ajax.route("stat_plots", methods=["GET"])
 def stat_plots():
-    request.args.get("date")
+    agg_time = request.args.get("temporal-axis")
+    model = request.args.get("model")
+    metric = request.args.get("metric")
 
-    test_plot = ""  # json string
+    if not agg_time or not model or not metric:
+        abort(400, "Missing argument, expected 'temporal-axis', 'model' and 'metric'")
 
-    return jsonify({"test": test_plot})
+    line_plot = app.plot_service.line_plot(
+        metric=metric,
+        agg_time=agg_time,
+        models=[model]
+    )
+
+    pie_plot = app.plot_service.pie_plot(
+        metric=metric,
+        agg_time=agg_time,
+        models=[model]
+    )
+
+    return jsonify({
+        "line": line_plot,
+        "pie": pie_plot
+    })
+
+@ajax.route("get_kpis", methods=["GET"])
+def get_kpis():
+    agg_time = request.args.get("temporal-axis")
+
+    if not agg_time:
+        abort(400, "Missing argument, expected 'temporal-axis' and 'model'")
+
+    kpis = app.plot_service.kpis(agg_time=agg_time)
+    if not kpis:
+        abort(404, f"No KPIs found for 'temporal-axis' = '{agg_time}'")
+
+    return jsonify(kpis.format_for_display())
+
 
 
 # ---------------
@@ -227,7 +259,7 @@ def query_agent(patient_id: int):
 
 
 # ---------------
-# DATABASE
+# PATIENT DATABASE
 
 
 @ajax.route("create_patient", methods=["POST"])
