@@ -12,13 +12,25 @@ Example:
 
 import logging
 from datetime import date, timedelta
+from enum import Enum
+from typing import List, Optional, Union
+
+from sqlalchemy import text
 
 from app.config import Database, db
 from app.models import LLMMetrics
-from app.rag import LLMUsage
-from app.schemas import LLMMetricsSchema
+from app.rag import LLMUsage, MistralModel
+from app.schemas import AggregatedMetricsSchema, LLMMetricsSchema
 
 logger = logging.getLogger(__name__)
+
+
+class AggTime(Enum):
+    """Aggregation levels for metrics."""
+
+    DAILY = "daily"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
 
 
 class LLMUsageService:
@@ -137,56 +149,217 @@ class LLMUsageService:
                 result.append(LLMMetricsSchema.model_validate(record))
         return result
 
-    def get_by_date_range(
-        self, start_date: date, end_date: date
-    ) -> list[LLMMetricsSchema]:
-        """
-        Retrieve usage records within a date range.
+    ################################################################
+    # AGGREGATE / STATS METHODS
+    ################################################################
 
-        Args:
-            start_date (date): Start of the range (inclusive).
-            end_date (date): End of the range (inclusive).
+    def get_total_tokens_today(self) -> int:
+        """
+        Get total tokens used today across all models.
 
         Returns:
-            list[LLMMetricsSchema]: List of records in the range.
+            int: Total tokens used today.
 
         Example:
-            >>> from datetime import date, timedelta
-            >>> week_ago = date.today() - timedelta(days=7)
-            >>> records = service.get_by_date_range(week_ago, date.today())
+            >>> total = service.get_total_tokens_today()
         """
-        logger.debug(f"Fetching LLM usage from {start_date} to {end_date}.")
-        result = []
+        records = self.get_today()
+        return sum(r.total_tokens for r in records)
+
+    def get_total_requests_today(self) -> int:
+        """
+        Get total requests made today across all models.
+
+        Returns:
+            int: Total requests today.
+
+        Example:
+            >>> requests = service.get_total_requests_today()
+        """
+        records = self.get_today()
+        return sum(r.total_requests for r in records)
+
+    def get_aggregated_data(
+        self,
+        agg_time: Union[str, AggTime] = AggTime.DAILY,
+        models: Union[List[str], List[MistralModel]] = MistralModel.all_models(),
+    ) -> List[AggregatedMetricsSchema]:
+        """
+        Generate aggregated metrics for the stats page.
+
+        Args:
+            agg_time: Aggregation time (daily, monthly, yearly).
+                       Accepts string or AggTime enum.
+            models: Optional list of models to filter by.
+                    Accepts strings or MistralModel enums.
+
+        Returns:
+            List[AggregatedMetricsSchema]: Aggregated metrics per period and model.
+
+        Raises:
+            ValueError: If agg_time is invalid.
+
+        Example:
+            >>> metrics = service.get_aggregated_data(AggLevel.MONTHLY, [MistralModel.MISTRAL_SMALL])
+            >>> metrics = service.get_aggregated_data("monthly", ["mistral-small-latest"])
+        """
+
+        # Type validation
+        level = AggTime(agg_time) if isinstance(agg_time, str) else agg_time
+
+        if models == ["all"]:
+            model_names = MistralModel.all_models()
+        else:
+            model_names = [
+                m.value if isinstance(m, MistralModel) else m for m in models
+            ]
+
+        logger.debug(
+            f"Generating LLM usage metrics for agg_level={level.value}, models={model_names}"
+        )
+
+        # Period format based on aggregation level
+        period_formats = {
+            AggTime.DAILY: "%Y-%m-%d",
+            AggTime.MONTHLY: "%Y-%m",
+            AggTime.YEARLY: "%Y",
+        }
+        period_format = period_formats[level]
+
+        # Build SQL query with optional model filter
+        where_clause = ""
+        params = {}
+
+        if model_names:
+            placeholders = ", ".join(f":m{i}" for i in range(len(model_names)))
+            where_clause = f"WHERE nom_modele IN ({placeholders})"
+            params = {f"m{i}": name for i, name in enumerate(model_names)}
+
+        sql = f"""
+            SELECT
+                strftime('{period_format}', usage_date) as period,
+                nom_modele,
+                SUM(total_input_tokens) as total_input_tokens,
+                SUM(total_completion_tokens) as total_completion_tokens,
+                SUM(total_tokens) as total_tokens,
+                SUM(total_requests) as total_requests,
+                SUM(total_success) as total_success,
+                SUM(COALESCE(total_denials, 0)) as total_denials,
+                SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
+                SUM(COALESCE(cout_total_usd, 0)) as cout_total_usd,
+                SUM(COALESCE(energy_kwh, 0)) as energy_kwh,
+                SUM(COALESCE(gwp_kgCO2eq, 0)) as gwp_kgCO2eq,
+                SUM(COALESCE(adpe_mgSbEq, 0)) as adpe_mgSbEq,
+                SUM(COALESCE(pd_mj, 0)) as pd_mj,
+                SUM(COALESCE(wcf_liters, 0)) as wcf_liters
+            FROM llm_usage_journalier
+            {where_clause}
+            GROUP BY period, nom_modele
+            ORDER BY period DESC
+        """
+
         with self.db_manager.session() as session:
-            records = (
-                session.query(LLMMetrics)
-                .filter(
-                    LLMMetrics.usage_date >= start_date,
-                    LLMMetrics.usage_date <= end_date,
-                )
-                .order_by(LLMMetrics.usage_date.desc())
-                .all()
-            )
-            logger.debug(f"Found {len(records)} records in date range.")
-            for record in records:
-                result.append(LLMMetricsSchema.model_validate(record))
-        return result
+            rows = session.execute(text(sql), params).fetchall()
 
-    def get_last_n_days(self, n: int = 7) -> list[LLMMetricsSchema]:
+            logger.debug(f"Found {len(rows)} aggregated records.")
+
+            return [
+                AggregatedMetricsSchema(
+                    period=row.period,
+                    nom_modele=row.nom_modele,
+                    total_input_tokens=row.total_input_tokens or 0,
+                    total_completion_tokens=row.total_completion_tokens or 0,
+                    total_tokens=row.total_tokens or 0,
+                    total_requests=row.total_requests or 0,
+                    total_success=row.total_success or 0,
+                    total_denials=row.total_denials or 0,
+                    mean_response_time_ms=row.mean_response_time_ms or 0.0,
+                    cout_total_usd=row.cout_total_usd or 0.0,
+                    energy_kwh=row.energy_kwh or 0.0,
+                    gwp_kgCO2eq=row.gwp_kgCO2eq or 0.0,
+                    adpe_mgSbEq=row.adpe_mgSbEq or 0.0,
+                    pd_mj=row.pd_mj or 0.0,
+                    wcf_liters=row.wcf_liters or 0.0,
+                )
+                for row in rows
+            ]
+
+    def get_current_period_metrics(
+        self,
+        agg_time: Union[str, AggTime] = AggTime.DAILY,
+    ) -> Optional[AggregatedMetricsSchema]:
         """
-        Retrieve usage records for the last N days.
+        Get total metrics for the current period (today, this month, or this year).
 
         Args:
-            n (int): Number of days to look back. Defaults to 7.
+            agg_time: Aggregation time determining the current period.
+                - DAILY: today
+                - MONTHLY: this month
+                - YEARLY: this year
 
         Returns:
-            list[LLMMetricsSchema]: List of records for the last N days.
+            AggregatedMetricsSchema: Total metrics for the current period, or None if no data.
 
         Example:
-            >>> last_week = service.get_last_n_days(7)
+            >>> today_metrics = service.get_current_period_metrics(AggTime.DAILY)
+            >>> this_month = service.get_current_period_metrics("monthly")
         """
-        start_date = date.today() - timedelta(days=n - 1)
-        return self.get_by_date_range(start_date, date.today())
+        time = AggTime(agg_time) if isinstance(agg_time, str) else agg_time
+        today = date.today()
+
+        period_formats = {
+            AggTime.DAILY: "%Y-%m-%d",
+            AggTime.MONTHLY: "%Y-%m",
+            AggTime.YEARLY: "%Y",
+        }
+        period_format = period_formats[time]
+        current_period = today.strftime(period_format)
+
+        sql = f"""
+            SELECT
+                strftime('{period_format}', usage_date) as period,
+                SUM(total_input_tokens) as total_input_tokens,
+                SUM(total_completion_tokens) as total_completion_tokens,
+                SUM(total_tokens) as total_tokens,
+                SUM(total_requests) as total_requests,
+                SUM(total_success) as total_success,
+                SUM(COALESCE(total_denials, 0)) as total_denials,
+                SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
+                SUM(COALESCE(cout_total_usd, 0)) as cout_total_usd,
+                SUM(COALESCE(energy_kwh, 0)) as energy_kwh,
+                SUM(COALESCE(gwp_kgCO2eq, 0)) as gwp_kgCO2eq,
+                SUM(COALESCE(adpe_mgSbEq, 0)) as adpe_mgSbEq,
+                SUM(COALESCE(pd_mj, 0)) as pd_mj,
+                SUM(COALESCE(wcf_liters, 0)) as wcf_liters
+            FROM llm_usage_journalier
+            WHERE strftime('{period_format}', usage_date) = :current_period
+        """
+
+        with self.db_manager.session() as session:
+            row = session.execute(
+                text(sql), {"current_period": current_period}
+            ).fetchone()
+
+            if not row or row.period is None:
+                return None
+
+            return AggregatedMetricsSchema(
+                period=row.period,
+                nom_modele="all",
+                total_input_tokens=row.total_input_tokens or 0,
+                total_completion_tokens=row.total_completion_tokens or 0,
+                total_tokens=row.total_tokens or 0,
+                total_requests=row.total_requests or 0,
+                total_success=row.total_success or 0,
+                total_denials=row.total_denials or 0,
+                mean_response_time_ms=row.mean_response_time_ms or 0.0,
+                cout_total_usd=row.cout_total_usd or 0.0,
+                energy_kwh=row.energy_kwh or 0.0,
+                gwp_kgCO2eq=row.gwp_kgCO2eq or 0.0,
+                adpe_mgSbEq=row.adpe_mgSbEq or 0.0,
+                pd_mj=row.pd_mj or 0.0,
+                wcf_liters=row.wcf_liters or 0.0,
+            )
 
     ################################################################
     # RECORD / UPDATE METHODS
@@ -202,7 +375,7 @@ class LLMUsageService:
         Record a new LLM usage. Updates today's record if exists, creates one otherwise.
 
         Args:
-            model (MistralModel): The model used.
+            model_name (str): The model used.
             usage (LLMUsage): Usage statistics including token counts and latency.
             success (bool): Whether the request was successful. Defaults to True.
 
@@ -211,7 +384,7 @@ class LLMUsageService:
 
         Example:
             >>> record = service.record_usage(
-            ...     MistralModel.MISTRAL_SMALL,
+            ...     "mistral-small",
             ...     usage=LLMUsage(input_tokens=150, output_tokens=75, latency_ms=250.5),
             ...     success=True
             ... )
@@ -223,6 +396,7 @@ class LLMUsageService:
         input_tokens = usage.input_tokens
         output_tokens = usage.output_tokens
         response_time_ms = usage.latency_ms
+        cost_usd = usage.cost_usd
         energy_kwh = usage.energy_kwh
         gwp_kgCO2eq = usage.gwp_kgCO2eq
         adpe_mgSbEq = usage.adpe_mgSbEq
@@ -247,6 +421,7 @@ class LLMUsageService:
                 record.total_completion_tokens += output_tokens
                 record.total_tokens += input_tokens + output_tokens
                 record.total_requests += 1
+                record.cout_total_usd = (record.cout_total_usd or 0) + (cost_usd or 0)
                 record.energy_kwh = (record.energy_kwh or 0) + (energy_kwh or 0)
                 record.gwp_kgCO2eq = (record.gwp_kgCO2eq or 0) + (gwp_kgCO2eq or 0)
                 record.adpe_mgSbEq = (record.adpe_mgSbEq or 0) + (adpe_mgSbEq or 0)
@@ -279,6 +454,7 @@ class LLMUsageService:
                     total_requests=1,
                     total_success=1 if success else 0,
                     total_denials=0 if success else 1,
+                    cout_total_usd=cost_usd,
                     energy_kwh=energy_kwh,
                     gwp_kgCO2eq=gwp_kgCO2eq,
                     adpe_mgSbEq=adpe_mgSbEq,
@@ -293,83 +469,6 @@ class LLMUsageService:
 
             session.commit()
             return LLMMetricsSchema.model_validate(record)
-
-    ################################################################
-    # AGGREGATE / STATS METHODS
-    ################################################################
-
-    def get_total_tokens_today(self) -> int:
-        """
-        Get total tokens used today across all models.
-
-        Returns:
-            int: Total tokens used today.
-
-        Example:
-            >>> total = service.get_total_tokens_today()
-        """
-        records = self.get_today()
-        return sum(r.total_tokens for r in records)
-
-    def get_total_requests_today(self) -> int:
-        """
-        Get total requests made today across all models.
-
-        Returns:
-            int: Total requests today.
-
-        Example:
-            >>> requests = service.get_total_requests_today()
-        """
-        records = self.get_today()
-        return sum(r.total_requests or 0 for r in records)
-
-    def get_summary(self) -> dict:
-        """
-        Get a summary of all-time LLM usage.
-
-        Returns:
-            dict: Summary with total tokens, requests, and per-model breakdown.
-
-        Example:
-            >>> summary = service.get_summary()
-            >>> print(summary["total_tokens"])
-        """
-        all_records = self.get_all()
-
-        total_input = sum(r.total_input_tokens for r in all_records)
-        total_output = sum(r.total_completion_tokens for r in all_records)
-        total_tokens = sum(r.total_tokens for r in all_records)
-        total_requests = sum(r.total_requests or 0 for r in all_records)
-        total_success = sum(r.total_success for r in all_records)
-        total_denials = sum(r.total_denials or 0 for r in all_records)
-
-        # Per-model breakdown
-        models: dict[str, dict] = {}
-        for record in all_records:
-            if record.nom_modele not in models:
-                models[record.nom_modele] = {
-                    "total_input_tokens": 0,
-                    "total_output_tokens": 0,
-                    "total_tokens": 0,
-                    "total_requests": 0,
-                }
-            models[record.nom_modele]["total_input_tokens"] += record.total_input_tokens
-            models[record.nom_modele]["total_output_tokens"] += (
-                record.total_completion_tokens
-            )
-            models[record.nom_modele]["total_tokens"] += record.total_tokens
-            models[record.nom_modele]["total_requests"] += record.total_requests or 0
-
-        return {
-            "total_input_tokens": total_input,
-            "total_output_tokens": total_output,
-            "total_tokens": total_tokens,
-            "total_requests": total_requests,
-            "total_success": total_success,
-            "total_denials": total_denials,
-            "models": models,
-        }
 
     ################################################################
     # DELETE METHODS

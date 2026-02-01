@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 
 class MistralModel(Enum):
@@ -13,6 +13,10 @@ class MistralModel(Enum):
     CODESTRAL = "codestral-latest"
     MINISTRAL_8B = "ministral-8b-latest"
     MINISTRAL_3B = "ministral-3b-latest"
+
+    @classmethod
+    def all_models(cls) -> List[str]:
+        return [model.value for model in MistralModel]
 
 
 @dataclass

@@ -11,7 +11,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.models import Base
 
@@ -33,6 +33,7 @@ class LLMMetrics(Base):
         total_requests (int): Number of LLM requests. Required.
         total_success (int): Number of successful LLM calls. Required.
         total_denials (int): Number of denied LLM calls. Optional.
+        cout_total_usd (float): Total cost in USD. Optional.
         energy_kwh (float): Energy consumption in kWh. Optional.
         gwp_kgCO2eq (float): Global Warming Potential in kg CO2 equivalent. Optional.
         adpe_mgSbEq (float): Abiotic Depletion Potential (elements) in mg Sb equivalent. Optional.
@@ -53,6 +54,9 @@ class LLMMetrics(Base):
     total_success: Mapped[int] = mapped_column(Integer, nullable=False)
     total_denials: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    # ---- Cost metrics ----
+    cout_total_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+
     # ---- Ecological impact metrics ----
     energy_kwh: Mapped[float | None] = mapped_column(Float, nullable=True)
     gwp_kgCO2eq: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -62,3 +66,17 @@ class LLMMetrics(Base):
 
     usage_date: Mapped[date] = mapped_column(Date, default=date.today, nullable=False)
     __table_args__ = (UniqueConstraint("usage_date", "nom_modele"),)
+
+    @validates("nom_modele")
+    def validate_nom_modele(self, key: str, value: str) -> str:
+        """Validate that nom_modele is a valid MistralModel."""
+
+        # Avoid circular import by lazy loading the model
+        from app.rag.llm_options import MistralModel
+
+        valid_models = MistralModel.all_models()
+        if value not in valid_models:
+            raise ValueError(
+                f"Invalid model '{value}'. Must be one of: {', '.join(valid_models)}"
+            )
+        return value
