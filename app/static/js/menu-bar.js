@@ -229,4 +229,9 @@ settingsButton.addEventListener('click', () => {
 
 
 // Init patients (get all)
-searchPatients()
+searchPatients();
+// Open default tab
+const selected = menu.querySelector('li.selected');
+selected.dispatchEvent(new Event('click', {
+    bubbles: true
+}));
