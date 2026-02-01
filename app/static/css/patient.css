@@ -1,8 +1,9 @@
-main .patient {
+main .patient-content .patient {
+    position: relative;
     height: 100%;
     display: grid;
     grid-template-columns: 2fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
+    grid-template-rows: 1fr 1fr;
     gap: 1rem;
 
     .frame {
@@ -12,23 +13,24 @@ main .patient {
         border-radius: var(--border-radius);
         border: solid 1px var(--border-color);
         overflow: hidden;
+        position: relative;
+
+        .lds-ring {
+            display: none;
+        }
 
         .title {
-            padding: 0.4rem 1rem;
-            border-bottom: solid 1px var(--border-color);
-            background-color: var(--bg-frame-color);
+            padding: 0.6rem 1rem 0;
         }
 
         ul.nav {
-            padding: 0.4rem 1rem 0;
-            border-bottom: solid 1px var(--border-color);
-            background-color: var(--bg-frame-color);
+            padding: 0.6rem 1rem 0;
 
             > li {
                 display: inline-block;
                 margin-right: 1rem;
-                padding-bottom: calc(.4rem - 2px);
-                border-bottom: solid 2px var(--bg-frame-color);
+                padding-bottom: .2rem;
+                border-bottom: solid 2px var(--bg-second-color);
 
                 h2 {
                     color: var(--text-second-color);
@@ -50,7 +52,12 @@ main .patient {
         border-color: var(--bg-second-color);
 
         > * {
-            display: none !important;
+            opacity: .3;
+        }
+
+        .lds-ring {
+            display: block;
+            opacity: .5;
         }
     }
 
@@ -62,7 +69,7 @@ main .patient {
     }
 
     .frame.context-profile {
-        grid-row: 1 / span 2;
+        grid-row: 1;
         position: relative;
 
         .tab.context {
@@ -70,6 +77,47 @@ main .patient {
         }
         .tab.profile {
             padding: 1rem;
+            overflow-y: auto;
+
+            .top {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+
+                .patient-profile {
+                    display: flex;
+                    align-items: center;
+                    gap: .6rem;
+                    margin-bottom: 1rem;
+                }
+
+                .subinfo .sub > * {
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin-left: .4rem;
+                    color: var(--text-second-color);
+                }
+                .subinfo .sub:not(:last-child) {
+                    margin-bottom: 1rem;
+                }
+            }
+
+            ul.data {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-row-gap: 3rem;
+                justify-items: center;
+                margin-top: 4rem;
+
+                > li {
+                    text-align: center;
+
+                    .value {
+                        font-weight: 600;
+                        font-size: 32px;
+                    }
+                }
+            }
         }
 
         form#context-editor {
@@ -96,7 +144,7 @@ main .patient {
         }
     }
     .frame.diagnostic {
-        grid-row: 3;
+        grid-row: 2;
         overflow: hidden;
 
         .editor {
@@ -109,6 +157,7 @@ main .patient {
 
         ul {
             padding: 1rem;
+            overflow-y: auto;
 
             .patient-result {
                 margin-bottom: .4rem;
@@ -116,16 +165,28 @@ main .patient {
         }
     }
     .frame.documents {
-        grid-row: 2 / span 2;
+        grid-row: 2;
 
         ul {
-            padding-left: 1rem;
-            padding-right: 1rem;
+            padding: 1rem;
+            overflow-y: auto;
 
             .document {
                 margin-bottom: .4rem;
             }
         }
+    }
+
+    button#start-chat {
+        position: absolute;
+        bottom: .6rem;
+        right: .6rem;
+    }
+}
+
+main.simulate {
+    button#start-chat {
+        display: none;
     }
 }
 
@@ -133,7 +194,7 @@ main .patient {
 
 
 @keyframes fadeInOut {
-  0%   { opacity: .2; }
+  0%   { opacity: .3; }
   50%  { opacity: 1; }
-  100% { opacity: .2; }
+  100% { opacity: .3; }
 }

@@ -17,6 +17,7 @@ import time
 from typing import Optional
 
 from dotenv import load_dotenv
+from ecologits import EcoLogits
 from mistralai import Mistral
 
 from app.rag.llm_options import (
@@ -25,11 +26,15 @@ from app.rag.llm_options import (
     SYSTEM_PROMPT,
     LLMResponse,
     LLMUsage,
+    MistralModel,
     PromptTemplate,
     SystemPromptTemplate,
 )
 
 load_dotenv()
+
+# Initialize EcoLogits for ennvironmental impact tracking
+EcoLogits.init(providers=["mistralai"], electricity_mix_zone="FRA")
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +56,7 @@ class LLMHandler:
     Manages model selection, prompt templates, API calls, and usage tracking.
 
     Example:
-        >>> handler = LLMHandler(model="mistral-small")
+        >>> handler = LLMHandler(model="mistral-small-latest")
         >>> response = handler.generate_with_template(
         ...     PromptTemplates.TRIAGE_ASSESSMENT,
         ...     patient_info="...",
@@ -62,7 +67,7 @@ class LLMHandler:
         >>> print(f"Cost: ${response.usage.cost_usd:.6f}")
     """
 
-    def __init__(self, model: str = "mistral-small"):
+    def __init__(self, model: MistralModel = MistralModel.MISTRAL_SMALL):
         """
         Initialize the LLM handler.
 
@@ -70,6 +75,7 @@ class LLMHandler:
             model: Model key from MODELS dict.
         """
         self.api_key = os.getenv("MISTRAL_API_KEY")
+
         if not self.api_key:
             raise MissingAPIKeyError(
                 "MISTRAL_API_KEY not found in environment variables"
@@ -78,7 +84,7 @@ class LLMHandler:
         self._client = None
         self.set_model(model)
 
-        logger.info(f"LLMHandler initialized with model: {model}")
+        logger.info(f"LLMHandler initialized with model: {model.value}")
 
     @property
     def client(self):
@@ -88,21 +94,17 @@ class LLMHandler:
 
         return self._client
 
-    def set_model(self, model: str) -> None:
+    def set_model(self, model: MistralModel) -> None:
         """
         Change the active model.
 
         Args:
             model: Model key from MODELS dict.
         """
-        if model not in MODELS:
-            available = ", ".join(MODELS.keys())
-            raise ValueError(f"Unknown model '{model}'. Available: {available}")
+        self.config = MODELS[model.value]
+        self.model_name = model.value
 
-        self.config = MODELS[model]
-        self.model_name = model
-
-        logger.info(f"Model set to: {model} ({self.config.model.value})")
+        logger.info(f"Model set to: {model.value} ({self.config.model.value})")
 
     def _calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
         """Calculate the cost of an API call."""
@@ -144,15 +146,7 @@ class LLMHandler:
         if not response.choices or not response.usage:
             raise ValueError("Invalid response from Mistral API")
 
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
-
-        usage = LLMUsage(
-            input_tokens=input_tokens or 0,
-            output_tokens=output_tokens or 0,
-            cost_usd=self._calculate_cost(input_tokens or 0, output_tokens or 0),
-            latency_ms=latency_ms,
-        )
+        usage = self._generate_usages(response, latency_ms)
 
         logger.debug(
             f"Response generated: {usage.total_tokens} tokens, "
@@ -213,25 +207,14 @@ class LLMHandler:
             temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
         )
+
         latency_ms = (time.time() - start_time) * 1000
 
         if not response.choices or not response.usage:
             raise ValueError("Invalid response from Mistral API")
 
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
-
-        usage = LLMUsage(
-            input_tokens=input_tokens or 0,
-            output_tokens=output_tokens or 0,
-            cost_usd=self._calculate_cost(input_tokens or 0, output_tokens or 0),
-            latency_ms=latency_ms,
-        )
-
-        logger.debug(
-            f"Chat response generated: {usage.total_tokens} tokens, "
-            f"${usage.cost_usd:.6f}, {usage.latency_ms:.0f}ms"
-        )
+        # Call the private method to compute usages
+        usage = self._generate_usages(response, latency_ms)
 
         return LLMResponse(
             content=str(response.choices[0].message.content),
@@ -271,11 +254,65 @@ class LLMHandler:
         prompt = PROMPT_TEMPLATES[template].format(**kwargs)
         return self.generate(prompt, SYSTEM_PROMPT[system_prompt])
 
+    def _generate_usages(self, response, latency: float) -> LLMUsage:
+        """Private methode to generate usage with ecological impact estimates."""
+
+        input_tokens = response.usage.prompt_tokens
+        output_tokens = response.usage.completion_tokens
+        cost = self._calculate_cost(input_tokens or 0, output_tokens or 0)
+        latency = latency
+
+        # Get all ecological impact values, defaulting to 0 if not present from Ecologits
+        energy = (
+            response.impacts.energy.value
+            if response.impacts and response.impacts.energy
+            else 0
+        )
+        gwp = (
+            response.impacts.gwp.value
+            if response.impacts and response.impacts.gwp
+            else 0
+        )
+        adpe = (
+            response.impacts.adpe.value
+            if response.impacts and response.impacts.adpe
+            else 0
+        )
+        pe = (
+            response.impacts.pe.value if response.impacts and response.impacts.pe else 0
+        )
+        wcf = (
+            response.impacts.wcf.value
+            if response.impacts and response.impacts.wcf
+            else 0
+        )
+
+        usages = LLMUsage(
+            input_tokens=input_tokens or 0,
+            output_tokens=output_tokens or 0,
+            cost_usd=cost,
+            latency_ms=latency,
+            energy_kwh=energy,
+            gwp_kgCO2eq=gwp,
+            adpe_mgSbEq=adpe,
+            pd_mj=pe,
+            wcf_liters=wcf,
+        )
+
+        return usages
+
     @staticmethod
     def list_models() -> list[str]:
         """List available model keys."""
         return list(MODELS.keys())
 
 
-# Default singleton instance
-llm_handler = LLMHandler(model=os.getenv("LLM_MODEL", "mistral-small"))
+# Default instance
+llm_handler = LLMHandler(
+    model=MistralModel(os.getenv("LLM_MODEL", "mistral-small-latest"))
+)
+
+# Instance for contextupdate
+llm_context_updator = LLMHandler(
+    model=MistralModel(os.getenv("LLM_CONTEXT", "ministral-3b-latest"))
+)

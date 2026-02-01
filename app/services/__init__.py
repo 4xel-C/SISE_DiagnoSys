@@ -9,6 +9,7 @@ from app.services.llm_usage_service import AggTime, LLMUsageService
 from app.services.patient_service import PatientService
 from app.services.plot_service import PlotService
 from app.services.rag_service import RagService, UnsafeRequestException
+from app.services.chat_service import ChatService
 
 __all__ = [
     "AggTime",
@@ -17,5 +18,6 @@ __all__ = [
     "PatientService",
     "PlotService",
     "RagService",
+    "ChatService",
     "UnsafeRequestException",
 ]

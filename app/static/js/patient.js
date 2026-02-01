@@ -1,5 +1,5 @@
 import { fromDelta, toDelta } from 'https://cdn.jsdelivr.net/npm/@slite/quill-delta-markdown@0.0.8/+esm';
-import { renderPatient } from './modules/loader.js';
+import { renderPatient, openChat } from './modules/loader.js';
 
 
 const main = document.querySelector('main');
@@ -26,9 +26,20 @@ async function saveContext(patientId, context) {
 }
 
 async function processRAG(patientId) {
-    await fetch(`ajax/process_rag/${patientId}`, {
+    const response = await fetch(`ajax/process_rag/${patientId}`, {
         method: 'POST'
     })
+    if (!response.ok) {
+        const content = await response.json();
+        document.dispatchEvent(
+            new CustomEvent('RAGProcessedError', {
+                detail: { 
+                    patientId,
+                    error: content?.error ?? 'Erreur interne'
+                }
+            })
+        );
+    }
 }
 
 
@@ -46,9 +57,18 @@ function switchTab(frame, li) {
 
 
 
+async function renderProfile(patientId) {
+    // Request profile HTML
+    const response = await fetch(`ajax/render_profile/${patientId}`);
+    const html = await response.text();
+    // Render profile
+    const tab = frames.context.querySelector('.tab.profile');
+    tab.innerHTML = html;
+}
+
 async function renderContext(patientId) {
     frames.context.classList.add('waiting');
-    // Request diagnostic
+    // Request context
     const response = await fetch(`ajax/get_context/${patientId}`);
     const content = await response.json();
     // Convert markdown to quill delta
@@ -72,7 +92,7 @@ async function renderDiagnostics(patientId) {
 
 async function renderDocuments(patientId) {
     frames.documents.classList.add('waiting');
-    // Request diagnostic
+    // Request documents
     const response = await fetch(`ajax/get_related_documents/${patientId}`);
     const content = await response.json();
     // Update close documents
@@ -91,7 +111,7 @@ async function renderDocuments(patientId) {
 
 async function renderCases(patientId) {
     frames.cases.classList.add('waiting');
-    // Request diagnostic
+    // Request similar cases
     const response = await fetch(`ajax/get_related_cases/${patientId}`);
     const content = await response.json();
     // Update similar cases
@@ -108,22 +128,15 @@ async function renderCases(patientId) {
     });
 }
 
-function renderAll(patientId) {
-    renderContext(patientId);
-    renderDiagnostics(patientId);
-    renderCases(patientId);
-    renderDocuments(patientId);
-}
-
-
-
 
 
 
 // On diagnostics loaded
 document.addEventListener('patientRendered', (e) => {
+    main.classList.remove('error');
     const patientId = e.detail.patientId;
     const patientContainer = main.querySelector('.patient');
+    const chatButton = patientContainer.querySelector('button#start-chat');
     const contextForm = patientContainer.querySelector('form#context-editor');
     frames = {
         context: patientContainer.querySelector('.frame.context-profile'),
@@ -176,29 +189,65 @@ document.addEventListener('patientRendered', (e) => {
         contextForm.querySelector('fieldset').disabled = false;
         if (!response.ok) {
             console.error('Failed to update context in database');
-            return
+            return;
         }
         contextForm.classList.remove('edited');
         main.classList.remove('unsaved');
         // Request context processing
+        frames.diagnostic.classList.add('waiting');
         frames.documents.classList.add('waiting');
-        await processRAG();
-        // Update results
-        renderDiagnostics(patientId);
-        renderDocuments(patientId);
-        renderCases(patientId);
+        frames.cases.classList.add('waiting');
+        processRAG(patientId).then(() => {
+            // Update results
+            renderDiagnostics(patientId);
+            renderDocuments(patientId);
+            renderCases(patientId);
+        })
     });
+
+    // On start-chat button clicked
+    chatButton.addEventListener('click', () => {
+        openChat(patientId);
+    })
 
     // Load and render patient content
-    renderAll(patientId);
+    renderContext(patientId);
+    renderDiagnostics(patientId);
+    renderCases(patientId);
+    renderDocuments(patientId);
+    renderProfile(patientId);
 });
 
-document.addEventListener('audioRecordStoped', () => {
-    Object.values(frames).forEach(frame => {
-        frame.classList.add('waiting');
+
+// On recording stopped (and chatbot responded)
+['audioRecordStoped', 'assistantResponded'].forEach(eventName => {
+    document.addEventListener(eventName, () => {
+        Object.values(frames).forEach(frame => {
+            frame.classList.add('waiting');
+        });
     });
 });
 
-document.addEventListener('audioProcessCompleted', (e) => {
-    renderAll(e.detail.patientId);
-})
+// On audio process compleded (and chatbot simulation)
+['audioProcessCompleted', 'assistantConversationProcessed'].forEach(eventName => {
+    document.addEventListener(eventName, (e) => {
+        main.classList.remove('error');
+        const patientId = e.detail.patientId;
+        // Update context
+        renderContext(patientId);
+        // Process RAG
+        processRAG(patientId).then(() => {
+            // Then update results
+            renderDiagnostics(patientId);
+            renderDocuments(patientId);
+            renderCases(patientId);
+        })
+    })
+});
+
+// On audio process error (and chatbot simulation error)
+['audioProcessError', 'assistantConversationError', 'RAGProcessedError'].forEach(eventName => {
+    document.addEventListener(eventName, (e) => {
+        showError(e.detail.error);
+    })
+});

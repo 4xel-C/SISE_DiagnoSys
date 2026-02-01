@@ -1,4 +1,4 @@
-import { startAudioStream, stopAudioStream, socket } from './modules/streamer.js';
+import { startAudioStream, stopAudioStream, isRecording } from './modules/streamer.js';
 
 const main = document.querySelector('main');
 const audioRecord = main.querySelector('.audio-record');
@@ -94,8 +94,8 @@ async function start(patientId) {
 }
 
 async function stop(patientId) {
-    // Stop audio stream
-    stopAudioStream();
+    // Stop audio stream and send complete audio
+    await stopAudioStream();
     // Close audio analyser and clear interval
     waveform.close();
     clearInterval(timer);
@@ -103,6 +103,8 @@ async function stop(patientId) {
     main.dataset.recordPatientId = null;
     // Update UI
     main.classList.remove('streaming');
+    const timerElement = document.querySelector('main .top-bar .timer');
+    timerElement.textContent = '00:00';
     // Dispatch event
     document.dispatchEvent(
         new CustomEvent('audioRecordStoped', {
@@ -112,7 +114,7 @@ async function stop(patientId) {
 }
 
 function toggleMic() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
+    if (isRecording()) {
         const patientId = main.dataset.recordPatientId;
         stop(patientId);
     } else {
@@ -127,7 +129,7 @@ function toggleMic() {
 
 
 
-
+// On Shift + Space -> start recording
 window.addEventListener('keydown', (event) => {
     const combo = normalizeCombo(event);
     const handler = shortcuts.get(combo);
@@ -137,6 +139,7 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
+// On audio record clicked -> start recording
 audioRecord.addEventListener('click', () => {
     toggleMic();
 })

@@ -1,0 +1,19 @@
+<form id="chatbot">
+    <button class="second-icon-button close" type="reset">
+        <img src="{{ url_for('static', filename='images/close.svg') }}" alt="" height="22px">
+    </button>
+    <h2>--</h2>
+    <ul class="messages"></ul>
+    <div class="input">
+        <input type="text" name="query" placeholder="Envoyer un message" autocomplete="off">
+        <div class="shortcut">
+            <div class="tag">
+                <p>Ctrl</p>
+            </div>
+            <p>+</p>
+            <div class="tag">
+                <p>m</p>
+            </div>
+        </div>
+    </div>
+</div>

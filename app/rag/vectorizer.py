@@ -55,11 +55,11 @@ class Vectorizer:
 
         Args:
             model_name (str, optional): Sentence-transformer model name.
-                Defaults to EMBEDDING_MODEL env var or "all-MiniLM-L6-v2".
+                Defaults to EMBEDDING_MODEL env var or "paraphrase-multilingual-MiniLM-L12-v2".
             chunk_size (int): Number of characters per chunk. Defaults to 1000.
             chunk_overlap (int): Overlap between chunks. Defaults to 50.
         """
-        self.model_name = model_name or os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+        self.model_name = model_name or os.getenv("EMBEDDING_MODEL", "paraphrase-multilingual-MiniLM-L12-v2")
 
         try:
             Vectorizer._model = SentenceTransformer(self.model_name, device="cpu")

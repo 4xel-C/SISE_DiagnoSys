@@ -4,11 +4,13 @@ from typing import Any, Dict, List, Optional
 from app.asr import ASRServiceBase, ASRServiceFactory
 from app.rag import (
     LLMHandler,
+    MistralModel,
     PromptTemplate,
     SystemPromptTemplate,
     VectorStore,
     document_store,
     guardrail_classifier,
+    llm_context_updator,
     llm_handler,
     patient_store,
 )
@@ -57,7 +59,9 @@ class RagService:
         patient_service: PatientService = PatientService(),
         document_service: DocumentService = DocumentService(),
         llm_handler: LLMHandler = llm_handler,
+        llm_context_updator: LLMHandler = llm_context_updator,
         llm_usage_service: LLMUsageService = LLMUsageService(),
+        guardrail_classifier=guardrail_classifier,
         asr_model: Optional[ASRServiceBase] = None,
     ):
         # save the instances of the core components
@@ -66,20 +70,22 @@ class RagService:
         self.patient_service = patient_service
         self.document_service = document_service
         self.llm_handler = llm_handler
+        self.llm_context_updator = llm_context_updator
         self.llm_usage_service = llm_usage_service
+        self.guardrail_classifier = guardrail_classifier
         self.asr_model = asr_model if asr_model else ASRServiceFactory.create()
 
-    def transcribe_stream(self, audio_chunk: bytes) -> Dict[str, Any]:
+    def transcribe(self, audio_data: bytes) -> str:
         """
-        Transcribe a chunk of audio stream.
+        Transcribe complete audio data.
 
         Args:
-            audio_chunk (bytes): The audio chunk to transcribe.
+            audio_data (bytes): The complete audio data to transcribe.
 
         Returns:
-            Dict[str, Any]: The transcription result (partial or final).
+            str: The transcription text.
         """
-        return self.asr_model.transcribe_stream(audio_chunk)
+        return self.asr_model.transcribe(audio_data)
 
     def update_context_after_audio(
         self,
@@ -98,13 +104,8 @@ class RagService:
 
         # Checkpoint 1: Check raw transcript before LLM summarization
         if not self.is_pertinent_and_secure(audio_input, checkpoint="raw_transcript"):
-            logger.warning(
-                "Raw transcript failed guardrail check, stopping context update: "
-                + audio_input[: min(50, len(audio_input))]
-                + "..."
-            )
             raise UnsafeRequestException(
-                "Raw transcript failed security check",
+                "Input failed security check at raw_transcript",
                 checkpoint="raw_transcript",
             )
 
@@ -112,7 +113,7 @@ class RagService:
         patient = self.patient_service.get_by_id(patient_id=id)
 
         # generate a condensed context from patient context and user input
-        new_context = self.llm_handler.generate_with_template(
+        new_context = self.llm_context_updator.generate_with_template(
             template=PromptTemplate.SUMMARY,
             system_prompt=SystemPromptTemplate.CONTEXT_UPDATER,
             context=patient.contexte,
@@ -128,18 +129,15 @@ class RagService:
             logger.info("Context successfully updated with audio input")
             new_context = new_context.content.strip()
         else:
-            logger.error("llm_handler failed to generate updated context")
+            logger.error("llm_context_updator failed to generate updated context")
             raise LLMGenerationException("Failed to generate updated context")
 
         # Checkpoint 2: Check synthesized context before storing/embedding
         if not self.is_pertinent_and_secure(
             new_context, checkpoint="synthesized_context"
         ):
-            logger.warning(
-                "Synthesized context failed guardrail check, stopping context update"
-            )
             raise UnsafeRequestException(
-                "Synthesized context failed security check",
+                "Input failed security check at synthesized_context",
                 checkpoint="synthesized_context",
             )
 
@@ -191,17 +189,14 @@ class RagService:
         )
         context_text += (" " + patient.type_maladie) if patient.type_maladie else ""
 
-        if context_text and not self.is_pertinent_and_secure(
-            context_text, checkpoint="pre_diagnosis"
-        ):
-            logger.warning(
-                f"Patient context failed guardrail check before diagnosis, "
-                f"patient_id={patient_id}"
-            )
-            raise UnsafeRequestException(
-                "Patient context failed security check before diagnosis generation",
-                checkpoint="pre_diagnosis",
-            )
+        if context_text:
+            if not self.is_pertinent_and_secure(
+                context_text, checkpoint="pre_diagnosis"
+            ):
+                raise UnsafeRequestException(
+                    "Input failed security check at pre_diagnosis",
+                    checkpoint="pre_diagnosis",
+                )
 
         diagnosys_text = self.generate_diagnosys(
             context=context_text if context_text else "Pas de contexte disponible.",
@@ -281,7 +276,6 @@ class RagService:
 
         return unique_document_chunks
 
-    # TODO : Add pertinency check with a classifier to avoid useless calls to the llm
     def is_pertinent_and_secure(
         self, user_input: str, checkpoint: str = "raw_input"
     ) -> bool:
@@ -292,36 +286,83 @@ class RagService:
             user_input: The text to validate.
             checkpoint: Identifier for where the check is performed (for logging).
 
-        Returns:
-            True if the input is safe, False if injection detected.
+        Raises:
+            UnsafeRequestException: If injection is detected.
         """
-        # if not user_input or not user_input.strip():
-        #     return True
+        if not user_input or not user_input.strip():
+            raise ValueError("Wrong input")
 
-        # result = guardrail_classifier.predict(user_input)
+        result = self.guardrail_classifier.predict(user_input)
 
-        # if result.is_injection:
-        #     logger.warning(
-        #         f"Guardrail [{checkpoint}]: Injection detected "
-        #         f"(confidence={result.confidence:.3f}), "
-        #         f"input_preview='{user_input[:50]}...'"
-        #     )
-        #     return False
+        print(
+            f"[Guardrail] checkpoint={checkpoint}, "
+            f"label={result.label}, confidence={result.confidence:.3f}"
+        )
 
-        # logger.debug(
-        #     f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
-        # )
-        # return True
+        if result.is_injection:
+            logger.warning(
+                f"Guardrail [{checkpoint}]: Injection detected "
+                f"(confidence={result.confidence:.3f}), "
+                f"input_preview='{user_input[:50]}...'"
+            )
+            return False
+
+        logger.debug(
+            f"Guardrail [{checkpoint}]: Input cleared (confidence={result.confidence:.3f})"
+        )
+
         return True
-
-    # TODO: Connect translator from Olivier, to be ignored if we use a multinlingual embedder ?
-    def translate_text(self, text: str) -> str:
+    
+    def get_llm_models(self) -> Dict:
         """
-        translate user text (french) into english to be consistent with embedder used.
-        Args:
-            user_input (str): The input text from the user.
+        Get the list of available and selected LLM models.
 
         Returns:
-            str: The generated response.
+            Dict: Dict of available and selected models
         """
-        return text
+        models = {
+            'available': [model.value for model in MistralModel],
+            'context': self.llm_context_updator.model_name,
+            'rag': self.llm_handler.model_name,
+        }
+
+        return models
+
+    def change_llm_models(self, context_model: str|None = None, rag_model: str|None = None) -> None:
+        """
+        Change the LLM models.
+
+        Args:
+            context_model (str): The new model name to set for context updating.
+            rag_model (str): The new model name to set for for RAG diagnosys generation.
+        """
+        if context_model:
+            # Validate model_name
+            model = MistralModel(context_model)
+            self.llm_context_updator.set_model(model)
+            logger.info(f"Context LLM model changed to {model.value}")
+        
+        if rag_model:
+            # Validate model_name
+            model = MistralModel(rag_model)
+            self.llm_handler.set_model(model)
+            logger.info(f"RAG LLM model changed to {model.value}")
+
+    def get_guardrail_threshold(self) -> float:
+        """
+        Retrieve current guardrail threshold
+
+        Returns:
+            float: Guardrail threshold
+        """
+        return self.guardrail_classifier.threshold
+
+    def update_guardrail_threshold(self, new_threshold: float) -> None:
+        """
+        Update the guardrail classifier threshold.
+
+        Args:
+            new_threshold (float): The new threshold value to set.
+        """
+        self.guardrail_classifier.update_threshold(new_threshold)
+        logger.info(f"Guardrail threshold updated to {new_threshold}")

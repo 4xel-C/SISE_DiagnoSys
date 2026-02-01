@@ -7,6 +7,8 @@
     <title>DiagnoSys</title>
     <!-- Quill CSS plugin -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.bubble.css" rel="stylesheet" />
+    <!-- NoUISlider CSS plugin -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.8.1/dist/nouislider.min.css">
     <!-- Custom Style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
@@ -15,73 +17,123 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/audio-record.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/editor.css') }}">
-    <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/statistics.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tutorial.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
 
 <body>
     <nav id="menu-bar">
         <form action="" class="search" autocomplete="off">
             <input type="text" name="query" placeholder="Rechercher un patient" autocomplete="off">
-            <div class="tag">
-                <p>/</p>
+            <div class="shortcut">
+                <div class="tag">
+                    <p>Ctrl</p>
+                </div>
+                <p>+</p>
+                <div class="tag">
+                    <p>/</p>
+                </div>
             </div>
         </form>
         <ul class="internal">
-            <li>
-                <img src="{{ url_for('static', filename='images/settings.svg') }}" alt="" height="16px">
-                <p class="label">Réglages</p>
+            <li data-page-name="statistics">
+                <img src="{{ url_for('static', filename='images/statistics.svg') }}" alt="" height="16px">
+                <p class="label">Statistiques</p>
             </li>
-            <li>
+            <li data-page-url="https://github.com/4xel-C/SISE_DiagnoSys">
                 <img src="{{ url_for('static', filename='images/info.svg') }}" alt="" height="16px">
                 <p class="label">À propos</p>
             </li>
         </ul>
+        <div class="create-patient">
+            <button class="second-icon-button">
+                <img src="{{ url_for('static', filename='images/add.svg') }}" alt="" height="16px">
+                <p>Ajouter un patient</p>
+            </button>
+        </div>
         <ul class="patients"></ul>
+        <div class="settings">
+            <button class="second-icon-button">
+                <img src="{{ url_for('static', filename='images/settings.svg') }}" alt="" height="16px">
+                <p>Réglages</p>
+            </button>
+        </div>
     </nav>
    <main>
-        <div class="top-bar">
-            <div class="play-icon">
-                <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="16px">
-                <p class="timer">00:00</p>
+        <div class="error-info">
+            <div>
+                <img src="{{ url_for('static', filename='images/warning.svg') }}" alt="" height="16px">
+                <strong>Erreur</strong>
             </div>
-            <div class="actions">
-                <button class="see">Voir</button>
-            </div>
+            <p class="label"></p>
         </div>
-        <div class="content"></div>
-        <div class="audio-record">
-            <div class="states">
-                <div class="stoped">
-                    <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
-                    <div class="label">
-                        <h3>Appuyez sur</h3>
-                        <div class="tag">
-                            <p>Shift</p>
+        <div class="content">
+            <div class="top-bar">
+                <div class="play-icon">
+                    <img src="{{ url_for('static', filename='images/record.svg') }}" alt="" height="16px">
+                    <p class="timer">00:00</p>
+                </div>
+                <div class="actions">
+                    <button class="see">Voir</button>
+                </div>
+            </div>
+            <div class="page-container"></div>
+            <div class="audio-record">
+                <div class="states">
+                    <div class="stoped">
+                        <img src="{{ url_for('static', filename='images/mic.svg') }}" alt="" height="52px" class="mic">
+                        <div class="label">
+                            <h3>Appuyez sur</h3>
+                            <div class="tag">
+                                <p>Shift</p>
+                            </div>
+                            <p>+</p>
+                            <div class="tag">
+                                <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
+                                <p>Espace</p>
+                            </div>
+                            <h3>pour commencer l'enregistrement</h3>
                         </div>
-                        <p>+</p>
-                        <div class="tag">
-                            <img src="{{ url_for('static', filename='images/key_space.svg') }}" alt="" height="14px">
-                            <p>Espace</p>
-                        </div>
-                        <h3>pour commencer l'enregistrement</h3>
+                    </div>
+                    <div class="started">
+                        <canvas id="waveform" width="3000" height="400"></canvas>
                     </div>
                 </div>
-                <div class="started">
-                    <canvas id="waveform" width="3000" height="400"></canvas>
-                </div>
+                <div class="circle-overlay animation-1"></div>
+                <div class="circle-overlay animation-2"></div>
             </div>
-            <div class="circle-overlay animation-1"></div>
-            <div class="circle-overlay animation-2"></div>
         </div>
    </main>
 </body>
 
 <!-- Quill JS plugin -->
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<!-- Plotly JS plugin -->
+<script src="https://cdn.plot.ly/plotly-3.1.0.min.js"></script>
+<!-- noUISlider plugin JS  -->
+<script src="https://cdn.jsdelivr.net/npm/nouislider@15.8.1/dist/nouislider.min.js"></script>
 <!-- Custom scripts -->
 <script src="{{ url_for('static', filename='js/_helpers.js') }}"></script>
 <script src="{{ url_for('static', filename='js/menu-bar.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/audio-record.js') }}" type="module"></script>
 <script src="{{ url_for('static', filename='js/patient.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}" type="module"></script>
+<script src="{{ url_for('static', filename='js/statistics.js') }}" type="module"></script>
+
+<!-- Show tutorial if first visit -->
+{% if show_tutorial %}
+<div class="tutorial-overlay">
+    <div class="tuto">
+        <div class="wrapper">
+            <h2>Titre</h2>
+            <p class="description">Description</p>
+        </div>
+        <img src="{{ url_for('static', filename='images/show-arrow.svg') }}" alt="" height="60px">
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/tutorial.js') }}" type="module"></script>
+{% endif %}
 
 </html>

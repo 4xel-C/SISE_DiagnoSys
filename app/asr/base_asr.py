@@ -11,15 +11,15 @@ class ASRServiceBase(ABC):
     """
 
     @abstractmethod
-    def transcribe_stream(self, audio_chunk: bytes) -> dict[str, str | bool]:
+    def transcribe(self, audio_data: bytes) -> str:
         """
-        Process a chunk of audio for streaming transcription.
+        Transcribe complete audio data.
 
         Args:
-            audio_chunk: A chunk of audio bytes.
+            audio_data: Complete audio bytes to transcribe.
 
         Returns:
-            dict: Partial or final transcription result.
+            str: The transcription text.
         """
 
     @abstractmethod

@@ -1,0 +1,67 @@
+<div class="content large">
+    <h2>Créer un nouveau patient</h2>
+    <form autocomplete="off">
+        <fieldset>
+            <div class="grouped">
+                <div class="entry">
+                    <label for="nom">Nom</label>
+                    <input type="text" name="nom" autocomplete="off" required>
+                </div>
+                <div class="entry">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" name="prenom" autocomplete="off" required>
+                </div>
+            </div>
+            <div class="entry">
+                <label for="symptomes_exprimes">Symptomes exprimés</label>
+                <textarea name="symptomes_exprimes" required></textarea>
+            </div>
+            <div class="grouped">
+                <div class="entry">
+                    <label for="type_maladie">Type de maladie</label>
+                    <input type="text" name="type_maladie" autocomplete="off" required>
+                </div>
+                <div class="entry">
+                    <label for="gravite">Gravité</label>
+                    <select name="gravite">
+                        <option value="vert">🟢 Vert</option>
+                        <option value="jaune">🟡 Jaune</option>
+                        <option value="red">🔴 Rouge</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grouped">
+                <div class="entry">
+                    <label for="fc">fc</label>
+                    <input type="number" name="fc" step="1" autocomplete="off" required>
+                </div>
+                <div class="entry">
+                    <label for="fr">fr</label>
+                    <input type="number" name="fr" step="1" autocomplete="off" required>
+                </div>
+                <div class="entry">
+                    <label for="spo2">spo2</label>
+                    <input type="number" name="spo2" autocomplete="off" required>
+                </div>
+            </div>
+            <div class="grouped">
+                <div class="entry">
+                    <label for="ta_systolique">ta_systolique</label>
+                    <input type="number" name="ta_systolique" step="1" autocomplete="off" required>
+                </div>
+                <div class="entry">
+                    <label for="ta_diastolique">ta_diastolique</label>
+                    <input type="number" name="ta_diastolique" step="1" autocomplete="off" required>
+                </div>
+                <div class="entry">
+                    <label for="temperature">temperature</label>
+                    <input type="number" name="temperature" autocomplete="off" required>
+                </div>
+            </div>
+            <div class="actions">
+                <button type="reset" class="second-button">Annuler</button>
+                <button type="submit" class="main-button">Créer</button>
+            </div>
+        </fieldset>
+    </form>
+</div>

@@ -20,6 +20,9 @@ dependencies = [
     "gevent-websocket>=0.10.1",
     "pandas>=3.0.0",
     "sherpa-onnx>=1.12.23",
+    "datasets>=4.5.0",
+    "langchain-huggingface>=1.2.0",
     "tiktoken>=0.12.0",
-    "plotly>=6.5.2",
+    "sherpa-onnx-core>=1.12.23",
+    "ecologits>=0.9.2",
 ]

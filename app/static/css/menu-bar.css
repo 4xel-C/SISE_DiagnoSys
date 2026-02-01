@@ -1,28 +1,34 @@
 nav#menu-bar {
+    display: flex;
+    flex-direction: column;
 
     form.search {
         padding: .6rem;
         position: relative;
 
-        .tag {
+        .shortcut {
             position: absolute;
-            right: .6rem;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+
+            > * {
+                display: inline-block;
+            }
+
+            p {
+                color: var(--text-second-color);
+            }
+
+            .tag {
+                background-color: #fbfbfb;
+                border-color: #e6e6e6;
+            }
         }
     }
-
-    ul {
-        border-top: solid 1px var(--border-color);
-        padding: .6rem 0;
-    }
-
-    ul.internal > li {
-        display: flex;
-        align-items: center;
-        gap: .6rem;
-        padding: .6rem;
-
-        .label {
-            font-weight: 500;
+    form.search:hover, form.search:focus-within {
+        .shortcut {
+            display: none;
         }
     }
 
@@ -59,7 +65,53 @@ nav#menu-bar {
         }
     }
 
+    ul.internal {
+        padding: .6rem 0;
+        border-top: solid 1px var(--border-color);
+        border-bottom: solid 1px var(--border-color);
+    }
+
     ul.internal > li {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .6rem;
         height: 40px;
+
+        .label {
+            font-weight: 500;
+        }
+    }
+
+    ul.patients {
+        height: 100%;
+        overflow: auto;
+    }
+
+    .second-icon-button {
+        display: flex;
+        gap: .4rem;
+        align-items: center;
+        padding: .6rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .create-patient {
+        padding: .4rem;
+
+        button {
+            background-color: var(--bg-color);
+            border: solid 1px var(--border-color);
+            transition: background-color .3s ease;
+        }
+        button:hover {
+            background-color: var(--border-color);
+        }
+    }
+
+    .settings {
+        padding: .4rem;
+        margin-bottom: .6rem;
     }
 }
