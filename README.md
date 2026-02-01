@@ -151,8 +151,8 @@ Complete tracking of language model usage:
 
 ## Architecture
 
-<!-- TODO: Add Excalidraw diagram -->
-![Architecture Diagram](docs/architecture.excalidraw.png)
+<img width="2642" height="1528" alt="schema_architecture" src="https://github.com/user-attachments/assets/dbaf77a0-8cbf-45f1-9ca8-2e97c6fac4f0" />
+
 
 ---
 
@@ -500,5 +500,6 @@ Project developed as part of the SISE Master's program - University of Lyon 2
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 
