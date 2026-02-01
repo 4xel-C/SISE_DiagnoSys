@@ -32,6 +32,7 @@ class LLMMetricsSchema(BaseModel):
         total_requests (int): Total number of requests.
         total_success (int): Number of successful requests.
         total_denials (int): Number of denied requests.
+        cout_total_usd (float): Total cost in USD.
         usage_date (date): Date of the record.
         energy_kwh (float): Energy consumption in kWh.
         gwp_kgCO2eq (float): Global Warming Potential in kg CO2 equivalent.
@@ -49,6 +50,7 @@ class LLMMetricsSchema(BaseModel):
     total_requests: int
     total_success: int
     total_denials: Optional[int] = None
+    cout_total_usd: Optional[float] = None
     energy_kwh: Optional[float] = None
     gwp_kgCO2eq: Optional[float] = None
     adpe_mgSbEq: Optional[float] = None
@@ -112,6 +114,7 @@ class AggregatedMetricsSchema(BaseModel):
         total_success (int): Total successful requests for the period.
         total_denials (int): Total denied requests for the period.
         mean_response_time_ms (float): Weighted average response time in ms.
+        cout_total_usd (float): Total cost in USD for the period.
         energy_kwh (float): Total energy consumption in kWh.
         gwp_kgCO2eq (float): Total Global Warming Potential in kg CO2 equivalent.
         adpe_mgSbEq (float): Total Abiotic Depletion Potential in mg Sb equivalent.
@@ -128,6 +131,7 @@ class AggregatedMetricsSchema(BaseModel):
     total_success: int
     total_denials: int
     mean_response_time_ms: float
+    cout_total_usd: float
     energy_kwh: float
     gwp_kgCO2eq: float
     adpe_mgSbEq: float
@@ -189,6 +193,7 @@ class AggregatedMetricsSchema(BaseModel):
             "total_requests",
             "total_success",
             "total_denials",
+            "cout_total_usd",
             "energy_kwh",
             "gwp_kgCO2eq",
             "adpe_mgSbEq",

@@ -56,6 +56,19 @@ def generate_random_usage(target_date: date, model_name: str) -> dict:
     else:
         mean_response_time = 800 + random.uniform(-100, 200)
 
+    # Cost metrics (based on model pricing per 1M tokens)
+    cost_per_1m = {
+        "mistral-small-latest": (0.2, 0.6),
+        "mistral-large-latest": (2.0, 6.0),
+        "ministral-8b-latest": (0.1, 0.1),
+    }
+    input_cost, output_cost = cost_per_1m.get(model_name, (0.2, 0.6))
+    cout_total_usd = round(
+        (total_input_tokens / 1_000_000 * input_cost)
+        + (total_completion_tokens / 1_000_000 * output_cost),
+        6,
+    )
+
     # Environmental metrics (scaled by tokens)
     token_factor = total_tokens / 10000
     energy_kwh = round(0.001 * token_factor * random.uniform(0.8, 1.2), 6)
@@ -73,6 +86,7 @@ def generate_random_usage(target_date: date, model_name: str) -> dict:
         "total_requests": total_requests,
         "total_success": total_success,
         "total_denials": total_denials,
+        "cout_total_usd": cout_total_usd,
         "energy_kwh": energy_kwh,
         "gwp_kgCO2eq": gwp_kgCO2eq,
         "adpe_mgSbEq": adpe_mgSbEq,

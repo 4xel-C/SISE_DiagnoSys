@@ -246,6 +246,7 @@ class LLMUsageService:
                 SUM(total_success) as total_success,
                 SUM(COALESCE(total_denials, 0)) as total_denials,
                 SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
+                SUM(COALESCE(cout_total_usd, 0)) as cout_total_usd,
                 SUM(COALESCE(energy_kwh, 0)) as energy_kwh,
                 SUM(COALESCE(gwp_kgCO2eq, 0)) as gwp_kgCO2eq,
                 SUM(COALESCE(adpe_mgSbEq, 0)) as adpe_mgSbEq,
@@ -273,6 +274,7 @@ class LLMUsageService:
                     total_success=row.total_success or 0,
                     total_denials=row.total_denials or 0,
                     mean_response_time_ms=row.mean_response_time_ms or 0.0,
+                    cout_total_usd=row.cout_total_usd or 0.0,
                     energy_kwh=row.energy_kwh or 0.0,
                     gwp_kgCO2eq=row.gwp_kgCO2eq or 0.0,
                     adpe_mgSbEq=row.adpe_mgSbEq or 0.0,
@@ -323,6 +325,7 @@ class LLMUsageService:
                 SUM(total_success) as total_success,
                 SUM(COALESCE(total_denials, 0)) as total_denials,
                 SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
+                SUM(COALESCE(cout_total_usd, 0)) as cout_total_usd,
                 SUM(COALESCE(energy_kwh, 0)) as energy_kwh,
                 SUM(COALESCE(gwp_kgCO2eq, 0)) as gwp_kgCO2eq,
                 SUM(COALESCE(adpe_mgSbEq, 0)) as adpe_mgSbEq,
@@ -350,6 +353,7 @@ class LLMUsageService:
                 total_success=row.total_success or 0,
                 total_denials=row.total_denials or 0,
                 mean_response_time_ms=row.mean_response_time_ms or 0.0,
+                cout_total_usd=row.cout_total_usd or 0.0,
                 energy_kwh=row.energy_kwh or 0.0,
                 gwp_kgCO2eq=row.gwp_kgCO2eq or 0.0,
                 adpe_mgSbEq=row.adpe_mgSbEq or 0.0,
@@ -392,6 +396,7 @@ class LLMUsageService:
         input_tokens = usage.input_tokens
         output_tokens = usage.output_tokens
         response_time_ms = usage.latency_ms
+        cost_usd = usage.cost_usd
         energy_kwh = usage.energy_kwh
         gwp_kgCO2eq = usage.gwp_kgCO2eq
         adpe_mgSbEq = usage.adpe_mgSbEq
@@ -416,6 +421,7 @@ class LLMUsageService:
                 record.total_completion_tokens += output_tokens
                 record.total_tokens += input_tokens + output_tokens
                 record.total_requests += 1
+                record.cout_total_usd = (record.cout_total_usd or 0) + (cost_usd or 0)
                 record.energy_kwh = (record.energy_kwh or 0) + (energy_kwh or 0)
                 record.gwp_kgCO2eq = (record.gwp_kgCO2eq or 0) + (gwp_kgCO2eq or 0)
                 record.adpe_mgSbEq = (record.adpe_mgSbEq or 0) + (adpe_mgSbEq or 0)
@@ -448,6 +454,7 @@ class LLMUsageService:
                     total_requests=1,
                     total_success=1 if success else 0,
                     total_denials=0 if success else 1,
+                    cout_total_usd=cost_usd,
                     energy_kwh=energy_kwh,
                     gwp_kgCO2eq=gwp_kgCO2eq,
                     adpe_mgSbEq=adpe_mgSbEq,
