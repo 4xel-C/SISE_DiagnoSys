@@ -11,9 +11,10 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.models import Base
+from app.rag.llm_options import MistralModel
 
 
 class LLMMetrics(Base):
@@ -62,3 +63,13 @@ class LLMMetrics(Base):
 
     usage_date: Mapped[date] = mapped_column(Date, default=date.today, nullable=False)
     __table_args__ = (UniqueConstraint("usage_date", "nom_modele"),)
+
+    @validates("nom_modele")
+    def validate_nom_modele(self, key: str, value: str) -> str:
+        """Validate that nom_modele is a valid MistralModel."""
+        valid_models = MistralModel.all_models()
+        if value not in valid_models:
+            raise ValueError(
+                f"Invalid model '{value}'. Must be one of: {', '.join(valid_models)}"
+            )
+        return value

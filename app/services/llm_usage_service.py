@@ -20,7 +20,7 @@ from sqlalchemy import text
 from app.config import Database, db
 from app.models import LLMMetrics
 from app.rag import LLMUsage, MistralModel
-from app.schemas import AggregatedMetrics, LLMMetricsSchema
+from app.schemas import AggregatedMetricsSchema, LLMMetricsSchema
 
 logger = logging.getLogger(__name__)
 
@@ -177,13 +177,13 @@ class LLMUsageService:
             >>> requests = service.get_total_requests_today()
         """
         records = self.get_today()
-        return sum(r.total_requests or 0 for r in records)
+        return sum(r.total_requests for r in records)
 
     def get_aggregated_data(
         self,
         agg_time: Union[str, AggTime] = AggTime.DAILY,
         models: Union[List[str], List[MistralModel]] = MistralModel.all_models(),
-    ) -> List[AggregatedMetrics]:
+    ) -> List[AggregatedMetricsSchema]:
         """
         Generate aggregated metrics for the stats page.
 
@@ -194,7 +194,7 @@ class LLMUsageService:
                     Accepts strings or MistralModel enums.
 
         Returns:
-            List[AggregatedMetrics]: Aggregated metrics per period and model.
+            List[AggregatedMetricsSchema]: Aggregated metrics per period and model.
 
         Raises:
             ValueError: If agg_time is invalid.
@@ -244,9 +244,11 @@ class LLMUsageService:
                 SUM(total_success) as total_success,
                 SUM(COALESCE(total_denials, 0)) as total_denials,
                 SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
-                SUM(gwp_kgCO2eq) as gco2,
-                SUM(water_ml) as water_ml,
-                SUM(mgSb) as mgSb
+                SUM(COALESCE(energy_kwh, 0)) as energy_kwh,
+                SUM(COALESCE(gwp_kgCO2eq, 0)) as gwp_kgCO2eq,
+                SUM(COALESCE(adpe_mgSbEq, 0)) as adpe_mgSbEq,
+                SUM(COALESCE(pd_mj, 0)) as pd_mj,
+                SUM(COALESCE(wcf_liters, 0)) as wcf_liters
             FROM llm_usage_journalier
             {where_clause}
             GROUP BY period, nom_modele
@@ -259,7 +261,7 @@ class LLMUsageService:
             logger.debug(f"Found {len(rows)} aggregated records.")
 
             return [
-                AggregatedMetrics(
+                AggregatedMetricsSchema(
                     period=row.period,
                     nom_modele=row.nom_modele,
                     total_input_tokens=row.total_input_tokens or 0,
@@ -269,9 +271,11 @@ class LLMUsageService:
                     total_success=row.total_success or 0,
                     total_denials=row.total_denials or 0,
                     mean_response_time_ms=row.mean_response_time_ms or 0.0,
-                    gco2=row.gco2 or 0.0,
-                    water_ml=row.water_ml or 0.0,
-                    mgSb=row.mgSb or 0.0,
+                    energy_kwh=row.energy_kwh or 0.0,
+                    gwp_kgCO2eq=row.gwp_kgCO2eq or 0.0,
+                    adpe_mgSbEq=row.adpe_mgSbEq or 0.0,
+                    pd_mj=row.pd_mj or 0.0,
+                    wcf_liters=row.wcf_liters or 0.0,
                 )
                 for row in rows
             ]
@@ -279,7 +283,7 @@ class LLMUsageService:
     def get_current_period_metrics(
         self,
         agg_time: Union[str, AggTime] = AggTime.DAILY,
-    ) -> Optional[AggregatedMetrics]:
+    ) -> Optional[AggregatedMetricsSchema]:
         """
         Get total metrics for the current period (today, this month, or this year).
 
@@ -290,7 +294,7 @@ class LLMUsageService:
                 - YEARLY: this year
 
         Returns:
-            AggregatedMetrics: Total metrics for the current period, or None if no data.
+            AggregatedMetricsSchema: Total metrics for the current period, or None if no data.
 
         Example:
             >>> today_metrics = service.get_current_period_metrics(AggTime.DAILY)
@@ -317,9 +321,11 @@ class LLMUsageService:
                 SUM(total_success) as total_success,
                 SUM(COALESCE(total_denials, 0)) as total_denials,
                 SUM(mean_response_time_ms * total_requests) / SUM(total_requests) as mean_response_time_ms,
-                SUM(gco2) as gco2,
-                SUM(water_ml) as water_ml,
-                SUM(mgSb) as mgSb
+                SUM(COALESCE(energy_kwh, 0)) as energy_kwh,
+                SUM(COALESCE(gwp_kgCO2eq, 0)) as gwp_kgCO2eq,
+                SUM(COALESCE(adpe_mgSbEq, 0)) as adpe_mgSbEq,
+                SUM(COALESCE(pd_mj, 0)) as pd_mj,
+                SUM(COALESCE(wcf_liters, 0)) as wcf_liters
             FROM llm_usage_journalier
             WHERE strftime('{period_format}', usage_date) = :current_period
         """
@@ -332,7 +338,7 @@ class LLMUsageService:
             if not row or row.period is None:
                 return None
 
-            return AggregatedMetrics(
+            return AggregatedMetricsSchema(
                 period=row.period,
                 nom_modele="all",
                 total_input_tokens=row.total_input_tokens or 0,
@@ -342,9 +348,11 @@ class LLMUsageService:
                 total_success=row.total_success or 0,
                 total_denials=row.total_denials or 0,
                 mean_response_time_ms=row.mean_response_time_ms or 0.0,
-                gco2=row.gco2 or 0.0,
-                water_ml=row.water_ml or 0.0,
-                mgSb=row.mgSb or 0.0,
+                energy_kwh=row.energy_kwh or 0.0,
+                gwp_kgCO2eq=row.gwp_kgCO2eq or 0.0,
+                adpe_mgSbEq=row.adpe_mgSbEq or 0.0,
+                pd_mj=row.pd_mj or 0.0,
+                wcf_liters=row.wcf_liters or 0.0,
             )
 
     ################################################################

@@ -13,65 +13,9 @@ Example:
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, computed_field, field_validator
 
-
-class AggregatedMetrics(BaseModel):
-    """
-    Aggregated metrics for a period.
-
-    Used to return metrics aggregated by day, month, or year.
-
-    Attributes:
-        period (str): The period identifier (e.g., "2024-01-15", "2024-01", "2024").
-        nom_modele (str | None): Model name, None if aggregated across all models.
-        total_input_tokens (int): Sum of input tokens for the period.
-        total_completion_tokens (int): Sum of completion tokens for the period.
-        total_tokens (int): Sum of all tokens for the period.
-        total_requests (int): Total number of requests for the period.
-        total_success (int): Total successful requests for the period.
-        total_denials (int): Total denied requests for the period.
-        mean_response_time_ms (float): Weighted average response time in ms.
-        gco2 (float): Total CO2 emissions in grams.
-        water_ml (float): Total water usage in milliliters.
-        mgSb (float): Total antimony usage in milligrams.
-    """
-
-    period: str
-    nom_modele: str
-    total_input_tokens: int
-    total_completion_tokens: int
-    total_tokens: int
-    total_requests: int
-    total_success: int
-    total_denials: int
-    mean_response_time_ms: float
-    gco2: float
-    water_ml: float
-    mgSb: float
-
-    model_config = {"from_attributes": True}
-
-    @staticmethod
-    def get_metrics_name() -> list[str]:
-        """
-        Get the list of model field names.
-
-        Returns:
-            list[str]: List of field names.
-        """
-        return [
-            "input_tokens",
-            "completion_tokens",
-            "tokens",
-            "requests",
-            "success",
-            "denials",
-            "mean_response_time_ms",
-            "gco2",
-            "water_ml",
-            "mgSb",
-        ]
+from app.rag.llm_options import MistralModel
 
 
 class LLMMetricsSchema(BaseModel):
@@ -114,6 +58,17 @@ class LLMMetricsSchema(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @field_validator("nom_modele")
+    @classmethod
+    def validate_nom_modele(cls, value: str) -> str:
+        """Validate that nom_modele is a valid MistralModel."""
+        valid_models = MistralModel.all_models()
+        if value not in valid_models:
+            raise ValueError(
+                f"Invalid model '{value}'. Must be one of: {', '.join(valid_models)}"
+            )
+        return value
+
     @computed_field
     @property
     def success_rate(self) -> float:
@@ -139,3 +94,104 @@ class LLMMetricsSchema(BaseModel):
         if self.total_requests == 0:
             return 0.0
         return self.total_tokens / self.total_requests
+
+
+class AggregatedMetricsSchema(BaseModel):
+    """
+    Pydantic schema for aggregated LLM usage metrics.
+
+    Used for data aggregated by day, month, or year.
+
+    Attributes:
+        period (str): The period identifier (e.g., "2024-01-15", "2024-01", "2024").
+        nom_modele (str): Model name ("all" if aggregated across all models).
+        total_input_tokens (int): Sum of input tokens for the period.
+        total_completion_tokens (int): Sum of completion tokens for the period.
+        total_tokens (int): Sum of all tokens for the period.
+        total_requests (int): Total number of requests for the period.
+        total_success (int): Total successful requests for the period.
+        total_denials (int): Total denied requests for the period.
+        mean_response_time_ms (float): Weighted average response time in ms.
+        energy_kwh (float): Total energy consumption in kWh.
+        gwp_kgCO2eq (float): Total Global Warming Potential in kg CO2 equivalent.
+        adpe_mgSbEq (float): Total Abiotic Depletion Potential in mg Sb equivalent.
+        pd_mj (float): Total primary energy demand in MJ.
+        wcf_liters (float): Total water consumption footprint in liters.
+    """
+
+    period: str
+    nom_modele: str
+    total_input_tokens: int
+    total_completion_tokens: int
+    total_tokens: int
+    total_requests: int
+    total_success: int
+    total_denials: int
+    mean_response_time_ms: float
+    energy_kwh: float
+    gwp_kgCO2eq: float
+    adpe_mgSbEq: float
+    pd_mj: float
+    wcf_liters: float
+
+    model_config = {"from_attributes": True}
+
+    @field_validator("nom_modele")
+    @classmethod
+    def validate_nom_modele(cls, value: str) -> str:
+        """Validate that nom_modele is a valid MistralModel or 'all'."""
+        valid_models = MistralModel.all_models() + ["all"]
+        if value not in valid_models:
+            raise ValueError(
+                f"Invalid model '{value}'. Must be one of: {', '.join(valid_models)}"
+            )
+        return value
+
+    @computed_field
+    @property
+    def success_rate(self) -> float:
+        """
+        Calculate the success rate as a percentage.
+
+        Returns:
+            float: Success rate (0-100).
+        """
+        if self.total_requests == 0:
+            return 0.0
+        return (self.total_success / self.total_requests) * 100
+
+    @computed_field
+    @property
+    def avg_tokens_per_request(self) -> float:
+        """
+        Calculate average tokens per request.
+
+        Returns:
+            float: Average tokens per request.
+        """
+        if self.total_requests == 0:
+            return 0.0
+        return self.total_tokens / self.total_requests
+
+    @staticmethod
+    def get_metrics_fields() -> list[str]:
+        """
+        Get a list of all metric field names.
+
+        Returns:
+            list[str]: List of metric field names.
+        """
+        return [
+            "total_input_tokens",
+            "total_completion_tokens",
+            "total_tokens",
+            "mean_response_time_ms",
+            "total_requests",
+            "total_success",
+            "total_denials",
+            "energy_kwh",
+            "gwp_kgCO2eq",
+            "adpe_mgSbEq",
+            "pd_mj",
+            "wcf_liters",
+        ]

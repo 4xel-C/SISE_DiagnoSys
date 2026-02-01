@@ -5,9 +5,10 @@ Generates Plotly.js chart data from LLM usage metrics.
 """
 
 import logging
-from typing import Union
+from typing import List, Union
 
-from app.schemas import AggregatedMetrics
+from app.rag.llm_options import MistralModel
+from app.schemas import AggregatedMetricsSchema
 from app.services.llm_usage_service import AggTime, LLMUsageService
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ class PlotService:
         self,
         metric: str,
         agg_time: Union[str, AggTime] = AggTime.DAILY,
+        models: List[str] = ["all"],
     ) -> dict:
         """
         Generate a line plot with one line per model.
@@ -36,10 +38,16 @@ class PlotService:
         """
 
         # validate metric
-        if metric not in AggregatedMetrics.get_metrics_name():
+        if metric not in AggregatedMetricsSchema.get_metrics_fields():
             raise ValueError(f"Invalid metric: {metric}")
 
-        metrics = self.llm_usage_service.get_aggregated_data(agg_time=agg_time)
+        for model in models:
+            if model != "all" and model not in MistralModel.all_models():
+                raise ValueError(f"Invalid model: {model}")
+
+        metrics = self.llm_usage_service.get_aggregated_data(
+            agg_time=agg_time, models=models
+        )
 
         # Group by model
         by_model: dict[str, list] = {}
@@ -81,12 +89,12 @@ class PlotService:
 
     def get_metrics_name(self) -> list[str]:
         """
-        Get the list of available metric names.
+        Wrapper method to get the list of possible metric names.
 
         Returns:
             list[str]: List of metric field names.
         """
-        return AggregatedMetrics.get_metrics_name()
+        return AggregatedMetricsSchema.get_metrics_fields()
 
     def get_possible_agg_times(self) -> list[str]:
         """
