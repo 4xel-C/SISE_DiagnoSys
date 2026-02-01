@@ -176,6 +176,15 @@ class AggregatedMetricsSchema(BaseModel):
         if self.total_requests == 0:
             return 0.0
         return self.total_tokens / self.total_requests
+    
+    def format_for_display(self) -> dict:
+        return {
+            'energy_kwh': str(round(self.energy_kwh, 2)) + 'kWh',
+            'gwp_kgCO2eq': str(round(self.gwp_kgCO2eq, 4)) + 'kg',
+            'cout_total_usd': '$' + str(round(self.cout_total_usd, 2)),
+            'mean_response_time_ms': str(round(self.mean_response_time_ms)) + 'sec',
+            'total_tokens': self.total_tokens
+        }
 
     @staticmethod
     def get_metrics_fields() -> list[str]:

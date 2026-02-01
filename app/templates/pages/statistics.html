@@ -1,3 +1,79 @@
-<div class="plot-grid">
-    <div class="plot-container" id="test-plot"></div>
-</div>
+<form id="stats">
+    <div class="frame top">
+        <ul class="kpis">
+            <li data-metric-name="energy_kwh">
+                <p class="label">Consomation éléctrique</p>
+                <h2 class="value">--</h2>
+            </li>
+            <li data-metric-name="gwp_kgCO2eq">
+                <p class="label">Consomation CO2</p>
+                <h2 class="value">--</h2>
+            </li>
+            <li data-metric-name="cout_total_usd">
+                <p class="label">Cout</p>
+                <h2 class="value">--</h2>
+            </li>
+            <li data-metric-name="mean_response_time_ms">
+                <p class="label">Temp de réponse</p>
+                <h2 class="value">--</h2>
+            </li>
+            <li data-metric-name="total_tokens">
+                <p class="label">Token générés</p>
+                <h2 class="value">--</h2>
+            </li>
+        </ul>
+        <div class="agg">
+            <select name="temporal-axis">
+                <option value="daily" selected>Journalier</option>
+                <option value="monthly">Mensuel</option>
+                <option value="yearly">Annuel</option>
+            </select>
+            <select name="model">
+                <option value="all">Tous</option>
+            </select>
+        </div>
+    </div>
+    <div class="metric">
+        <div class="radio checked">
+            <input type="radio" name="metric" value="total_tokens" hidden checked>
+            <label>Tokens</label>
+        </div>
+        <div class="radio">
+            <input type="radio" name="metric" value="total_requests" hidden>
+            <label>Requêtes</label>
+        </div>
+        <div class="radio">
+            <input type="radio" name="metric" value="mean_response_time_ms" hidden>
+            <label>Temps de réponse</label>
+        </div>
+        <div class="radio">
+            <input type="radio" name="metric" value="energy_kwh" hidden>
+            <label>kWh</label>
+        </div>
+        <div class="radio">
+            <input type="radio" name="metric" value="gwp_kgCO2eq" hidden>
+            <label>kgCO2</label>
+        </div>
+        <div class="radio">
+            <input type="radio" name="metric" value="adpe_mgSbEq" hidden>
+            <label>adpe_mgSbEq</label>
+        </div>
+        <div class="radio">
+            <input type="radio" name="metric" value="wcf_liters" hidden>
+            <label>wcf_liters</label>
+        </div>
+        <!-- <ul>
+            <li><button name="total_tokens">Tokens</button></li>
+            <li><button name="total_requests">Requêtes</button></li>
+            <li><button name="mean_response_time_ms">Temps de réponse</button></li>
+            <li><button name="energy_kwh">kWh</button></li>
+            <li><button name="gwp_kgCO2eq">kgCO2</button></li>
+            <li><button name="adpe_mgSbEq">adpe_mgSbEq</button></li>
+            <li><button name="wcf_liters">wcf_liters</button></li>
+        </ul> -->
+    </div>
+    <div class="frame plots">
+        <div class="plot-container" id="line-plot"></div>
+        <div class="plot-container" id="pie-plot"></div>
+    </div>
+</form>

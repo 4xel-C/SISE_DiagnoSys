@@ -35,3 +35,6 @@ test.py
 !data/ml_models/**
 !data/benchmark_embeddings_en.json
 !data/benchmark_embeddings.json
+
+alembic/
+alembic.ini

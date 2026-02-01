@@ -5,7 +5,7 @@ Generates Plotly.js chart data from LLM usage metrics.
 """
 
 import logging
-from typing import List, Union
+from typing import List, Union, Optional
 
 from app.rag.llm_options import MistralModel
 from app.schemas import AggregatedMetricsSchema
@@ -78,6 +78,7 @@ class PlotService:
             "data": traces,
             "layout": {
                 "title": metric,
+                "autosize": True,
                 "xaxis": {
                     "title": agg_time.value
                     if isinstance(agg_time, AggTime)
@@ -133,8 +134,25 @@ class PlotService:
             ],
             "layout": {
                 "title": f"Distribution of {metric}",
+                "autosize": True,
             },
         }
+    
+    def kpis(
+        self,
+        agg_time: Union[str, AggTime] = AggTime.DAILY,
+    ) -> Optional[AggregatedMetricsSchema]:
+        """
+        Wrapper method to get KPIs.
+
+        Args:
+            agg_time: Aggregation time (daily, monthly, yearly).
+                       Accepts string or AggTime enum.
+
+        Returns:
+            AggregatedMetricsSchema: Aggregated metrics per period and model.
+        """
+        return self.llm_usage_service.get_current_period_metrics(agg_time)
 
     def get_metrics_name(self) -> list[str]:
         """
