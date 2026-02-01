@@ -293,9 +293,9 @@ class LLMUsageService:
 
         Args:
             agg_time: Aggregation time determining the current period.
-                - DAILY: today
-                - MONTHLY: this month
-                - YEARLY: this year
+                - daily: today
+                - monthly: this month
+                - yearly: this year
 
         Returns:
             AggregatedMetricsSchema: Total metrics for the current period, or None if no data.
@@ -360,6 +360,22 @@ class LLMUsageService:
                 pd_mj=row.pd_mj or 0.0,
                 wcf_liters=row.wcf_liters or 0.0,
             )
+
+    def get_unique_models(self) -> List[str]:
+        """
+        Retrieve a list of unique model names used in the LLM usage records.
+
+        Returns:
+            List[str]: List of unique model names.
+        Example:
+            >>> models = service.get_unique_models()
+        """
+        logger.debug("Fetching unique LLM model names from usage records.")
+        with self.db_manager.session() as session:
+            records = session.query(LLMMetrics.nom_modele).distinct().all()
+            model_names = [record.nom_modele for record in records]
+            logger.debug(f"Found {len(model_names)} unique models.")
+            return model_names
 
     ################################################################
     # RECORD / UPDATE METHODS
