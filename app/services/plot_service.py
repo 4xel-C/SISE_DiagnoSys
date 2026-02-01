@@ -153,3 +153,12 @@ class PlotService:
             list[str]: List of aggregation time names.
         """
         return [time.value for time in AggTime]
+
+    def get_possible_models(self) -> list[str]:
+        """
+        Wraper method to get the list of possible model names from LLM usage data.
+
+        Returns:
+            list[str]: List of model names.
+        """
+        return self.llm_usage_service.get_unique_models()
