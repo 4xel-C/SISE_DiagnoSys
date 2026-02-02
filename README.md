@@ -3,7 +3,6 @@
 # **AI-Powered Medical Diagnostic Support System**
 
 [![Deployment](https://img.shields.io/badge/deployment-live-brightgreen)](https://diagnosys.cyrizon.fr/)
-[![Website](https://img.shields.io/website?url=https%3A%2F%2Fdiagnosys.cyrizon.fr%2F)](https://diagnosys.cyrizon.fr/)
 [![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.1.2-lightgrey.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -539,6 +538,7 @@ Project developed as part of the SISE Master's program - University of Lyon 2
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 
 
