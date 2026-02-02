@@ -16,7 +16,7 @@ DiagnoSys is a web application designed for healthcare professionals, combining 
 6. [Tech Stack](#tech-stack)
 7. [Installation](#installation)
 8. [Configuration](#configuration)
-9. [Usage](#usage)
+9. [Running the Application](#running-the-application)
 10. [Project Structure](#project-structure)
 11. [API Reference](#api-reference)
 12. [Security](#security)
@@ -71,6 +71,37 @@ DiagnoSys is built on the principle that **AI should assist, not replace**. The 
 - Prioritizes **transparency** by showing which documents and similar cases informed each suggestion
 - Works **offline-first** for speech recognition, ensuring reliability even with unstable hospital networks
 - Tracks **environmental impact** because responsible AI deployment matters in healthcare
+
+### How to Use the Application
+
+DiagnoSys offers two methods to update a patient's medical context. Both methods trigger the full RAG pipeline: document retrieval, similar case identification, and diagnostic generation.
+
+#### Text Input Mode
+
+1. **Select a patient** from the list or create a new one
+2. **Edit the context** directly in the rich text editor (Quill)
+3. **Click "Update Context"** to save your modifications
+4. The system automatically:
+   - Searches for the most relevant medical documents
+   - Identifies similar patient cases
+   - Generates 3 ranked diagnostic hypotheses
+   - Updates the "Related Documents" and "Similar Cases" panels
+
+#### Voice Input Mode
+
+1. **Select a patient** from the list or create a new one
+2. **Press the microphone button** (or use Shift+Space) to start recording
+3. **Speak naturally** — the audio is captured in real-time with visual waveform feedback
+4. **Automatic processing every 20 seconds**: audio is transcribed locally, validated by the security guardrail, then processed by the LLM to **intelligently synthesize** new information into the existing context
+5. **Stop recording** when finished — the RAG pipeline triggers automatically
+
+> **Note**: The voice mode uses LLM-based context synthesis, meaning the AI doesn't simply append the transcription but intelligently integrates new information (symptoms, observations, medical history) into a coherent and structured medical context.
+
+#### Simulation Mode (Chatbot)
+
+1. **Open the chat interface** to practice with a virtual patient
+2. The LLM embodies a patient based on an existing profile
+3. Ask questions as you would in a real consultation — the simulated patient responds naturally
 
 ---
 
@@ -269,7 +300,7 @@ ONLINE_MODE=1                      # 1=online (API), 0=offline
 
 ---
 
-## Usage
+## Running the Application
 
 ### Development Mode
 
@@ -285,15 +316,6 @@ gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker \
          -b 0.0.0.0:8000 \
          app:app
 ```
-
-### Typical Workflow
-
-1. **Select a patient** from the list or create a new one
-2. **Record the consultation** via the microphone button (Shift+Space)
-3. **Review the context** automatically updated
-4. **Generate a diagnosis** by clicking the RAG button
-5. **Consult related documents** and similar cases
-6. **Simulation mode**: open the chat to practice with a virtual patient
 
 ---
 
