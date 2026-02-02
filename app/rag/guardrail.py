@@ -212,7 +212,7 @@ class GuardrailClassifier:
         scaler_path: str = "guardrail_scaler_v2.joblib",
         feature_extractor_path: str = "guardrail_feature_extractor_v2.joblib",
         embedding_model: str = "paraphrase-multilingual-MiniLM-L12-v2",
-        threshold: float = 0.5,
+        threshold: float = 0.7,
     ) -> None:
         """
         Initialize the GuardrailClassifier.

@@ -40,7 +40,9 @@ document.addEventListener('internalRendered', (e) => {
         kpisList.querySelectorAll('li').forEach(kpiElement => {
             const kpiValue = kpiElement.querySelector('.value');
             const metricName = kpiElement.dataset.metricName;
-            kpiValue.textContent = content[metricName];
+            if (metricName in content) {
+                kpiValue.textContent = content[metricName];
+            }
         })
     }
 
