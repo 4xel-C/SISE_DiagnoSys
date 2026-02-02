@@ -192,7 +192,7 @@ def get_kpis():
 
     kpis = app.plot_service.kpis(agg_time=agg_time)
     if not kpis:
-        abort(404, f"No KPIs found for 'temporal-axis' = '{agg_time}'")
+        return jsonify({})
 
     return jsonify(kpis.format_for_display())
 
