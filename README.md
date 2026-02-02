@@ -2,6 +2,14 @@
 
 # **AI-Powered Medical Diagnostic Support System**
 
+[![Deployment](https://img.shields.io/badge/deployment-live-brightgreen)](https://diagnosys.cyrizon.fr/)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fdiagnosys.cyrizon.fr%2F)](https://diagnosys.cyrizon.fr/)
+[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Flask](https://img.shields.io/badge/flask-3.1.2-lightgrey.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+**Live Demo:** [https://diagnosys.cyrizon.fr/](https://diagnosys.cyrizon.fr/)
+
 DiagnoSys is a web application designed for healthcare professionals, combining patient record management, real-time speech recognition, and a Retrieval-Augmented Generation (RAG) pipeline to assist clinical decision-making.
 
 ---
